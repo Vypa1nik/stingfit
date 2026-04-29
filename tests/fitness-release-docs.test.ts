@@ -20,6 +20,7 @@ describe('StingFit V1 release documentation', () => {
     expect(changelog).toContain('StingFit V1')
     expect(changelog).not.toContain('LocalFlow')
     expect(existsSync(checklistPath)).toBe(true)
+    expect(existsSync('reports/stingfit-mobile-pwa-smoke.md')).toBe(true)
 
     const checklist = readText(checklistPath)
     expect(checklist).toContain('V1 status')
@@ -39,5 +40,10 @@ describe('StingFit V1 release documentation', () => {
     expect(readme).toContain('Strong CSV import')
     expect(readme).toContain('backup nudge after every 30 completed workouts')
     expect(readme).toContain('reports/stingfit-privacy-network-audit.md')
+
+    const mobileSmoke = readText('reports/stingfit-mobile-pwa-smoke.md')
+    expect(mobileSmoke).toContain('automated local HTTP smoke passed')
+    expect(mobileSmoke).toContain('physical phone pass pending')
+    expect(mobileSmoke).toContain('npm run mobile:pwa:start')
   })
 })
