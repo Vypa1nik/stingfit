@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="StingFit high-voltage wasp mark">
+  <rect width="64" height="64" rx="14" fill="#000000"/>
+  <path d="M35.8 4 10 35.5h17.6L23.2 60 54 25.5H35.6L35.8 4Z" fill="#FFFF00"/>
+  <path d="M12 15h19l-5 6H12v-6Zm22 28h18l-6 6H33l1-6Z" fill="#FF7A00"/>
+  <path d="M41 10 23 32h12l-2 13 15-18H36l5-17Z" fill="#000000" opacity="0.88"/>
+  <path d="M38 5 14 34h16l-4 22 25-28H34l4-23Z" fill="none" stroke="#FFFBEA" stroke-opacity="0.65" stroke-width="2"/>
+</svg>

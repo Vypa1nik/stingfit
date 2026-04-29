@@ -1,0 +1,8 @@
+{
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.3-codex",
+  "defaultThinkingLevel": "xhigh",
+  "enabledModels": [
+    "openai-codex/gpt-5.3-codex:xhigh"
+  ]
+}

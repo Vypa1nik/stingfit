@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "ms-playwright.playwright",
+    "ms-vscode-remote.remote-wsl",
+    "github.copilot-chat",
+    "github.vscode-github-actions",
+    "github.vscode-pull-request-github",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode",
+    "redhat.vscode-yaml",
+    "tamasfe.even-better-toml"
+  ],
+  "unwantedRecommendations": [
+    "openai.chatgpt"
+  ]
+}

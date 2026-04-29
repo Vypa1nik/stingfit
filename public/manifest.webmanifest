@@ -1,0 +1,25 @@
+{
+  "name": "StingFit",
+  "short_name": "StingFit",
+  "description": "Private, local-first fitness training plans, fast workout logging, history, and progression signals.",
+  "id": "/#/training",
+  "start_url": "/#/training",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#FFFF00",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,377 @@
+{
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "piProfile",
+      "type": "pickString",
+      "description": "Pi orchestrator profile",
+      "options": [
+        "openai",
+        "openai-fast",
+        "gemini",
+        "gemini-fast",
+        "gemini-stable",
+        "gemini-api-fallback"
+      ],
+      "default": "openai"
+    }
+  ],
+  "tasks": [
+    {
+      "label": "AI: Pi Orchestrator",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\kiko\\Documents\\New project\\tools\\Start-P-Agent.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Pi Continue",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\kiko\\Documents\\New project\\tools\\Start-P-Agent.ps1",
+        "-Continue"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Pi OpenAI 5.5",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\kiko\\Documents\\New project\\tools\\Start-P-Agent.ps1",
+        "-Profile",
+        "openai"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Pi OpenAI 5.4 Mini",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\kiko\\Documents\\New project\\tools\\Start-P-Agent.ps1",
+        "-Profile",
+        "openai-fast"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Pi Gemini Pro",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\kiko\\Documents\\New project\\tools\\Start-P-Agent.ps1",
+        "-Profile",
+        "gemini"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "GOOGLE_CLOUD_PROJECT": "devloro",
+          "GOOGLE_CLOUD_PROJECT_ID": "devloro",
+          "CLOUDSDK_CORE_PROJECT": "devloro"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Pi Gemini Fast",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\kiko\\Documents\\New project\\tools\\Start-P-Agent.ps1",
+        "-Profile",
+        "gemini-fast"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "GOOGLE_CLOUD_PROJECT": "devloro",
+          "GOOGLE_CLOUD_PROJECT_ID": "devloro",
+          "CLOUDSDK_CORE_PROJECT": "devloro"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Pi Gemini API Fallback",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\kiko\\Documents\\New project\\tools\\Start-P-Agent.ps1",
+        "-Profile",
+        "gemini-api-fallback"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Pi Select Profile",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\kiko\\Documents\\New project\\tools\\Start-P-Agent.ps1",
+        "-Profile",
+        "${input:piProfile}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Pi Profiles",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\kiko\\Documents\\New project\\tools\\Start-P-Agent.ps1",
+        "-ListProfiles"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Pi Models OpenAI",
+      "type": "shell",
+      "command": "pi.cmd",
+      "args": [
+        "--list-models",
+        "openai-codex"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Pi Models Gemini",
+      "type": "shell",
+      "command": "pi.cmd",
+      "args": [
+        "--list-models",
+        "google-gemini-cli"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "GOOGLE_CLOUD_PROJECT": "devloro",
+          "GOOGLE_CLOUD_PROJECT_ID": "devloro",
+          "CLOUDSDK_CORE_PROJECT": "devloro"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Pi Gemini Relogin",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\kiko\\Documents\\New project\\tools\\Repair-PiGeminiAuth.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Pi Smoke Test",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\kiko\\Documents\\New project\\tools\\Test-PiAgent.ps1",
+        "-NoLive"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "StingFit: Build",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "run",
+        "build"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "StingFit: Test",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "run",
+        "test:run"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "StingFit: Check",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "run",
+        "check"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false,
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

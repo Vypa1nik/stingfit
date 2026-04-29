@@ -1,0 +1,10 @@
+{
+  "terminal.integrated.env.windows": {
+    "PI_AGENT_PROFILE": "openai",
+    "PI_CODING_AGENT_DIR": "C:\\Users\\kiko\\Documents\\New project\\.pi\\profiles\\codex-1",
+    "PI_SKIP_VERSION_CHECK": "1",
+    "GOOGLE_CLOUD_PROJECT": "devloro",
+    "GOOGLE_CLOUD_PROJECT_ID": "devloro",
+    "CLOUDSDK_CORE_PROJECT": "devloro"
+  }
+}
