@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { AlertTriangle, Dumbbell, Plus, Zap } from 'lucide-react'
+import { AlertTriangle, Download, Dumbbell, Plus, Zap } from 'lucide-react'
 
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -8,14 +8,31 @@ import { Card } from '@/components/ui/Card'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { LiveTrainingSession } from '@/features/fitness/LiveTrainingSession'
+import { FITNESS_BACKUP_NUDGE_STORAGE_KEY, shouldShowBackupNudge } from '@/features/fitness/fitnessBackupNudge'
 import { buildPlanReadinessReport } from '@/features/fitness/fitnessPlanReadiness'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
 import { pickRecommendedWorkout, type FitnessWorkoutRecommendation } from '@/features/fitness/fitnessWorkoutRecommendation'
 import type { AddUnplannedExerciseInput, FinishFitnessSessionInput, FitnessExerciseRecord, FitnessLiveSession, FitnessSettingsRecord, FitnessStartableWorkout, LogFitnessSetInput } from '@/features/fitness/fitnessTypes'
 import { useSpaNavigate } from '@/hooks/useSpaNavigate'
+import { sk } from '@/i18n/sk'
+import { downloadBlob } from '@/lib/download'
 
 interface FitnessDashboardProps {
   autoStartQuick?: boolean
+}
+
+function readBackupNudgeDismissedCount() {
+  const stored = window.localStorage.getItem(FITNESS_BACKUP_NUDGE_STORAGE_KEY)
+  const count = Number(stored)
+  return Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0
+}
+
+function writeBackupNudgeDismissedCount(completedSessionCount: number) {
+  window.localStorage.setItem(FITNESS_BACKUP_NUDGE_STORAGE_KEY, String(Math.max(0, Math.floor(completedSessionCount))))
+}
+
+function createBackupFileName() {
+  return `stingfit-backup-${new Date().toISOString().slice(0, 10)}.json`
 }
 
 export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardProps = {}) {
@@ -25,6 +42,8 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
   const [startableWorkouts, setStartableWorkouts] = useState<FitnessStartableWorkout[]>([])
   const [notReadyReasons, setNotReadyReasons] = useState<string[]>([])
   const [recommendedWorkout, setRecommendedWorkout] = useState<FitnessWorkoutRecommendation | null>(null)
+  const [completedSessionCount, setCompletedSessionCount] = useState(0)
+  const [backupNudgeDismissedCount, setBackupNudgeDismissedCount] = useState(() => readBackupNudgeDismissedCount())
   const [exerciseOptions, setExerciseOptions] = useState<FitnessExerciseRecord[]>([])
   const [settings, setSettings] = useState<FitnessSettingsRecord>({
     displayUnit: 'kg',
@@ -63,6 +82,8 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
     setStartableWorkouts(workouts)
     setNotReadyReasons(readinessReasons)
     setRecommendedWorkout(pickRecommendedWorkout(workouts, completedSessions))
+    setCompletedSessionCount(completedSessions.length)
+    setBackupNudgeDismissedCount(readBackupNudgeDismissedCount())
     setExerciseOptions(exercises)
     setSettings(loadedSettings)
     setIsRecoveryPromptVisible(Boolean(resolvedActive) && !autoStartQuick)
@@ -124,6 +145,14 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
     await runMutation(() => fitnessRepository.updateLoggedSet(setId, input), 'Séria upravená')
   }
 
+  const duplicateSet = async (setId: string) => {
+    await runMutation(() => fitnessRepository.duplicateSessionSet(setId), 'Séria duplikovaná')
+  }
+
+  const skipSet = async (setId: string) => {
+    await runMutation(() => fitnessRepository.skipSessionSet(setId), 'Séria preskočená')
+  }
+
   const addSet = async (sessionExerciseId: string) => {
     setIsMutating(true)
     setError(null)
@@ -183,6 +212,29 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
     />
   )
 
+  const dismissBackupNudge = () => {
+    writeBackupNudgeDismissedCount(completedSessionCount)
+    setBackupNudgeDismissedCount(completedSessionCount)
+    setSuccessMessage(sk.fitness.backupNudge.snoozeSuccess)
+  }
+
+  const exportBackupFromNudge = async () => {
+    setIsMutating(true)
+    setError(null)
+    setSuccessMessage(null)
+    try {
+      const payload = await fitnessRepository.exportFitnessData()
+      downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), createBackupFileName())
+      writeBackupNudgeDismissedCount(completedSessionCount)
+      setBackupNudgeDismissedCount(completedSessionCount)
+      setSuccessMessage(sk.fitness.backupNudge.exportSuccess)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : sk.fitness.backupNudge.exportError)
+    } finally {
+      setIsMutating(false)
+    }
+  }
+
   const createStarterPlan = async () => {
     setIsMutating(true)
     setError(null)
@@ -201,6 +253,15 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
       setIsMutating(false)
     }
   }
+
+  const backupNudge = shouldShowBackupNudge(completedSessionCount, backupNudgeDismissedCount) ? (
+    <BackupNudgeCard
+      completedSessionCount={completedSessionCount}
+      isMutating={isMutating}
+      onExport={() => void exportBackupFromNudge()}
+      onDismiss={dismissBackupNudge}
+    />
+  ) : null
 
   if (isLoading) {
     return (
@@ -271,6 +332,8 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
           isMutating={isMutating}
           onLogSet={logSet}
           onUpdateSet={updateSet}
+          onDuplicateSet={duplicateSet}
+          onSkipSet={skipSet}
           onAddSet={addSet}
           onRemoveSet={removeSet}
           onSkipExercise={skipExercise}
@@ -296,6 +359,7 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
               StingFit našiel osobný plán, ale zatiaľ nie je spustiteľný žiadny tréning. Najprv oprav blokery v Plánoch.
             </p>
           </section>
+          {backupNudge}
           <NotReadyWorkoutsCard reasons={notReadyReasons} onOpenPlans={() => navigate('/plans')} />
         </div>
       )
@@ -312,6 +376,7 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
           ctaLabel="Pripraviť Tlak / Ťah / Nohy"
           onCta={() => void createStarterPlan()}
         />
+        {backupNudge}
         <Card title="Rýchly tréning" description="Bez plánu: otvor živý zápisník a pridaj cviky z lokálnej knižnice až vo fitku.">
           <Button className="fitness-action" leadingIcon={<Zap className="size-4" />} onClick={() => navigate('/quick')} disabled={isMutating}>
             Spustiť rýchly tréning
@@ -343,6 +408,8 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
           ) : null}
         </div>
       </section>
+
+      {backupNudge}
 
       {recommendedWorkout ? (
         <UpNextWorkoutCard recommendation={recommendedWorkout} showGuidance={settings.showGuidance} isMutating={isMutating} onStartWorkout={startWorkout} />
@@ -434,6 +501,42 @@ function UpNextWorkoutCard({
 
 function formatStartSummary(workout: FitnessStartableWorkout) {
   return `${workout.exerciseCount} ${workout.exerciseCount === 1 ? 'cvik' : workout.exerciseCount < 5 ? 'cviky' : 'cvikov'} · ${workout.plannedSetCount} plánovaných ${workout.plannedSetCount === 1 ? 'séria' : workout.plannedSetCount < 5 ? 'série' : 'sérií'}`
+}
+
+function formatCompletedWorkoutCount(count: number) {
+  if (count === 1) return '1 dokončený tréning'
+  if (count > 1 && count < 5) return `${count} dokončené tréningy`
+  return `${count} dokončených tréningov`
+}
+
+function BackupNudgeCard({
+  completedSessionCount,
+  isMutating,
+  onExport,
+  onDismiss,
+}: {
+  completedSessionCount: number
+  isMutating: boolean
+  onExport: () => void
+  onDismiss: () => void
+}) {
+  return (
+    <Card title={sk.fitness.backupNudge.title} description={sk.fitness.backupNudge.description}>
+      <div className="rounded-3xl border border-fitness-yellow/35 bg-fitness-yellow/10 p-5 text-fitness-warm">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/75">{formatCompletedWorkoutCount(completedSessionCount)}</p>
+        <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] text-fitness-yellow">{sk.fitness.backupNudge.heading}</h2>
+        <p className="mt-2 text-sm leading-6 text-fitness-warm/75">{sk.fitness.backupNudge.body}</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Button className="fitness-action" leadingIcon={<Download className="size-4" />} onClick={onExport} disabled={isMutating}>
+            {sk.fitness.backupNudge.exportButton}
+          </Button>
+          <Button variant="secondary" onClick={onDismiss} disabled={isMutating}>
+            {sk.fitness.backupNudge.snoozeButton}
+          </Button>
+        </div>
+      </div>
+    </Card>
+  )
 }
 
 function NotReadyWorkoutsCard({ reasons, onOpenPlans }: { reasons: string[]; onOpenPlans: () => void }) {

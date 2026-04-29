@@ -37,6 +37,7 @@ interface PlanExerciseDraft {
   maxReps: string
   targetRir: string
   restSeconds: string
+  supersetGroup: string
 }
 
 interface AddDayDraft {
@@ -474,6 +475,7 @@ export function FitnessPlansPage() {
         maxReps: Number(draft.maxReps),
         targetRir: draft.targetRir.trim() ? Number(draft.targetRir) : null,
         restSeconds: Number(draft.restSeconds),
+        supersetGroup: draft.supersetGroup,
       })
       setSuccessMessage(`${exercise?.name ?? 'Cvik'} pridaný do ${workout.name}`)
       await loadPlans(selectedPlanId)
@@ -538,6 +540,7 @@ export function FitnessPlansPage() {
         maxReps: Number(draft.maxReps),
         targetRir: draft.targetRir.trim() ? Number(draft.targetRir) : null,
         restSeconds: Number(draft.restSeconds),
+        supersetGroup: draft.supersetGroup,
       })
       setSuccessMessage(`Ciele pre ${exercise.exerciseName} aktualizované`)
       await loadPlans(selectedPlanId)
@@ -1594,12 +1597,13 @@ function PlanExerciseEditor({
         <Dumbbell className="size-4 text-fitness-orange" />
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-5">
+      <div className="mt-4 grid gap-3 sm:grid-cols-6">
         <TargetInput label="Série" ariaLabel={`Cieľové série pre ${exercise.exerciseName}`} value={currentDraft.targetSets} onChange={(value) => onDraftChange(exercise.id, 'targetSets', value)} />
         <TargetInput label="Min. opak." ariaLabel={`Minimum opakovaní pre ${exercise.exerciseName}`} value={currentDraft.minReps} onChange={(value) => onDraftChange(exercise.id, 'minReps', value)} />
         <TargetInput label="Max. opak." ariaLabel={`Maximum opakovaní pre ${exercise.exerciseName}`} value={currentDraft.maxReps} onChange={(value) => onDraftChange(exercise.id, 'maxReps', value)} />
         <TargetInput label="RIR" ariaLabel={`Cieľové RIR pre ${exercise.exerciseName}`} value={currentDraft.targetRir} onChange={(value) => onDraftChange(exercise.id, 'targetRir', value)} />
         <TargetInput label="Pauza" ariaLabel={`Pauza v sekundách pre ${exercise.exerciseName}`} value={currentDraft.restSeconds} onChange={(value) => onDraftChange(exercise.id, 'restSeconds', value)} />
+        <SupersetGroupInput ariaLabel={`Superset skupina pre ${exercise.exerciseName}`} value={currentDraft.supersetGroup} onChange={(value) => onDraftChange(exercise.id, 'supersetGroup', value)} />
       </div>
 
       <div className="mt-4 flex flex-wrap gap-3">
@@ -1617,6 +1621,21 @@ function PlanExerciseEditor({
         </Button>
       </div>
     </article>
+  )
+}
+
+function SupersetGroupInput({ ariaLabel, value, onChange }: { ariaLabel: string; value: string; onChange: (value: string) => void }) {
+  return (
+    <label className="block text-[10px] font-black uppercase tracking-[0.16em] text-fitness-yellow/70">
+      Superset
+      <input
+        aria-label={ariaLabel}
+        className="mt-2 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-3 py-3 text-sm font-black uppercase text-fitness-yellow outline-none focus:border-fitness-yellow"
+        value={value}
+        onInput={(event) => onChange(event.currentTarget.value)}
+        placeholder="A"
+      />
+    </label>
   )
 }
 
@@ -1692,6 +1711,7 @@ function exerciseToDraft(exercise: FitnessPlanExerciseRecord): PlanExerciseDraft
     maxReps: String(exercise.maxReps),
     targetRir: exercise.targetRir === null ? '' : String(exercise.targetRir),
     restSeconds: String(exercise.restSeconds),
+    supersetGroup: exercise.supersetGroup ?? '',
   }
 }
 
@@ -1720,6 +1740,7 @@ function defaultAddExerciseDraft(exerciseOptions: FitnessExerciseRecord[]): AddE
     maxReps: '12',
     targetRir: '2',
     restSeconds: String(exerciseOptions[0]?.defaultRestSeconds ?? 120),
+    supersetGroup: '',
   }
 }
 
@@ -1748,7 +1769,8 @@ function getNextAvailableDayNumber(week: FitnessPlanWeekRecord) {
 }
 
 function formatPlanExerciseTarget(exercise: FitnessPlanExerciseRecord) {
-  return `${exercise.targetSets}×${exercise.minReps}–${exercise.maxReps} · RIR ${exercise.targetRir ?? 'voľné'} · ${exercise.restSeconds}s pauza`
+  const superset = exercise.supersetGroup ? ` · Superset ${exercise.supersetGroup}` : ''
+  return `${exercise.targetSets}×${exercise.minReps}–${exercise.maxReps} · RIR ${exercise.targetRir ?? 'voľné'} · ${exercise.restSeconds}s pauza${superset}`
 }
 
 function formatMoveDirection(direction: FitnessPlanMoveDirection) {

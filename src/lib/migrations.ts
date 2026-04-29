@@ -82,6 +82,7 @@ const fitnessSchema = [
     target_rir INTEGER DEFAULT NULL,
     rest_seconds INTEGER NOT NULL DEFAULT 120,
     notes TEXT NOT NULL DEFAULT '',
+    superset_group TEXT DEFAULT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (plan_workout_id) REFERENCES fitness_plan_workouts(id) ON DELETE CASCADE,
@@ -118,6 +119,7 @@ const fitnessSchema = [
     target_rir INTEGER DEFAULT NULL,
     rest_seconds INTEGER NOT NULL DEFAULT 120,
     notes TEXT NOT NULL DEFAULT '',
+    superset_group TEXT DEFAULT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (session_id) REFERENCES fitness_sessions(id) ON DELETE CASCADE,
@@ -219,6 +221,19 @@ function ensureFitnessExerciseMuscleGroupSchema(database: SqlRunner) {
   }
 }
 
+function ensureFitnessSupersetSchema(database: SqlRunner) {
+  const planExerciseColumns = getTableColumns(database, 'fitness_plan_exercises')
+  const sessionExerciseColumns = getTableColumns(database, 'fitness_session_exercises')
+
+  if (!planExerciseColumns.includes('superset_group')) {
+    database.run(`ALTER TABLE fitness_plan_exercises ADD COLUMN superset_group TEXT DEFAULT NULL`)
+  }
+
+  if (!sessionExerciseColumns.includes('superset_group')) {
+    database.run(`ALTER TABLE fitness_session_exercises ADD COLUMN superset_group TEXT DEFAULT NULL`)
+  }
+}
+
 function ensureFitnessSessionExerciseSnapshotSchema(database: SqlRunner) {
   const exerciseColumns = getTableColumns(database, 'fitness_session_exercises')
 
@@ -266,6 +281,7 @@ export async function runMigrations(database: SqlRunner) {
 
   ensureFitnessSetMetadataSchema(database)
   ensureFitnessExerciseMuscleGroupSchema(database)
+  ensureFitnessSupersetSchema(database)
   ensureFitnessSessionExerciseSnapshotSchema(database)
   ensureFitnessSessionReviewSchema(database)
 }

@@ -50,6 +50,8 @@ describe('fitness dead-code cleanup', () => {
       'src/lib/reminders.ts',
       'src/lib/backup.ts',
       'src/lib/export.ts',
+      'mobile-expo',
+      'expo-app',
     ]
 
     expect(removedSourcePaths.filter((path) => existsSync(path))).toEqual([])

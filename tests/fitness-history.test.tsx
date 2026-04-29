@@ -21,7 +21,7 @@ function render(element: ReactNode) {
   return { container, root }
 }
 
-async function createFinishedPushSession(weightKg = 100) {
+async function createFinishedPushSession(weightKg = 100, checkIn: { sessionRpe: number; energyLevel: number } = { sessionRpe: 8, energyLevel: 4 }) {
   await fitnessRepository.seedStarterData()
   const starter = (await fitnessRepository.listStarterPlans()).find((plan) => plan.name === 'Tlak / Ťah / Nohy')
   if (!starter) {
@@ -45,8 +45,8 @@ async function createFinishedPushSession(weightKg = 100) {
   }
 
   await fitnessRepository.finishSession(session.id, {
-    sessionRpe: 8,
-    energyLevel: 4,
+    sessionRpe: checkIn.sessionRpe,
+    energyLevel: checkIn.energyLevel,
     notes: 'Fast reps, solid shoulder position.',
   })
 }
@@ -105,7 +105,28 @@ describe('fitness history and stats UI', () => {
     expect(stats.container.textContent).toContain('Posledný týždeň')
     expect(stats.container.textContent).toContain('Cieľ 10–20 sérií/týždeň')
     expect(stats.container.textContent).toContain('Pod 10 sérií/týždeň')
+    expect(stats.container.textContent).toContain('Akcia: Pridaj objem')
+    expect(stats.container.textContent).toContain('Pridaj 2–4 pracovné série')
     expect(stats.container.querySelector('[data-testid="muscle-group-volume"]')).toBeTruthy()
+  })
+
+  test('renders recovery signals in stats when recent strain is high', async () => {
+    await clearAllData()
+    await createFinishedPushSession(100, { sessionRpe: 9, energyLevel: 2 })
+
+    const stats = render(<FitnessStatsPage />)
+    roots.push(stats.root)
+    containers.push(stats.container)
+
+    await act(async () => {
+      await waitForAsyncUi()
+    })
+
+    expect(stats.container.textContent).toContain('Regeneračné signály')
+    expect(stats.container.textContent).toContain('Zaraď ľahší tréning')
+    expect(stats.container.textContent).toContain('Drž objem a sleduj výkon')
+    expect(stats.container.textContent).toContain('RPE 9/10')
+    expect(stats.container.textContent).toContain('energia 2/5')
   })
 
   test('renders exercise volume leaders in stats', async () => {

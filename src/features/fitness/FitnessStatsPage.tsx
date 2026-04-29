@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
 import { buildProgressSnapshot } from '@/features/fitness/fitnessProgress'
-import type { FitnessLiveSession, FitnessMuscleVolumeStatus, FitnessOneRepMaxSeries, FitnessSettingsRecord, FitnessTrainingHeatmapIntensity, FitnessTrainingHeatmapWeek } from '@/features/fitness/fitnessTypes'
+import type { FitnessLiveSession, FitnessMuscleVolumeStatus, FitnessOneRepMaxSeries, FitnessRecoverySignalSeverity, FitnessSettingsRecord, FitnessTrainingHeatmapIntensity, FitnessTrainingHeatmapWeek } from '@/features/fitness/fitnessTypes'
 import { formatVolumeWeight, formatWeight } from '@/features/fitness/fitnessUnits'
 import { useSpaNavigate } from '@/hooks/useSpaNavigate'
 
@@ -232,12 +232,38 @@ export function FitnessStatsPage() {
                       <div className="mt-3 h-2 overflow-hidden rounded-full bg-fitness-yellow/10">
                         <div className="h-full rounded-full bg-fitness-yellow" style={{ width: `${barWidth}%` }} />
                       </div>
+                      <div className="mt-3 rounded-2xl border border-fitness-yellow/15 bg-fitness-yellow/5 px-3 py-3">
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-fitness-yellow/70">Akcia: {summary.actionLabel}</p>
+                        <p className="mt-1 text-xs font-semibold leading-5 text-fitness-warm/65">{summary.actionReason}</p>
+                      </div>
                     </article>
                   )
                 })}
               </div>
             ) : (
               <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Zapíš pracovné série a StingFit ich rozdelí podľa svalových skupín.</p>
+            )}
+          </Card>
+
+          <Card title="Regeneračné signály" description="Kombinuje objem posledného týždňa, RPE a energiu, aby si vedel kedy pritlačiť a kedy ubrať.">
+            {snapshot.recoverySignals.length > 0 ? (
+              <div data-testid="recovery-signals" className="space-y-3">
+                {snapshot.recoverySignals.map((signal) => (
+                  <article key={signal.id} className="rounded-2xl border border-fitness-yellow/20 bg-black px-4 py-4 text-fitness-warm">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h2 className="text-sm font-black text-fitness-yellow">{signal.title}</h2>
+                        <p className="mt-1 text-xs font-bold text-fitness-warm/60">{signal.recommendation}</p>
+                        {signal.muscleGroupLabel ? <p className="mt-1 text-xs font-semibold text-fitness-warm/50">Svalová skupina: {signal.muscleGroupLabel}</p> : null}
+                      </div>
+                      <Badge className={getRecoverySignalBadgeClass(signal.severity)}>{formatRecoverySignalSeverity(signal.severity)}</Badge>
+                    </div>
+                    <p className="mt-3 rounded-2xl border border-fitness-yellow/10 bg-fitness-yellow/5 px-3 py-3 text-xs font-semibold leading-5 text-fitness-warm/65">{signal.reason}</p>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Bez regeneračného varovania. Sleduj techniku, spánok a výkon v ďalšom tréningu.</p>
             )}
           </Card>
 
@@ -351,6 +377,18 @@ function formatMuscleVolumeStatus(status: FitnessMuscleVolumeStatus) {
   if (status === 'low') return 'Pod 10 sérií/týždeň'
   if (status === 'high') return 'Nad 20 sérií/týždeň'
   return 'Cieľový objem'
+}
+
+function getRecoverySignalBadgeClass(severity: FitnessRecoverySignalSeverity) {
+  if (severity === 'deload') return 'border border-rose-500/40 bg-rose-500/15 text-rose-100'
+  if (severity === 'reduce') return 'border border-fitness-orange/40 bg-fitness-orange/15 text-fitness-warm'
+  return 'border border-fitness-yellow/40 bg-fitness-yellow/10 text-fitness-yellow'
+}
+
+function formatRecoverySignalSeverity(severity: FitnessRecoverySignalSeverity) {
+  if (severity === 'deload') return 'Limit regenerácie'
+  if (severity === 'reduce') return 'Uber objem'
+  return 'Sleduj únavu'
 }
 
 function OneRepMaxMiniChart({ series }: { series: FitnessOneRepMaxSeries }) {

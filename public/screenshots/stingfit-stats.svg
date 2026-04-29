@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="StingFit štatistiky screenshot">
+  <rect width="1280" height="720" fill="#000000"/>
+  <circle cx="1120" cy="80" r="260" fill="#FFFF00" opacity="0.12"/>
+  <text x="72" y="92" fill="#FFFF00" font-family="Arial, sans-serif" font-size="18" font-weight="900" letter-spacing="3">ŠTATISTIKY</text>
+  <text x="72" y="154" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="58" font-weight="900">Progres bez rozptyľovania</text>
+  <rect x="72" y="206" width="244" height="132" rx="26" fill="#080808" stroke="#FFFF00" stroke-opacity="0.38"/>
+  <text x="100" y="252" fill="#FFFF00" font-family="Arial" font-size="16" font-weight="900">OBJEM</text>
+  <text x="100" y="306" fill="#FFFFFF" font-family="Arial" font-size="42" font-weight="900">24 800 kg</text>
+  <rect x="344" y="206" width="244" height="132" rx="26" fill="#080808" stroke="#FFFF00" stroke-opacity="0.38"/>
+  <text x="372" y="252" fill="#FFFF00" font-family="Arial" font-size="16" font-weight="900">1RM</text>
+  <text x="372" y="306" fill="#FFFFFF" font-family="Arial" font-size="42" font-weight="900">133 kg</text>
+  <rect x="616" y="206" width="244" height="132" rx="26" fill="#080808" stroke="#FFFF00" stroke-opacity="0.38"/>
+  <text x="644" y="252" fill="#FFFF00" font-family="Arial" font-size="16" font-weight="900">KONZISTENTNOSŤ</text>
+  <text x="644" y="306" fill="#FFFFFF" font-family="Arial" font-size="42" font-weight="900">4/7 dní</text>
+  <rect x="72" y="386" width="520" height="230" rx="30" fill="#080808" stroke="#FFFF00" stroke-opacity="0.28"/>
+  <text x="104" y="432" fill="#FFFF00" font-family="Arial" font-size="20" font-weight="900">Objem podľa svalovej skupiny</text>
+  <rect x="104" y="472" width="400" height="18" rx="9" fill="#FFFF00"/>
+  <rect x="104" y="514" width="310" height="18" rx="9" fill="#FF7A00"/>
+  <rect x="104" y="556" width="240" height="18" rx="9" fill="#FFFBEA" opacity="0.85"/>
+  <rect x="644" y="386" width="520" height="230" rx="30" fill="#080808" stroke="#FFFF00" stroke-opacity="0.28"/>
+  <text x="676" y="432" fill="#FFFF00" font-family="Arial" font-size="20" font-weight="900">Regeneračné signály</text>
+  <text x="676" y="486" fill="#FFFFFF" font-family="Arial" font-size="32" font-weight="900">Drž objem</text>
+  <text x="676" y="526" fill="#FFFBEA" opacity="0.72" font-family="Arial" font-size="18">RPE, energia a objem ostávajú pod kontrolou.</text>
+  <rect x="676" y="552" width="170" height="38" rx="19" fill="#FFFF00"/>
+  <text x="704" y="577" fill="#000000" font-family="Arial" font-size="14" font-weight="900">Lokálne dáta</text>
+</svg>

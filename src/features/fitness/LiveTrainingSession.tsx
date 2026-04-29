@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { AlertTriangle, CheckCircle2, FastForward, ListPlus, Plus, Trash2, Trophy, Zap } from 'lucide-react'
 
@@ -10,6 +10,7 @@ import { SetLogger } from '@/features/fitness/SetLogger'
 import { formatFitnessSetTypeLabel, getFitnessSetTypeBadgeClass } from '@/features/fitness/fitnessSetTypes'
 import type { AddUnplannedExerciseInput, FinishFitnessSessionInput, FitnessExerciseRecord, FitnessLiveSession, FitnessSessionSetRecord, LogFitnessSetInput } from '@/features/fitness/fitnessTypes'
 import { formatWeight, type FitnessDisplayUnit } from '@/features/fitness/fitnessUnits'
+import { sk } from '@/i18n/sk'
 import { cn } from '@/lib/utils'
 
 interface LiveTrainingSessionProps {
@@ -22,6 +23,8 @@ interface LiveTrainingSessionProps {
   isMutating?: boolean
   onLogSet: (setId: string, input: LogFitnessSetInput) => Promise<void>
   onUpdateSet: (setId: string, input: LogFitnessSetInput) => Promise<void>
+  onDuplicateSet: (setId: string) => Promise<void>
+  onSkipSet: (setId: string) => Promise<void>
   onAddSet: (sessionExerciseId: string) => Promise<void>
   onRemoveSet: (setId: string) => Promise<void>
   onSkipExercise: (sessionExerciseId: string) => Promise<void>
@@ -40,6 +43,8 @@ export function LiveTrainingSession({
   isMutating = false,
   onLogSet,
   onUpdateSet,
+  onDuplicateSet,
+  onSkipSet,
   onAddSet,
   onRemoveSet,
   onSkipExercise,
@@ -55,6 +60,10 @@ export function LiveTrainingSession({
   const [finishNotes, setFinishNotes] = useState(session.notes)
   const [editingSetId, setEditingSetId] = useState<string | null>(null)
   const activeExercise = session.exercises.find((exercise) => exercise.status === 'active') ?? session.exercises.find((exercise) => exercise.status === 'pending')
+  const activeSupersetExercises = activeExercise?.supersetGroup
+    ? session.exercises.filter((exercise) => exercise.supersetGroup === activeExercise.supersetGroup)
+    : []
+  const isActiveSuperset = activeSupersetExercises.length > 1
   const currentSet = activeExercise?.sets.find((set) => set.status === 'planned')
   const completedActiveSets = activeExercise?.sets.filter((set) => set.status === 'completed') ?? []
   const editingSet = completedActiveSets.find((set) => set.id === editingSetId) ?? null
@@ -137,6 +146,7 @@ export function LiveTrainingSession({
             <div className="flex flex-wrap items-center gap-3">
               <Badge className="fitness-badge">Živý tréning</Badge>
               {showGuidance ? <Badge className="fitness-badge">Aktívna snímka tréningu</Badge> : null}
+              {isActiveSuperset ? <Badge className="fitness-badge">Superset {activeExercise.supersetGroup}</Badge> : null}
               <span className="text-sm font-semibold text-fitness-yellow/80">{completedSetCount} dokončených · {totalSets} sérií spolu</span>
               <span className="text-sm font-semibold text-fitness-yellow/80">Zobrazená jednotka: {displayUnit}</span>
             </div>
@@ -171,12 +181,16 @@ export function LiveTrainingSession({
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Pokrok</p>
                 <p className="mt-2 text-lg font-black text-white">{completedSetCount} dokončených</p>
               </div>
-              <RestTimer
-                seconds={activeExercise.restSeconds}
-                startedAt={lastCompletedSet?.completedAt}
-                soundEnabled={restSoundEnabled}
-                vibrationEnabled={restVibrationEnabled}
-              />
+              {isActiveSuperset ? (
+                <SupersetTransitionCard group={activeExercise.supersetGroup ?? ''} exercises={activeSupersetExercises.map((exercise) => exercise.nameSnapshot)} />
+              ) : (
+                <RestTimer
+                  seconds={activeExercise.restSeconds}
+                  startedAt={lastCompletedSet?.completedAt}
+                  soundEnabled={restSoundEnabled}
+                  vibrationEnabled={restVibrationEnabled}
+                />
+              )}
             </div>
           </div>
 
@@ -207,7 +221,7 @@ export function LiveTrainingSession({
                   <div>
                     <h3 className="text-sm font-black text-fitness-yellow">{index + 1}. {exercise.nameSnapshot}</h3>
                     <p className="mt-1 text-xs text-fitness-warm/65">
-                      {exercise.sets.filter((set) => set.status === 'completed').length}/{exercise.sets.length} sérií · {formatExerciseStatus(exercise.status)}
+                      {exercise.sets.filter((set) => set.status === 'completed').length}/{exercise.sets.length} sérií · {formatExerciseStatus(exercise.status)}{exercise.supersetGroup ? ` · Superset ${exercise.supersetGroup}` : ''}
                     </p>
                   </div>
                   {exercise.status === 'active' ? <Badge className="fitness-badge">Aktívny</Badge> : null}
@@ -224,6 +238,8 @@ export function LiveTrainingSession({
             displayUnit={displayUnit}
             isMutating={isMutating}
             onStartEdit={setEditingSetId}
+            onDuplicateSet={onDuplicateSet}
+            onSkipSet={onSkipSet}
             onCancelEdit={() => setEditingSetId(null)}
             onSubmitEdit={submitSetEdit}
           />
@@ -323,12 +339,24 @@ export function LiveTrainingSession({
   )
 }
 
+function SupersetTransitionCard({ group, exercises }: { group: string; exercises: string[] }) {
+  return (
+    <div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
+      <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Superset {group}</p>
+      <p className="mt-2 text-lg font-black text-white">Bez pauzy medzi cvikmi</p>
+      <p className="mt-1 text-xs font-semibold leading-5 text-fitness-warm/60">Striedaj: {exercises.join(' ↔ ')}</p>
+    </div>
+  )
+}
+
 interface CompletedSetsEditorProps {
   sets: FitnessSessionSetRecord[]
   editingSet: FitnessSessionSetRecord | null
   displayUnit: FitnessDisplayUnit
   isMutating: boolean
   onStartEdit: (setId: string) => void
+  onDuplicateSet: (setId: string) => Promise<void>
+  onSkipSet: (setId: string) => Promise<void>
   onCancelEdit: () => void
   onSubmitEdit: (setId: string, input: LogFitnessSetInput) => Promise<void>
 }
@@ -339,15 +367,57 @@ function CompletedSetsEditor({
   displayUnit,
   isMutating,
   onStartEdit,
+  onDuplicateSet,
+  onSkipSet,
   onCancelEdit,
   onSubmitEdit,
 }: CompletedSetsEditorProps) {
+  const swipeStartRef = useRef<{ setId: string; x: number } | null>(null)
+  const swipeThresholdPx = 72
+
+  const startSwipe = (setId: string, x: number) => {
+    if (isMutating) {
+      return
+    }
+    swipeStartRef.current = { setId, x }
+  }
+
+  const finishSwipe = (setId: string, x: number) => {
+    const swipeStart = swipeStartRef.current
+    if (!swipeStart || swipeStart.setId !== setId || isMutating) {
+      swipeStartRef.current = null
+      return
+    }
+
+    const deltaX = x - swipeStart.x
+    swipeStartRef.current = null
+    if (Math.abs(deltaX) < swipeThresholdPx) {
+      return
+    }
+
+    if (deltaX > 0) {
+      void onDuplicateSet(setId)
+      return
+    }
+
+    void onSkipSet(setId)
+  }
+
   return (
-    <Card title="Dokončené série aktuálneho cviku" description="Ak sa preklikneš vo váhe, RIR alebo type série, oprav záznam bez rušenia tréningu.">
+    <Card title={sk.fitness.setGestures.completedSetsTitle} description={sk.fitness.setGestures.completedSetsDescription}>
       {sets.length > 0 ? (
         <div className="space-y-3">
           {sets.map((set) => (
-            <article key={set.id} className="rounded-2xl border border-fitness-yellow/20 bg-black/70 px-4 py-3 text-fitness-warm">
+            <article
+              key={set.id}
+              data-testid={`completed-set-${set.setNumber}`}
+              className="touch-pan-y select-none rounded-2xl border border-fitness-yellow/20 bg-black/70 px-4 py-3 text-fitness-warm"
+              aria-label={sk.fitness.setGestures.completedSetAria(set.setNumber)}
+              onMouseDown={(event) => startSwipe(set.id, event.clientX)}
+              onMouseUp={(event) => finishSwipe(set.id, event.clientX)}
+              onTouchStart={(event) => startSwipe(set.id, event.changedTouches[0]?.clientX ?? 0)}
+              onTouchEnd={(event) => finishSwipe(set.id, event.changedTouches[0]?.clientX ?? 0)}
+            >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Séria {set.setNumber}</p>
@@ -363,8 +433,14 @@ function CompletedSetsEditor({
                   <span className={cn('rounded-full border px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em]', getFitnessSetTypeBadgeClass(set.setType))}>
                     {formatFitnessSetTypeLabel(set.setType)}
                   </span>
-                  <Button variant="secondary" size="sm" onClick={() => onStartEdit(set.id)} disabled={isMutating} aria-label={`Upraviť sériu ${set.setNumber}`}>
-                    Upraviť
+                  <Button variant="secondary" size="sm" onClick={() => void onDuplicateSet(set.id)} disabled={isMutating} aria-label={sk.fitness.setGestures.duplicateAria(set.setNumber)}>
+                    {sk.fitness.setGestures.duplicateButton}
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => void onSkipSet(set.id)} disabled={isMutating} aria-label={sk.fitness.setGestures.skipAria(set.setNumber)}>
+                    {sk.fitness.setGestures.skipButton}
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => onStartEdit(set.id)} disabled={isMutating} aria-label={sk.fitness.setGestures.editAria(set.setNumber)}>
+                    {sk.fitness.setGestures.editButton}
                   </Button>
                 </div>
               </div>
@@ -389,7 +465,7 @@ function CompletedSetsEditor({
           ) : null}
         </div>
       ) : (
-        <p className="text-sm text-fitness-warm/65">Zatiaľ nie je dokončená žiadna séria aktuálneho cviku.</p>
+        <p className="text-sm text-fitness-warm/65">{sk.fitness.setGestures.emptyCompletedSets}</p>
       )}
     </Card>
   )

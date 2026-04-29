@@ -149,6 +149,64 @@ describe('fitness live session repository', () => {
     )
   })
 
+  test('duplicates and skips a logged set for mobile gesture actions', async () => {
+    await createPplPlan()
+    const workout = (await fitnessRepository.listStartableWorkouts())[0]
+    const started = await fitnessRepository.startSessionFromPlanWorkout(workout!.workoutId)
+    const firstSet = started.exercises[0]!.sets[0]!
+
+    const afterLog = await fitnessRepository.logSet(firstSet.id, { weightKg: 100, reps: 8, rir: 1, setType: 'failure' })
+    const duplicated = await fitnessRepository.duplicateSessionSet(afterLog.exercises[0]!.sets[0]!.id)
+
+    expect(duplicated.exercises[0]?.sets).toHaveLength(4)
+    expect(duplicated.exercises[0]?.sets.at(-1)).toMatchObject({
+      setNumber: 4,
+      status: 'planned',
+      weightKg: 100,
+      reps: 8,
+      rir: 1,
+      setType: 'failure',
+    })
+
+    const skipped = await fitnessRepository.skipSessionSet(firstSet.id)
+    expect(skipped.exercises[0]?.sets[0]).toMatchObject({ status: 'skipped', completedAt: null })
+  })
+
+  test('cycles active exercises inside a superset after each logged set', async () => {
+    const plan = await createPplPlan()
+    const structure = await fitnessRepository.getPlanStructure(plan.id)
+    const workout = structure.weeks[0]?.days[0]?.workouts[0]
+    const firstExercise = workout?.exercises[0]
+    const secondExercise = workout?.exercises[1]
+    expect(firstExercise).toBeDefined()
+    expect(secondExercise).toBeDefined()
+
+    await fitnessRepository.updatePlanExercise(firstExercise!.id, { supersetGroup: 'A' })
+    await fitnessRepository.updatePlanExercise(secondExercise!.id, { supersetGroup: 'A' })
+
+    const started = await fitnessRepository.startSessionFromPlanWorkout(workout!.id)
+    expect(started.exercises[0]).toMatchObject({ nameSnapshot: 'Tlak na lavičke', status: 'active', supersetGroup: 'A' })
+    expect(started.exercises[1]).toMatchObject({ nameSnapshot: 'Tlaky s jednoručkami na šikmej lavičke', status: 'pending', supersetGroup: 'A' })
+
+    const afterFirstSet = await fitnessRepository.logSet(started.exercises[0]!.sets[0]!.id, { weightKg: 100, reps: 8, rir: 1 })
+    expect(afterFirstSet.exercises[0]).toMatchObject({ status: 'pending' })
+    expect(afterFirstSet.exercises[0]?.sets[0]).toMatchObject({ status: 'completed' })
+    expect(afterFirstSet.exercises[1]).toMatchObject({ status: 'active' })
+
+    const afterSecondSet = await fitnessRepository.logSet(afterFirstSet.exercises[1]!.sets[0]!.id, { weightKg: 32.5, reps: 10, rir: 2 })
+    expect(afterSecondSet.exercises[0]).toMatchObject({ status: 'active' })
+    expect(afterSecondSet.exercises[1]).toMatchObject({ status: 'pending' })
+
+    const exported = await fitnessRepository.exportFitnessData()
+    expect(exported.personalPlans[0]?.weeks[0]?.days[0]?.workouts[0]?.exercises[0]).toMatchObject({ supersetGroup: 'A' })
+    expect(exported.sessions.find((session) => session.id === started.id)?.exercises[0]).toMatchObject({ supersetGroup: 'A' })
+
+    await fitnessRepository.resetFitnessData()
+    await fitnessRepository.importFitnessData(exported, { mode: 'replace' })
+    const restored = await fitnessRepository.getLiveSession(started.id)
+    expect(restored.exercises[0]).toMatchObject({ supersetGroup: 'A' })
+  })
+
   test('logs sets, adds and removes a set, skips an exercise, adds an unplanned exercise, and finishes', async () => {
     await createPplPlan()
     const workout = (await fitnessRepository.listStartableWorkouts())[0]

@@ -6,16 +6,31 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
-import type { FitnessImportPreview, FitnessSettingsRecord } from '@/features/fitness/fitnessTypes'
+import type { FitnessImportPreview, FitnessSettingsRecord, FitnessStrongCsvPreview } from '@/features/fitness/fitnessTypes'
 import type { FitnessDisplayUnit } from '@/features/fitness/fitnessUnits'
+import { sk } from '@/i18n/sk'
 import { downloadBlob } from '@/lib/download'
 import { cn } from '@/lib/utils'
+
+interface BeforeInstallPromptChoice {
+  outcome: 'accepted' | 'dismissed'
+  platform: string
+}
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<BeforeInstallPromptChoice>
+}
 
 export function FitnessSettingsPage() {
   const [settings, setSettings] = useState<FitnessSettingsRecord | null>(null)
   const [importText, setImportText] = useState('')
   const [importPreview, setImportPreview] = useState<FitnessImportPreview | null>(null)
+  const [strongCsvText, setStrongCsvText] = useState('')
+  const [strongCsvPreview, setStrongCsvPreview] = useState<FitnessStrongCsvPreview | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [isStandalone, setIsStandalone] = useState(false)
   const [isMutating, setIsMutating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
@@ -50,6 +65,44 @@ export function FitnessSettingsPage() {
       cancelled = true
     }
   }, [loadSettings])
+
+  useEffect(() => {
+    const standaloneQuery = window.matchMedia?.('(display-mode: standalone)')
+    const updateStandalone = () => {
+      setIsStandalone(Boolean(standaloneQuery?.matches) || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone))
+    }
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault()
+      setInstallPrompt(event as BeforeInstallPromptEvent)
+    }
+
+    updateStandalone()
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    standaloneQuery?.addEventListener?.('change', updateStandalone)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      standaloneQuery?.removeEventListener?.('change', updateStandalone)
+    }
+  }, [])
+
+  const installStingFit = async () => {
+    if (!installPrompt) {
+      setSuccessMessage(sk.fitness.pwa.installUnavailableHint)
+      return
+    }
+
+    setError(null)
+    setSuccessMessage(null)
+    try {
+      await installPrompt.prompt()
+      const choice = await installPrompt.userChoice
+      setInstallPrompt(null)
+      setSuccessMessage(choice.outcome === 'accepted' ? sk.fitness.pwa.installAccepted : sk.fitness.pwa.installDismissed)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : sk.fitness.pwa.installError)
+    }
+  }
 
   const updateDisplayUnit = async (displayUnit: FitnessDisplayUnit) => {
     setIsMutating(true)
@@ -166,9 +219,39 @@ export function FitnessSettingsPage() {
       setSettings(updatedSettings)
       setImportText('')
       setImportPreview(null)
+      setStrongCsvText('')
+      setStrongCsvPreview(null)
       setSuccessMessage('Tréningové dáta sú vymazané. Štartovacie šablóny môžeš znova obnoviť alebo importovať.')
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Nepodarilo sa vymazať tréningové dáta.')
+    } finally {
+      setIsMutating(false)
+    }
+  }
+
+  const previewStrongCsvImport = () => {
+    setError(null)
+    setSuccessMessage(null)
+    setStrongCsvPreview(null)
+    try {
+      const preview = fitnessRepository.previewStrongCsvImport(strongCsvText)
+      setStrongCsvPreview(preview)
+      setSuccessMessage(`Náhľad Strong CSV: ${formatWorkoutCount(preview.workoutCount)}, ${formatExerciseCount(preview.exerciseCount)}, ${formatSetCount(preview.setCount)}.`)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Nepodarilo sa pripraviť náhľad Strong CSV.')
+    }
+  }
+
+  const importStrongCsv = async () => {
+    setIsMutating(true)
+    setError(null)
+    setSuccessMessage(null)
+    try {
+      const result = await fitnessRepository.importStrongCsvData(strongCsvText)
+      setStrongCsvPreview(result)
+      setSuccessMessage(`Strong CSV import hotový: ${formatWorkoutCount(result.workoutCount)}, ${formatExerciseCount(result.exerciseCount)} a ${formatSetCount(result.setCount)} pridané do histórie.`)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Nepodarilo sa importovať Strong CSV.')
     } finally {
       setIsMutating(false)
     }
@@ -330,7 +413,56 @@ export function FitnessSettingsPage() {
             Obnoviť štartovacie dáta
           </Button>
         </Card>
+
+        <Card title={sk.fitness.pwa.installTitle} description={sk.fitness.pwa.installDescription}>
+          <div className="space-y-3 rounded-2xl border border-fitness-yellow/30 bg-black px-4 py-4 text-fitness-warm">
+            <p className="text-sm font-black text-fitness-yellow">{sk.fitness.pwa.addToHome}</p>
+            <p className="text-sm text-fitness-warm/70">{sk.fitness.pwa.offlineTraining}</p>
+            <p className="text-xs font-semibold text-fitness-warm/55">{sk.fitness.pwa.privatePromise}</p>
+          </div>
+          <Button className="fitness-action mt-4 w-full" leadingIcon={<ShieldCheck className="size-4" />} onClick={() => void installStingFit()} disabled={isLoading || isMutating || isStandalone}>
+            {isStandalone ? sk.fitness.pwa.installedButton : sk.fitness.pwa.installButton}
+          </Button>
+          {!installPrompt && !isStandalone ? (
+            <p className="mt-3 text-xs text-text-secondary dark:text-text-secondary-dark">{sk.fitness.pwa.manualInstallHint}</p>
+          ) : null}
+        </Card>
       </section>
+
+      <Card title="Import zo Strong CSV" description="Vlož export zo Strong. Import sa pridá do histórie ako dokončené lokálne tréningy bez cloudu a bez prepísania existujúcich dát.">
+        <div className="space-y-4">
+          <label className="block text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+            Import zo Strong CSV
+            <textarea
+              aria-label="Import zo Strong CSV"
+              className="mt-2 min-h-40 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-4 py-3 font-mono text-xs text-fitness-warm outline-none focus:border-fitness-yellow"
+              value={strongCsvText}
+              onInput={(event) => setStrongCsvText(event.currentTarget.value)}
+              placeholder="Sem vlož CSV export zo Strong: Date, Workout Name, Exercise Name, Set Order, Weight, Weight Unit, Reps, RPE…"
+            />
+          </label>
+          {strongCsvPreview ? (
+            <div className="rounded-2xl border border-fitness-yellow/30 bg-black px-4 py-4 text-sm text-fitness-warm">
+              <p className="font-black text-fitness-yellow">Strong CSV náhľad pripravený</p>
+              <p className="mt-1 text-fitness-warm/70">
+                {formatWorkoutCount(strongCsvPreview.workoutCount)} · {formatExerciseCount(strongCsvPreview.exerciseCount)} · {formatSetCount(strongCsvPreview.setCount)}
+                {strongCsvPreview.skippedRowCount > 0 ? ` · preskočené riadky: ${strongCsvPreview.skippedRowCount}` : ''}
+              </p>
+            </div>
+          ) : null}
+          <div className="flex flex-wrap gap-3">
+            <Button variant="secondary" onClick={previewStrongCsvImport} disabled={isLoading || isMutating || !strongCsvText.trim()}>
+              Zobraziť náhľad Strong CSV
+            </Button>
+            <Button className="fitness-action" onClick={() => void importStrongCsv()} disabled={isLoading || isMutating || !strongCsvText.trim()}>
+              Importovať Strong CSV
+            </Button>
+          </div>
+          <p className="text-xs text-text-secondary dark:text-text-secondary-dark">
+            Váhy v lb sa prepočítajú na kg, RPE sa uloží ako približné RIR a neznáme cviky sa vytvoria ako vlastné importované cviky.
+          </p>
+        </div>
+      </Card>
 
       <Card title="Obnova z tréningového JSON" description="Vlož tréningový export StingFit, skontroluj náhľad a potom lokálne nahraď iba tréningové tabuľky.">
         <div className="space-y-4">
@@ -381,6 +513,24 @@ export function FitnessSettingsPage() {
       </Card>
     </div>
   )
+}
+
+function formatWorkoutCount(count: number) {
+  if (count === 1) return '1 tréning'
+  if (count > 1 && count < 5) return `${count} tréningy`
+  return `${count} tréningov`
+}
+
+function formatExerciseCount(count: number) {
+  if (count === 1) return '1 cvik'
+  if (count > 1 && count < 5) return `${count} cviky`
+  return `${count} cvikov`
+}
+
+function formatSetCount(count: number) {
+  if (count === 1) return '1 séria'
+  if (count > 1 && count < 5) return `${count} série`
+  return `${count} sérií`
 }
 
 function StatusMessage({ tone, message }: { tone: 'success' | 'error' | 'info'; message: string }) {

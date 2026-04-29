@@ -1,5 +1,6 @@
 import { execute, query } from '@/lib/database'
 import { STARTER_FITNESS_EXERCISES, STARTER_FITNESS_PLANS, STARTER_PLAN_STRUCTURES } from '@/features/fitness/fitnessSeed'
+import { buildStrongCsvPreview, parseStrongCsvImport, type ParsedStrongCsvWorkout } from '@/features/fitness/fitnessStrongCsv'
 import type {
   AddPlanDayInput,
   AddPlanExerciseInput,
@@ -32,6 +33,7 @@ import type {
   FitnessWeightEntryMode,
   FitnessSettingsRecord,
   FitnessStartableWorkout,
+  FitnessStrongCsvImportResult,
   ImportFitnessDataOptions,
   LogFitnessSetInput,
   StarterPlanStructureDay,
@@ -111,6 +113,7 @@ interface FitnessPlanExerciseRow {
   target_rir: number | null
   rest_seconds: number
   notes: string
+  superset_group: string | null
   created_at: string
   updated_at: string
 }
@@ -159,6 +162,7 @@ interface FitnessSessionExerciseRow {
   target_rir: number | null
   rest_seconds: number
   notes: string
+  superset_group: string | null
   created_at: string
   updated_at: string
 }
@@ -289,6 +293,7 @@ function planExerciseFromRow(row: FitnessPlanExerciseRow): FitnessPlanExerciseRe
     targetRir: row.target_rir === null ? null : Number(row.target_rir),
     restSeconds: Number(row.rest_seconds),
     notes: row.notes,
+    supersetGroup: normalizeSupersetGroup(row.superset_group),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -351,6 +356,7 @@ function sessionExerciseFromRow(
     targetRir: row.target_rir === null ? null : Number(row.target_rir),
     restSeconds: Number(row.rest_seconds),
     notes: row.notes,
+    supersetGroup: normalizeSupersetGroup(row.superset_group),
     lastPerformance,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -429,6 +435,15 @@ function normalizeSetType(value: unknown): FitnessSessionSetType {
 
 function normalizeWeightEntryMode(value: unknown): FitnessWeightEntryMode {
   return FITNESS_WEIGHT_ENTRY_MODES.includes(value as FitnessWeightEntryMode) ? value as FitnessWeightEntryMode : 'total'
+}
+
+function normalizeSupersetGroup(value: unknown) {
+  if (value === undefined || value === null) {
+    return null
+  }
+
+  const normalized = String(value).trim().toUpperCase().replace(/\s+/g, '')
+  return normalized ? normalized.slice(0, 12) : null
 }
 
 function normalizeNullableWeight(value: unknown) {
@@ -683,13 +698,14 @@ async function insertPlanExercise(workoutId: string, input: AddPlanExerciseInput
   const { min, max } = normalizeRepRange(input.minReps, input.maxReps)
   const restSeconds = normalizeNonNegativeInteger(input.restSeconds, 'Rest seconds must be a non-negative number')
   const targetRir = normalizeTargetRir(input.targetRir)
+  const supersetGroup = normalizeSupersetGroup(input.supersetGroup)
   const sortOrder = await getNextPlanExerciseSortOrder(workoutId)
 
   await execute(
     `INSERT INTO fitness_plan_exercises(
-      id, plan_workout_id, exercise_id, sort_order, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, workoutId, input.exerciseId, sortOrder, targetSets, min, max, targetRir, restSeconds, input.notes?.trim() ?? '', timestamp, timestamp],
+      id, plan_workout_id, exercise_id, sort_order, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, superset_group, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, workoutId, input.exerciseId, sortOrder, targetSets, min, max, targetRir, restSeconds, input.notes?.trim() ?? '', supersetGroup, timestamp, timestamp],
   )
 
   return planExerciseFromRow(await getPlanExerciseRow(id))
@@ -767,6 +783,7 @@ async function copyWeekToNumber(sourceWeekId: string, targetWeekNumber: number) 
           targetRir: exercise.target_rir,
           restSeconds: Number(exercise.rest_seconds),
           notes: exercise.notes,
+          supersetGroup: normalizeSupersetGroup(exercise.superset_group),
         })
       }
     }
@@ -910,18 +927,51 @@ async function activateNextPendingExercise(sessionId: string) {
   }
 }
 
-async function markExerciseDoneIfNoPlannedSets(sessionExerciseId: string) {
+async function advanceAfterLoggedSet(sessionExerciseId: string) {
+  const exerciseRows = await query<FitnessSessionExerciseRow>(`SELECT * FROM fitness_session_exercises WHERE id = ?`, [sessionExerciseId])
+  const exercise = exerciseRows[0]
+  if (!exercise) {
+    throw new Error('Fitness session exercise not found')
+  }
+
   const plannedRows = await query<{ count: number }>(
     `SELECT COUNT(*) AS count FROM fitness_sets WHERE session_exercise_id = ? AND status = 'planned'`,
     [sessionExerciseId],
   )
-  if (Number(plannedRows[0]?.count ?? 0) > 0) {
-    return
+  const hasPlannedSets = Number(plannedRows[0]?.count ?? 0) > 0
+  const timestamp = nowIso()
+
+  if (!hasPlannedSets) {
+    await execute(`UPDATE fitness_session_exercises SET status = 'done', updated_at = ? WHERE id = ?`, [timestamp, sessionExerciseId])
   }
 
-  const sessionId = await getSessionIdForExercise(sessionExerciseId)
-  await execute(`UPDATE fitness_session_exercises SET status = 'done', updated_at = ? WHERE id = ?`, [nowIso(), sessionExerciseId])
-  await activateNextPendingExercise(sessionId)
+  const supersetGroup = normalizeSupersetGroup(exercise.superset_group)
+  if (supersetGroup) {
+    const nextRows = await query<{ id: string }>(
+      `SELECT fse.id
+       FROM fitness_session_exercises fse
+       WHERE fse.session_id = ?
+       AND fse.id <> ?
+       AND fse.superset_group = ?
+       AND fse.status IN ('pending', 'active')
+       AND EXISTS (SELECT 1 FROM fitness_sets fs WHERE fs.session_exercise_id = fse.id AND fs.status = 'planned')
+       ORDER BY CASE WHEN fse.sort_order > ? THEN 0 ELSE 1 END, fse.sort_order ASC
+       LIMIT 1`,
+      [exercise.session_id, sessionExerciseId, supersetGroup, Number(exercise.sort_order)],
+    )
+    const nextSupersetExerciseId = nextRows[0]?.id
+    if (nextSupersetExerciseId) {
+      if (hasPlannedSets) {
+        await execute(`UPDATE fitness_session_exercises SET status = 'pending', updated_at = ? WHERE id = ?`, [timestamp, sessionExerciseId])
+      }
+      await execute(`UPDATE fitness_session_exercises SET status = 'active', updated_at = ? WHERE id = ?`, [timestamp, nextSupersetExerciseId])
+      return
+    }
+  }
+
+  if (!hasPlannedSets) {
+    await activateNextPendingExercise(exercise.session_id)
+  }
 }
 
 async function insertSessionSet(
@@ -1077,8 +1127,8 @@ async function insertPlanStructureForImport(structure: FitnessPlanStructure) {
         for (const exercise of workout.exercises) {
           await execute(
             `INSERT OR REPLACE INTO fitness_plan_exercises(
-              id, plan_workout_id, exercise_id, sort_order, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              id, plan_workout_id, exercise_id, sort_order, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, superset_group, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               exercise.id,
               exercise.planWorkoutId,
@@ -1090,12 +1140,83 @@ async function insertPlanStructureForImport(structure: FitnessPlanStructure) {
               exercise.targetRir,
               exercise.restSeconds,
               exercise.notes,
+              normalizeSupersetGroup(exercise.supersetGroup),
               exercise.createdAt,
               exercise.updatedAt,
             ],
           )
         }
       }
+    }
+  }
+}
+
+async function getOrCreateImportedExercise(exerciseName: string) {
+  const existingRows = await query<FitnessExerciseRow>(
+    `SELECT * FROM fitness_exercises WHERE deleted_at IS NULL AND lower(name) = lower(?) ORDER BY is_custom ASC, created_at ASC LIMIT 1`,
+    [exerciseName],
+  )
+  const existing = existingRows[0]
+  if (existing) {
+    return exerciseFromRow(existing)
+  }
+
+  const timestamp = nowIso()
+  const id = crypto.randomUUID()
+  await execute(
+    `INSERT INTO fitness_exercises(id, name, category, muscle_group, default_rest_seconds, is_custom, created_at, updated_at, deleted_at)
+     VALUES (?, ?, 'importované', NULL, 120, 1, ?, ?, NULL)`,
+    [id, exerciseName.trim(), timestamp, timestamp],
+  )
+  const rows = await query<FitnessExerciseRow>(`SELECT * FROM fitness_exercises WHERE id = ?`, [id])
+  return exerciseFromRow(rows[0] as FitnessExerciseRow)
+}
+
+async function insertStrongCsvWorkout(workout: ParsedStrongCsvWorkout) {
+  const timestamp = nowIso()
+  const sessionId = crypto.randomUUID()
+  await execute(
+    `INSERT INTO fitness_sessions(id, plan_id, plan_workout_id, name, status, started_at, completed_at, notes, session_rpe, energy_level, created_at, updated_at)
+     VALUES (?, NULL, NULL, ?, 'completed', ?, ?, ?, NULL, NULL, ?, ?)`,
+    [sessionId, workout.name, workout.startedAt, workout.completedAt, workout.notes, timestamp, timestamp],
+  )
+
+  for (const [exerciseIndex, parsedExercise] of workout.exercises.entries()) {
+    const exercise = await getOrCreateImportedExercise(parsedExercise.name)
+    const sessionExerciseId = crypto.randomUUID()
+    const reps = parsedExercise.sets.map((set) => set.reps)
+    const minReps = reps.length > 0 ? Math.min(...reps) : 1
+    const maxReps = reps.length > 0 ? Math.max(...reps) : minReps
+    await execute(
+      `INSERT INTO fitness_session_exercises(
+        id, session_id, exercise_id, name_snapshot, category_snapshot, muscle_group_snapshot, sort_order, status, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, superset_group, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'done', ?, ?, ?, NULL, ?, ?, NULL, ?, ?)`,
+      [
+        sessionExerciseId,
+        sessionId,
+        exercise.id,
+        exercise.name,
+        exercise.category,
+        normalizeMuscleGroup(exercise.muscleGroup),
+        exerciseIndex,
+        parsedExercise.sets.length,
+        minReps,
+        maxReps,
+        exercise.defaultRestSeconds,
+        parsedExercise.notes,
+        timestamp,
+        timestamp,
+      ],
+    )
+
+    for (const [setIndex, set] of parsedExercise.sets.entries()) {
+      const setId = crypto.randomUUID()
+      await execute(
+        `INSERT INTO fitness_sets(
+          id, session_exercise_id, set_number, weight_kg, weight_entry_mode, left_weight_kg, right_weight_kg, reps, rir, set_type, status, completed_at, corrected_at, correction_count, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, 'total', NULL, NULL, ?, ?, 'working', 'completed', ?, NULL, 0, ?, ?)`,
+        [setId, sessionExerciseId, setIndex + 1, set.weightKg, set.reps, set.rir, workout.completedAt, timestamp, timestamp],
+      )
     }
   }
 }
@@ -1123,8 +1244,8 @@ async function insertSessionForImport(session: FitnessLiveSession) {
   for (const exercise of session.exercises) {
     await execute(
       `INSERT OR REPLACE INTO fitness_session_exercises(
-        id, session_id, exercise_id, name_snapshot, category_snapshot, muscle_group_snapshot, sort_order, status, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        id, session_id, exercise_id, name_snapshot, category_snapshot, muscle_group_snapshot, sort_order, status, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, superset_group, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         exercise.id,
         exercise.sessionId,
@@ -1140,6 +1261,7 @@ async function insertSessionForImport(session: FitnessLiveSession) {
         exercise.targetRir,
         exercise.restSeconds,
         exercise.notes,
+        normalizeSupersetGroup(exercise.supersetGroup),
         exercise.createdAt,
         exercise.updatedAt,
       ],
@@ -1487,13 +1609,14 @@ export const fitnessRepository = {
     const targetRir = patch.targetRir === undefined ? current.targetRir : normalizeTargetRir(patch.targetRir)
     const restSeconds = patch.restSeconds === undefined ? current.restSeconds : normalizeNonNegativeInteger(patch.restSeconds, 'Rest seconds must be a non-negative number')
     const notes = patch.notes === undefined ? current.notes : patch.notes.trim()
+    const supersetGroup = patch.supersetGroup === undefined ? current.supersetGroup ?? null : normalizeSupersetGroup(patch.supersetGroup)
     const timestamp = nowIso()
 
     await execute(
       `UPDATE fitness_plan_exercises
-       SET target_sets = ?, min_reps = ?, max_reps = ?, target_rir = ?, rest_seconds = ?, notes = ?, updated_at = ?
+       SET target_sets = ?, min_reps = ?, max_reps = ?, target_rir = ?, rest_seconds = ?, notes = ?, superset_group = ?, updated_at = ?
        WHERE id = ?`,
-      [targetSets, min, max, targetRir, restSeconds, notes, timestamp, planExerciseId],
+      [targetSets, min, max, targetRir, restSeconds, notes, supersetGroup, timestamp, planExerciseId],
     )
 
     return planExerciseFromRow(await getPlanExerciseRow(planExerciseId))
@@ -1611,8 +1734,8 @@ export const fitnessRepository = {
       const sessionExerciseId = crypto.randomUUID()
       await execute(
         `INSERT INTO fitness_session_exercises(
-          id, session_id, exercise_id, name_snapshot, category_snapshot, muscle_group_snapshot, sort_order, status, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          id, session_id, exercise_id, name_snapshot, category_snapshot, muscle_group_snapshot, sort_order, status, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, superset_group, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           sessionExerciseId,
           sessionId,
@@ -1628,6 +1751,7 @@ export const fitnessRepository = {
           exercise.target_rir,
           Number(exercise.rest_seconds),
           exercise.notes,
+          normalizeSupersetGroup(exercise.superset_group),
           timestamp,
           timestamp,
         ],
@@ -1747,6 +1871,21 @@ export const fitnessRepository = {
 
   previewFitnessImport: (payload: unknown) => buildFitnessImportPreview(payload),
 
+  previewStrongCsvImport: (csvText: string) => buildStrongCsvPreview(csvText),
+
+  importStrongCsvData: async (csvText: string): Promise<FitnessStrongCsvImportResult> => {
+    const parsed = parseStrongCsvImport(csvText)
+    for (const workout of parsed.workouts) {
+      await insertStrongCsvWorkout(workout)
+    }
+
+    return {
+      ...buildStrongCsvPreview(csvText),
+      mode: 'append',
+      importedAt: nowIso(),
+    }
+  },
+
   importFitnessData: async (payload: unknown, options: ImportFitnessDataOptions): Promise<FitnessImportResult> => {
     if (options.mode !== 'replace') {
       throw new Error('Unsupported fitness import mode')
@@ -1793,7 +1932,7 @@ export const fitnessRepository = {
        WHERE id = ?`,
       [weightKg, weightEntryMode, leftWeightKg, rightWeightKg, reps, rir, setType, timestamp, timestamp, setId],
     )
-    await markExerciseDoneIfNoPlannedSets(sessionExerciseId)
+    await advanceAfterLoggedSet(sessionExerciseId)
     return getLiveSessionById(await getSessionIdForExercise(sessionExerciseId))
   },
 
@@ -1817,6 +1956,59 @@ export const fitnessRepository = {
        WHERE id = ?`,
       [weightKg, weightEntryMode, leftWeightKg, rightWeightKg, reps, rir, setType, timestamp, correctionCount, timestamp, setId],
     )
+
+    return getLiveSessionById(await getSessionIdForExercise(sessionExerciseId))
+  },
+
+  duplicateSessionSet: async (setId: string) => {
+    const sessionExerciseId = await getSessionExerciseIdForSet(setId)
+    const rows = await query<FitnessSessionSetRow>(`SELECT * FROM fitness_sets WHERE id = ?`, [setId])
+    const sourceSet = rows[0]
+    if (!sourceSet || sourceSet.status !== 'completed') {
+      throw new Error('Only completed sets can be duplicated.')
+    }
+
+    await insertSessionSet(
+      sessionExerciseId,
+      await getNextSessionSetNumber(sessionExerciseId),
+      Number(sourceSet.weight_kg ?? 0),
+      Number(sourceSet.reps ?? 0),
+      sourceSet.rir,
+      normalizeSetType(sourceSet.set_type),
+      normalizeWeightEntryMode(sourceSet.weight_entry_mode),
+      normalizeNullableWeight(sourceSet.left_weight_kg),
+      normalizeNullableWeight(sourceSet.right_weight_kg),
+    )
+
+    return getLiveSessionById(await getSessionIdForExercise(sessionExerciseId))
+  },
+
+  skipSessionSet: async (setId: string) => {
+    const sessionExerciseId = await getSessionExerciseIdForSet(setId)
+    const existingRows = await query<FitnessSessionSetRow>(`SELECT * FROM fitness_sets WHERE id = ?`, [setId])
+    const existing = existingRows[0]
+    if (!existing) {
+      throw new Error('Fitness session set not found')
+    }
+
+    const timestamp = nowIso()
+    await execute(
+      `UPDATE fitness_sets
+       SET status = 'skipped', completed_at = NULL, corrected_at = NULL, correction_count = 0, updated_at = ?
+       WHERE id = ?`,
+      [timestamp, setId],
+    )
+
+    const plannedRows = await query<{ count: number }>(
+      `SELECT COUNT(*) AS count FROM fitness_sets WHERE session_exercise_id = ? AND status = 'planned'`,
+      [sessionExerciseId],
+    )
+    if (Number(plannedRows[0]?.count ?? 0) === 0) {
+      const sessionId = await getSessionIdForExercise(sessionExerciseId)
+      await execute(`UPDATE fitness_session_exercises SET status = 'done', updated_at = ? WHERE id = ? AND status = 'active'`, [timestamp, sessionExerciseId])
+      await activateNextPendingExercise(sessionId)
+      return getLiveSessionById(sessionId)
+    }
 
     return getLiveSessionById(await getSessionIdForExercise(sessionExerciseId))
   },
@@ -1880,8 +2072,8 @@ export const fitnessRepository = {
     const sessionExerciseId = crypto.randomUUID()
     await execute(
       `INSERT INTO fitness_session_exercises(
-        id, session_id, exercise_id, name_snapshot, category_snapshot, muscle_group_snapshot, sort_order, status, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 8, 12, 2, ?, '', ?, ?)`,
+        id, session_id, exercise_id, name_snapshot, category_snapshot, muscle_group_snapshot, sort_order, status, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, superset_group, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 8, 12, 2, ?, '', NULL, ?, ?)`,
       [
         sessionExerciseId,
         sessionId,

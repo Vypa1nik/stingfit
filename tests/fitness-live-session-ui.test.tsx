@@ -17,7 +17,24 @@ async function createPplPlan() {
     throw new Error('PPL starter missing')
   }
 
-  await fitnessRepository.createPersonalPlanFromStarter(starter.id, { name: 'My PPL Block', goal: 'Build muscle' })
+  return fitnessRepository.createPersonalPlanFromStarter(starter.id, { name: 'My PPL Block', goal: 'Build muscle' })
+}
+
+async function markFirstTwoPushExercisesAsSuperset() {
+  const plan = (await fitnessRepository.listPersonalPlans())[0]
+  if (!plan) {
+    throw new Error('Personal plan missing')
+  }
+  const structure = await fitnessRepository.getPlanStructure(plan.id)
+  const workout = structure.weeks[0]?.days[0]?.workouts[0]
+  const firstExercise = workout?.exercises[0]
+  const secondExercise = workout?.exercises[1]
+  if (!workout || !firstExercise || !secondExercise) {
+    throw new Error('Push workout exercises missing')
+  }
+
+  await fitnessRepository.updatePlanExercise(firstExercise.id, { supersetGroup: 'A' })
+  await fitnessRepository.updatePlanExercise(secondExercise.id, { supersetGroup: 'A' })
 }
 
 async function renderTraining(containerRoot: Root) {
@@ -146,6 +163,66 @@ describe('FitnessDashboard live session UI', () => {
 
     const activeSession = await fitnessRepository.getActiveSession()
     expect(activeSession?.exercises[0]?.sets[0]).toMatchObject({ weightKg: 82.5, reps: 7, rir: 0, setType: 'failure' })
+  })
+
+  test('supports mobile swipe gestures for completed sets', async () => {
+    await renderTraining(root)
+    await startFirstWorkout(container)
+
+    const logButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Zapísať sériu ⚡ pauza'))
+    expect(logButton).toBeDefined()
+
+    await act(async () => {
+      logButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    const completedSet = container.querySelector<HTMLElement>('[data-testid="completed-set-1"]')
+    expect(completedSet).toBeTruthy()
+
+    await act(async () => {
+      completedSet?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 20 }))
+      completedSet?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: 140 }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Séria duplikovaná')
+    expect(container.textContent).toContain('1/4 sérií')
+    expect(container.textContent).toContain('Odstrániť sériu 4')
+
+    const completedSetAfterDuplicate = container.querySelector<HTMLElement>('[data-testid="completed-set-1"]')
+    expect(completedSetAfterDuplicate).toBeTruthy()
+
+    await act(async () => {
+      completedSetAfterDuplicate?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 140 }))
+      completedSetAfterDuplicate?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: 20 }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Séria preskočená')
+    expect(container.textContent).toContain('Zatiaľ nie je dokončená žiadna séria aktuálneho cviku.')
+  })
+
+  test('shows superset guidance and switches to the paired exercise after logging a set', async () => {
+    await markFirstTwoPushExercisesAsSuperset()
+    await renderTraining(root)
+    await startFirstWorkout(container)
+
+    expect(container.textContent).toContain('Superset A')
+    expect(container.textContent).toContain('Bez pauzy medzi cvikmi')
+
+    const logButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Zapísať sériu ⚡ pauza'))
+    expect(logButton).toBeDefined()
+
+    await act(async () => {
+      logButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Séria zapísaná')
+    expect(container.textContent).toContain('Tlaky s jednoručkami na šikmej lavičke')
+    expect(container.textContent).toContain('Superset A')
+    expect(container.textContent).not.toContain('Pauza beží')
   })
 
   test('supports added set removal and unplanned exercise controls', async () => {

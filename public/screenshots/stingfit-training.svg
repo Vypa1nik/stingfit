@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844" role="img" aria-label="StingFit tréning screenshot">
+  <rect width="390" height="844" fill="#000000"/>
+  <circle cx="42" cy="44" r="90" fill="#FFFF00" opacity="0.16"/>
+  <rect x="22" y="28" width="346" height="220" rx="28" fill="#111111" stroke="#FFFF00" stroke-opacity="0.45"/>
+  <text x="42" y="72" fill="#FFFF00" font-family="Arial, sans-serif" font-size="13" font-weight="900" letter-spacing="2">ŽIVÝ TRÉNING</text>
+  <text x="42" y="124" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="38" font-weight="900">Tlak na lavičke</text>
+  <text x="42" y="158" fill="#FFFBEA" opacity="0.72" font-family="Arial, sans-serif" font-size="16">3×6–8 · RIR 1 · Superset A</text>
+  <rect x="42" y="184" width="120" height="42" rx="14" fill="#FFFF00"/>
+  <text x="62" y="211" fill="#000000" font-family="Arial, sans-serif" font-size="15" font-weight="900">Zapísať</text>
+  <rect x="22" y="276" width="346" height="250" rx="28" fill="#050505" stroke="#FFFF00" stroke-opacity="0.28"/>
+  <text x="42" y="320" fill="#FFFF00" font-family="Arial, sans-serif" font-size="18" font-weight="900">Aktuálna séria</text>
+  <text x="42" y="380" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="54" font-weight="900">100 kg</text>
+  <text x="42" y="424" fill="#FFFBEA" opacity="0.72" font-family="Arial, sans-serif" font-size="20">8 opakovaní · RIR 1</text>
+  <rect x="42" y="456" width="76" height="44" rx="16" fill="#1F1F1F" stroke="#FFFF00" stroke-opacity="0.35"/>
+  <text x="61" y="484" fill="#FFFF00" font-family="Arial" font-size="18" font-weight="900">−2.5</text>
+  <rect x="136" y="456" width="76" height="44" rx="16" fill="#1F1F1F" stroke="#FFFF00" stroke-opacity="0.35"/>
+  <text x="154" y="484" fill="#FFFF00" font-family="Arial" font-size="18" font-weight="900">+2.5</text>
+  <rect x="22" y="554" width="346" height="112" rx="24" fill="#FFFF00" opacity="0.13" stroke="#FFFF00" stroke-opacity="0.35"/>
+  <text x="42" y="594" fill="#FFFF00" font-family="Arial" font-size="16" font-weight="900">Bez pauzy medzi cvikmi</text>
+  <text x="42" y="626" fill="#FFFBEA" opacity="0.75" font-family="Arial" font-size="14">Bench press ↔ Incline DB press</text>
+  <rect x="22" y="696" width="346" height="94" rx="24" fill="#050505" stroke="#FFFF00" stroke-opacity="0.24"/>
+  <text x="42" y="735" fill="#FFFF00" font-family="Arial" font-size="16" font-weight="900">Lokálne. Rýchle. Súkromné.</text>
+  <text x="42" y="764" fill="#FFFBEA" opacity="0.65" font-family="Arial" font-size="13">Bez účtu, cloudu a telemetrie.</text>
+</svg>

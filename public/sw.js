@@ -1,5 +1,17 @@
-const CACHE_VERSION = 'stingfit-v1'
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/favicon.svg', '/icon-192.png', '/icon-512.png']
+const CACHE_VERSION = 'stingfit-v2'
+const OFFLINE_FALLBACK = '/offline.html'
+const APP_SHELL = [
+  '/',
+  '/index.html',
+  OFFLINE_FALLBACK,
+  '/manifest.webmanifest',
+  '/favicon.svg',
+  '/stingfit-icon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/screenshots/stingfit-training.svg',
+  '/screenshots/stingfit-stats.svg',
+]
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -40,7 +52,7 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(async () => {
           const cache = await caches.open(CACHE_VERSION)
-          return cache.match('/index.html') || cache.match('/')
+          return cache.match('/index.html') || cache.match(OFFLINE_FALLBACK) || cache.match('/')
         }),
     )
     return

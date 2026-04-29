@@ -6,9 +6,56 @@
   "start_url": "/#/training",
   "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#FFFF00",
+  "categories": ["fitness", "health", "sports"],
+  "shortcuts": [
+    {
+      "name": "Tréning",
+      "short_name": "Tréning",
+      "description": "Otvori živý tréning alebo najbližší pripravený workout.",
+      "url": "/#/training",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Rýchly tréning",
+      "short_name": "Rýchly",
+      "description": "Spusti rýchly tréning bez plánu.",
+      "url": "/#/quick",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "História",
+      "short_name": "História",
+      "description": "Skontroluj dokončené lokálne tréningy.",
+      "url": "/#/history",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/stingfit-training.svg",
+      "sizes": "390x844",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Rýchle zapisovanie tréningu vo fitku"
+    },
+    {
+      "src": "/screenshots/stingfit-stats.svg",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "Lokálne štatistiky, objem a regeneračné signály"
+    }
+  ],
   "icons": [
+    {
+      "src": "/stingfit-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",

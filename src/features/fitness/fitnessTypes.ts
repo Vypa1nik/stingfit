@@ -11,6 +11,8 @@ export type FitnessPlanMoveDirection = 'up' | 'down'
 export type FitnessMuscleGroup = 'chest' | 'back' | 'quads' | 'hamstrings' | 'glutes' | 'shoulders' | 'biceps' | 'triceps' | 'calves' | 'abs' | 'forearms' | 'other'
 export type FitnessMuscleVolumeStatus = 'low' | 'target' | 'high'
 
+export type FitnessMuscleVolumeAction = 'add_volume' | 'hold_volume' | 'recover'
+
 export interface FitnessExerciseRecord {
   id: string
   name: string
@@ -47,6 +49,7 @@ export interface FitnessPlanExerciseRecord {
   targetRir: number | null
   restSeconds: number
   notes: string
+  supersetGroup?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -143,6 +146,7 @@ export interface FitnessSessionExerciseRecord {
   targetRir: number | null
   restSeconds: number
   notes: string
+  supersetGroup?: string | null
   lastPerformance?: FitnessLastPerformance | null
   createdAt: string
   updatedAt: string
@@ -237,6 +241,18 @@ export interface FitnessExerciseVolumeSummary {
   sessionCount: number
 }
 
+export type FitnessRecoverySignalSeverity = 'watch' | 'reduce' | 'deload'
+
+export interface FitnessRecoverySignal {
+  id: string
+  severity: FitnessRecoverySignalSeverity
+  title: string
+  recommendation: string
+  reason: string
+  muscleGroup?: FitnessMuscleGroup
+  muscleGroupLabel?: string
+}
+
 export interface FitnessMuscleGroupSummary {
   muscleGroup: FitnessMuscleGroup
   label: string
@@ -248,6 +264,9 @@ export interface FitnessMuscleGroupSummary {
   latestWeekVolumeKg: number
   latestWeekStatus: FitnessMuscleVolumeStatus
   volumeStatus: FitnessMuscleVolumeStatus
+  action: FitnessMuscleVolumeAction
+  actionLabel: string
+  actionReason: string
 }
 
 export interface FitnessProgressSnapshot {
@@ -262,6 +281,7 @@ export interface FitnessProgressSnapshot {
   trainingHeatmapWeeks: FitnessTrainingHeatmapWeek[]
   exerciseVolumeLeaders: FitnessExerciseVolumeSummary[]
   muscleGroupSummaries: FitnessMuscleGroupSummary[]
+  recoverySignals: FitnessRecoverySignal[]
   progressionHints: FitnessProgressionHint[]
 }
 
@@ -326,6 +346,19 @@ export interface FitnessImportPreview {
 
 export interface FitnessImportResult extends FitnessImportPreview {
   mode: FitnessImportMode
+  importedAt: string
+}
+
+export interface FitnessStrongCsvPreview {
+  source: 'strong'
+  workoutCount: number
+  exerciseCount: number
+  setCount: number
+  skippedRowCount: number
+}
+
+export interface FitnessStrongCsvImportResult extends FitnessStrongCsvPreview {
+  mode: 'append'
   importedAt: string
 }
 
@@ -403,9 +436,10 @@ export interface AddPlanExerciseInput {
   targetRir?: number | null
   restSeconds: number
   notes?: string
+  supersetGroup?: string | null
 }
 
-export type UpdatePlanExerciseInput = Partial<Pick<AddPlanExerciseInput, 'targetSets' | 'minReps' | 'maxReps' | 'targetRir' | 'restSeconds' | 'notes'>>
+export type UpdatePlanExerciseInput = Partial<Pick<AddPlanExerciseInput, 'targetSets' | 'minReps' | 'maxReps' | 'targetRir' | 'restSeconds' | 'notes' | 'supersetGroup'>>
 
 export interface StarterPlanStructureExercise {
   exerciseId: string
@@ -415,6 +449,7 @@ export interface StarterPlanStructureExercise {
   targetRir: number | null
   restSeconds: number
   notes?: string
+  supersetGroup?: string | null
 }
 
 export interface StarterPlanStructureWorkout {

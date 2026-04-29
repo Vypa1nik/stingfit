@@ -43,6 +43,16 @@ describe('fitness migrations', () => {
     expect(columns).toContain('muscle_group')
   })
 
+  test('tracks plan and session exercise superset metadata', async () => {
+    await initDatabase()
+
+    const planRows = await query<{ name: string }>(`PRAGMA table_info(fitness_plan_exercises)`)
+    const sessionRows = await query<{ name: string }>(`PRAGMA table_info(fitness_session_exercises)`)
+
+    expect(planRows.map((row) => row.name)).toContain('superset_group')
+    expect(sessionRows.map((row) => row.name)).toContain('superset_group')
+  })
+
   test('tracks session exercise category snapshots for muscle-group stats', async () => {
     await initDatabase()
 

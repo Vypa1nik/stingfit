@@ -31,6 +31,10 @@ async function createExportJson() {
   return JSON.stringify(await fitnessRepository.exportFitnessData())
 }
 
+const STRONG_CSV = `Date,Workout Name,Exercise Name,Set Order,Weight,Weight Unit,Reps,RPE,Notes,Workout Notes
+2026-04-25 10:00:00,Push A,Bench Press,1,100,kg,8,8,,Imported from Strong
+`
+
 describe('FitnessSettingsPage import flow', () => {
   let container: HTMLDivElement
   let root: Root
@@ -50,6 +54,46 @@ describe('FitnessSettingsPage import flow', () => {
     container.remove()
     vi.restoreAllMocks()
     await resetDatabaseState()
+  })
+
+  test('previews Strong CSV and imports it as local completed workout history', async () => {
+    await act(async () => {
+      root.render(<FitnessSettingsPage />)
+    })
+    await act(async () => {
+      await waitForAsyncUi()
+    })
+
+    const textarea = container.querySelector<HTMLTextAreaElement>('textarea[aria-label="Import zo Strong CSV"]')
+    expect(textarea).toBeTruthy()
+
+    await act(async () => {
+      if (textarea) {
+        textarea.value = STRONG_CSV
+        textarea.dispatchEvent(new Event('input', { bubbles: true }))
+      }
+    })
+
+    const previewButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Zobraziť náhľad Strong CSV'))
+    expect(previewButton).toBeDefined()
+
+    await act(async () => {
+      previewButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Náhľad Strong CSV: 1 tréning, 1 cvik, 1 séria.')
+
+    const importButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Importovať Strong CSV'))
+    expect(importButton).toBeDefined()
+
+    await act(async () => {
+      importButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Strong CSV import hotový: 1 tréning, 1 cvik a 1 séria pridané do histórie.')
+    expect((await fitnessRepository.listCompletedSessions())[0]).toMatchObject({ name: 'Push A', status: 'completed' })
   })
 
   test('previews pasted fitness JSON and restores it after confirmation', async () => {

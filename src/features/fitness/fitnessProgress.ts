@@ -5,12 +5,14 @@ import type {
   FitnessLiveSession,
   FitnessMuscleGroup,
   FitnessMuscleGroupSummary,
+  FitnessMuscleVolumeAction,
   FitnessMuscleVolumeStatus,
   FitnessOneRepMaxPoint,
   FitnessOneRepMaxSeries,
   FitnessPrEvent,
   FitnessProgressSnapshot,
   FitnessProgressionHint,
+  FitnessRecoverySignal,
   FitnessSessionExerciseRecord,
   FitnessSessionSetRecord,
   FitnessSessionSummary,
@@ -65,6 +67,7 @@ export function buildProgressSnapshot(sessions: FitnessLiveSession[]): FitnessPr
   const sessionSummaries = completedSessions.map(summarizeSession)
   const completedSetContexts = completedSessions.flatMap(getCompletedSetContexts)
   const volumeTrend = buildVolumeTrend(sessionSummaries)
+  const muscleGroupSummaries = buildMuscleGroupSummaries(completedSessions)
 
   return {
     completedWorkouts: completedSessions.length,
@@ -77,7 +80,8 @@ export function buildProgressSnapshot(sessions: FitnessLiveSession[]): FitnessPr
     oneRepMaxSeries: buildOneRepMaxSeries(completedSessions),
     trainingHeatmapWeeks: buildTrainingHeatmapWeeks(completedSessions),
     exerciseVolumeLeaders: buildExerciseVolumeLeaders(completedSessions),
-    muscleGroupSummaries: buildMuscleGroupSummaries(completedSessions),
+    muscleGroupSummaries,
+    recoverySignals: buildRecoverySignals(completedSessions, muscleGroupSummaries),
     progressionHints: buildProgressionHints(completedSessions),
   }
 }
@@ -255,6 +259,7 @@ function buildMuscleGroupSummaries(sessions: FitnessLiveSession[]): FitnessMuscl
     .map(([muscleGroup, entry]) => {
       const weeklySetAverage = Math.round((entry.completedSets / 12) * 10) / 10
       const latestWeekStatus = classifyMuscleVolumeStatus(entry.latestWeekSets)
+      const action = buildMuscleVolumeAction(latestWeekStatus, entry.latestWeekSets, weeklySetAverage)
       return {
         muscleGroup,
         label: formatMuscleGroupLabel(muscleGroup),
@@ -266,6 +271,7 @@ function buildMuscleGroupSummaries(sessions: FitnessLiveSession[]): FitnessMuscl
         latestWeekVolumeKg: Math.round(entry.latestWeekVolumeKg * 10) / 10,
         latestWeekStatus,
         volumeStatus: latestWeekStatus,
+        ...action,
       }
     })
     .sort((a, b) => b.completedSets - a.completedSets || b.totalVolumeKg - a.totalVolumeKg || a.label.localeCompare(b.label, 'sk'))
@@ -275,6 +281,121 @@ function classifyMuscleVolumeStatus(sets: number): FitnessMuscleVolumeStatus {
   if (sets < 10) return 'low'
   if (sets > 20) return 'high'
   return 'target'
+}
+
+function buildMuscleVolumeAction(status: FitnessMuscleVolumeStatus, latestWeekSets: number, weeklySetAverage: number): { action: FitnessMuscleVolumeAction; actionLabel: string; actionReason: string } {
+  const latestWeekText = formatWorkingSetCount(latestWeekSets)
+  const averageText = formatAverageSetCount(weeklySetAverage)
+
+  if (status === 'high') {
+    return {
+      action: 'recover',
+      actionLabel: 'Zváž regeneráciu',
+      actionReason: `Posledný týždeň má ${latestWeekText}, je nad cieľom 10–20 a 12-týždňový priemer ${averageText} dáva kontext. Uber izolácie alebo pridaj ľahší týždeň, ak cítiš únavu.`,
+    }
+  }
+
+  if (status === 'target') {
+    return {
+      action: 'hold_volume',
+      actionLabel: 'Drž objem',
+      actionReason: `Posledný týždeň má ${latestWeekText} a je v cieľovom pásme; 12-týždňový priemer ${averageText} slúži ako kontrola trendu. Drž objem a posúvaj výkon.`,
+    }
+  }
+
+  if (weeklySetAverage >= 10) {
+    return {
+      action: 'add_volume',
+      actionLabel: 'Pridaj objem',
+      actionReason: `Posledný týždeň má ${latestWeekText}, ale 12-týždňový priemer ${averageText} bol v cieľovom pásme. Ak to nebol plánovaný deload, Pridaj 2–4 pracovné série.`,
+    }
+  }
+
+  return {
+    action: 'add_volume',
+    actionLabel: 'Pridaj objem',
+    actionReason: `Posledný týždeň má ${latestWeekText} a 12-týždňový priemer ${averageText} je pod cieľom. Pridaj 2–4 pracovné série alebo jeden doplnkový cvik.`,
+  }
+}
+
+function formatWorkingSetCount(count: number) {
+  if (count === 1) return '1 pracovná séria'
+  if (count > 1 && count < 5) return `${count} pracovné série`
+  return `${count} pracovných sérií`
+}
+
+function formatAverageSetCount(value: number) {
+  const formatted = Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1)
+  return formatted
+}
+
+function buildRecoverySignals(sessions: FitnessLiveSession[], muscleGroupSummaries: FitnessMuscleGroupSummary[]): FitnessRecoverySignal[] {
+  const completedDateKeys = sessions
+    .filter((session) => session.status === 'completed')
+    .map(getSessionDateKey)
+    .filter((dateKey): dateKey is string => Boolean(dateKey))
+
+  if (completedDateKeys.length === 0) {
+    return []
+  }
+
+  const latestDateKey = [...completedDateKeys].sort().at(-1)!
+  const latestDate = dateFromKey(latestDateKey)
+  const endDate = addUtcDays(latestDate, 6 - getMondayBasedWeekdayIndex(latestDate))
+  const latestWeekStartKey = formatDateKey(addUtcDays(endDate, -6))
+  const endDateKey = formatDateKey(endDate)
+  const latestWeekSessions = sessions.filter((session) => {
+    const sessionDateKey = getSessionDateKey(session)
+    return session.status === 'completed' && Boolean(sessionDateKey) && sessionDateKey! >= latestWeekStartKey && sessionDateKey! <= endDateKey
+  })
+  const strain = summarizeRecentStrain(latestWeekSessions)
+  const highVolumeMuscleGroups = muscleGroupSummaries
+    .filter((summary) => summary.latestWeekStatus === 'high')
+    .sort((a, b) => b.latestWeekSets - a.latestWeekSets || b.latestWeekVolumeKg - a.latestWeekVolumeKg || a.label.localeCompare(b.label, 'sk'))
+  const signals: FitnessRecoverySignal[] = highVolumeMuscleGroups.map((summary) => {
+    const highStrainSuffix = strain.hasHighStrain ? ` Zároveň posledný týždeň hlási ${strain.label}.` : ''
+    return {
+      id: `high-volume-${summary.muscleGroup}`,
+      severity: strain.hasHighStrain ? 'deload' : 'reduce',
+      title: strain.hasHighStrain ? 'Regenerácia je pravdepodobne limit' : 'Objem je nad cieľom',
+      recommendation: strain.hasHighStrain ? 'Uber objem a zaraď ľahší tréning' : 'Uber objem',
+      reason: `${summary.label}: ${formatWorkingSetCount(summary.latestWeekSets)} v poslednom týždni je nad cieľom 10–20.${highStrainSuffix} Najbližší tréning skráť o izolácie alebo uber 2–4 pracovné série.`,
+      muscleGroup: summary.muscleGroup,
+      muscleGroupLabel: summary.label,
+    }
+  })
+
+  if (signals.length === 0 && strain.hasHighStrain) {
+    signals.push({
+      id: 'recent-strain',
+      severity: 'watch',
+      title: 'Zaraď ľahší tréning',
+      recommendation: 'Drž objem a sleduj výkon',
+      reason: `Posledný týždeň hlási ${strain.label}. Ak výkon klesá alebo bolí technika, zvoľ ľahší tréning namiesto ďalšieho pridávania objemu.`,
+    })
+  }
+
+  return signals.slice(0, 3)
+}
+
+function summarizeRecentStrain(sessions: FitnessLiveSession[]) {
+  const highRpe = sessions
+    .map((session) => session.sessionRpe)
+    .filter((value): value is number => typeof value === 'number' && value >= 9)
+    .sort((a, b) => b - a)[0]
+  const lowEnergy = sessions
+    .map((session) => session.energyLevel)
+    .filter((value): value is number => typeof value === 'number' && value <= 2)
+    .sort((a, b) => a - b)[0]
+  const parts = [
+    highRpe === undefined ? null : `RPE ${highRpe}/10`,
+    lowEnergy === undefined ? null : `energia ${lowEnergy}/5`,
+  ].filter((part): part is string => Boolean(part))
+
+  return {
+    hasHighStrain: parts.length > 0,
+    label: parts.join(' a '),
+  }
 }
 
 function buildOneRepMaxSeries(sessions: FitnessLiveSession[]): FitnessOneRepMaxSeries[] {

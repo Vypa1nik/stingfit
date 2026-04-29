@@ -272,7 +272,10 @@ describe('fitness progress calculations', () => {
       latestWeekSets: 3,
       latestWeekStatus: 'low',
       volumeStatus: 'low',
+      actionLabel: 'Pridaj objem',
     })
+    expect(snapshot.muscleGroupSummaries[0]?.actionReason).toContain('3 pracovné série')
+    expect(snapshot.muscleGroupSummaries[0]?.actionReason).toContain('12-týždňový priemer 0.3')
     expect(snapshot.muscleGroupSummaries[1]).toMatchObject({
       muscleGroup: 'triceps',
       label: 'Triceps',
@@ -314,13 +317,59 @@ describe('fitness progress calculations', () => {
       latestWeekSets: 12,
       latestWeekStatus: 'target',
       volumeStatus: 'target',
+      actionLabel: 'Drž objem',
     })
+    expect(chest?.actionReason).toContain('cieľovom pásme')
     expect(back).toMatchObject({
       completedSets: 21,
       latestWeekSets: 21,
       latestWeekStatus: 'high',
       volumeStatus: 'high',
+      actionLabel: 'Zváž regeneráciu',
     })
+    expect(back?.actionReason).toContain('nad cieľom')
+  })
+
+  test('builds recovery signals when high muscle volume overlaps with high session strain', () => {
+    const highBack = makeSessionOnDate('high-back-strain', '2026-04-26')
+    highBack.sessionRpe = 9
+    highBack.energyLevel = 2
+    highBack.exercises[0] = {
+      ...highBack.exercises[0]!,
+      exerciseId: 'custom-back-row-strain',
+      nameSnapshot: 'Veslovanie na stroji',
+      muscleGroupSnapshot: 'back',
+    }
+    replaceExerciseSets(highBack, 0, 21)
+
+    const snapshot = buildProgressSnapshot([highBack])
+
+    expect(snapshot.recoverySignals[0]).toMatchObject({
+      severity: 'deload',
+      title: 'Regenerácia je pravdepodobne limit',
+      recommendation: 'Uber objem a zaraď ľahší tréning',
+      muscleGroup: 'back',
+      muscleGroupLabel: 'Chrbát',
+    })
+    expect(snapshot.recoverySignals[0]?.reason).toContain('21 pracovných sérií')
+    expect(snapshot.recoverySignals[0]?.reason).toContain('RPE 9/10')
+    expect(snapshot.recoverySignals[0]?.reason).toContain('energia 2/5')
+  })
+
+  test('builds a general recovery signal when recent strain is high without excessive muscle volume', () => {
+    const strainedSession = makeSessionOnDate('recent-strain', '2026-04-26')
+    strainedSession.sessionRpe = 9
+    strainedSession.energyLevel = 2
+
+    const snapshot = buildProgressSnapshot([strainedSession])
+
+    expect(snapshot.recoverySignals[0]).toMatchObject({
+      severity: 'watch',
+      title: 'Zaraď ľahší tréning',
+      recommendation: 'Drž objem a sleduj výkon',
+    })
+    expect(snapshot.recoverySignals[0]?.reason).toContain('RPE 9/10')
+    expect(snapshot.recoverySignals[0]?.reason).toContain('energia 2/5')
   })
 
   test('builds 12-week exercise volume leaders from completed working sets', () => {
