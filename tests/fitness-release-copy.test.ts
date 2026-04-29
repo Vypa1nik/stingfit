@@ -29,4 +29,13 @@ describe('StingFit V1 release shell copy', () => {
     expect(readText('src/components/ui/ShortcutsCheatsheet.tsx')).toContain('najkratších ciest v StingFit')
     expect(readText('src/components/ui/AppErrorBoundary.tsx')).toContain('Zvyšok StingFit je stále dostupný')
   })
+
+  test('settings safety copy no longer references removed productivity modules', () => {
+    const settingsSource = readText('src/features/fitness/FitnessSettingsPage.tsx')
+
+    expect(settingsSource).not.toContain('Poznámky/úlohy/projekty')
+    expect(settingsSource).not.toContain('úlohy a projekty')
+    expect(settingsSource).toContain('iba fitness tabuľky StingFit')
+    expect(settingsSource).toContain('tréningové dáta StingFit uložené na tomto zariadení')
+  })
 })

@@ -203,7 +203,7 @@ export function FitnessSettingsPage() {
   }
 
   const deleteAllFitnessData = async () => {
-    const confirmation = window.prompt('Na trvalé vymazanie všetkých tréningových dát StingFit z tohto zariadenia napíš VYMAZAT TRENING (bez diakritiky). Poznámky/úlohy/projekty zostanú nedotknuté.')
+    const confirmation = window.prompt('Na trvalé vymazanie všetkých tréningových dát StingFit z tohto zariadenia napíš VYMAZAT TRENING (bez diakritiky). Táto akcia vymaže iba tréningové dáta StingFit uložené na tomto zariadení.')
     if (confirmation !== 'VYMAZAT TRENING') {
       setSuccessMessage(null)
       setError('Vymazanie tréningových dát zrušené. Na potvrdenie napíš VYMAZAT TRENING.')
@@ -272,7 +272,7 @@ export function FitnessSettingsPage() {
   }
 
   const restoreFitnessImport = async () => {
-    const confirmed = window.confirm('Nahradiť všetky lokálne tréningové dáta StingFit týmto JSON súborom? Poznámky/úlohy/projekty zostanú nedotknuté.')
+    const confirmed = window.confirm('Nahradiť všetky lokálne tréningové dáta StingFit týmto JSON súborom? Táto akcia prepíše iba fitness tabuľky StingFit.')
     if (!confirmed) {
       return
     }
@@ -498,7 +498,7 @@ export function FitnessSettingsPage() {
       <Card title="Nebezpečná zóna" description="Vymaž iba tréningové tabuľky StingFit na tomto zariadení.">
         <div className="flex items-start gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-4 text-sm text-rose-100">
           <Trash2 className="mt-0.5 size-5 shrink-0 text-rose-300" />
-          <span>Vymaže cviky, plány, tréningové záznamy, série a tréningové nastavenia. Poznámky, úlohy a projekty zostanú nedotknuté.</span>
+          <span>Vymaže cviky, plány, tréningové záznamy, série a tréningové nastavenia — iba tréningové dáta StingFit uložené na tomto zariadení.</span>
         </div>
         <Button variant="danger" className="mt-4 w-full" leadingIcon={<Trash2 className="size-4" />} onClick={() => void deleteAllFitnessData()} disabled={isLoading || isMutating}>
           Vymazať tréningové dáta
