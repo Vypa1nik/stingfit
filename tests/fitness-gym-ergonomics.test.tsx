@@ -43,6 +43,36 @@ describe('mobile gym logger ergonomics', () => {
     await resetDatabaseState()
   })
 
+  test('keeps the sticky logger centered above the mobile tab bar', async () => {
+    await act(async () => {
+      root.render(
+        <SetLogger
+          displayUnit="kg"
+          onLog={async () => undefined}
+          set={{
+            id: 'set-1',
+            sessionExerciseId: 'session-exercise-1',
+            setNumber: 1,
+            weightKg: 60,
+            reps: 8,
+            rir: 2,
+            status: 'pending',
+            completedAt: null,
+            createdAt: '2026-04-28T10:00:00.000Z',
+            updatedAt: '2026-04-28T10:00:00.000Z',
+          }}
+        />,
+      )
+    })
+
+    const logger = container.querySelector<HTMLElement>('[data-testid="set-logger-panel"]')
+    expect(logger).toBeTruthy()
+    expect(logger?.className).toContain('mx-auto')
+    expect(logger?.className).toContain('max-w-xl')
+    expect(logger?.className).toContain('bottom-24')
+    expect(logger?.className).toContain('lg:static')
+  })
+
   test('shows the previous completed set above the logger', async () => {
     await act(async () => {
       root.render(

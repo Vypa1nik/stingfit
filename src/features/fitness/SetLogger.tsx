@@ -114,7 +114,13 @@ export function SetLogger({
   }
 
   return (
-    <div className={cn(sticky ? 'sticky bottom-4 z-20 lg:static' : '', 'rounded-3xl border border-fitness-yellow/40 bg-black/95 p-5 shadow-[0_0_40px_rgba(255,255,0,0.16)]')}>
+    <div
+      data-testid="set-logger-panel"
+      className={cn(
+        sticky ? 'sticky bottom-24 z-20 lg:static' : '',
+        'mx-auto w-full max-w-xl rounded-3xl border border-fitness-yellow/40 bg-black/95 p-4 shadow-[0_0_40px_rgba(255,255,0,0.16)] sm:p-5 lg:max-w-none',
+      )}
+    >
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">{titleLabel}</p>

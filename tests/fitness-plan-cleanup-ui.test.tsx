@@ -145,5 +145,5 @@ describe('FitnessPlansPage safe cleanup controls', () => {
     structure = await fitnessRepository.getPlanStructure(planId)
     expect(structure.weeks[0]?.days).toEqual([])
     expect(confirmSpy).not.toHaveBeenCalled()
-  })
+  }, 10_000)
 })

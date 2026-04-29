@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 import { NavigationSidebar } from '@/components/layout/NavigationSidebar'
 import { TopBar } from '@/components/layout/TopBar'
 import { useUiStore } from '@/lib/uiStore'
@@ -59,8 +60,9 @@ export function AppShell({ children }: AppShellProps) {
       <NavigationSidebar />
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <TopBar />
-        <main className="flex-1 px-4 py-4 sm:px-6 lg:px-8">{children}</main>
+        <main className="flex-1 px-4 pb-28 pt-4 sm:px-6 md:pb-4 lg:px-8">{children}</main>
       </div>
+      <MobileBottomNav />
 
       {isMobileSidebarOpen ? (
         <div className="fixed inset-0 z-50 md:hidden">

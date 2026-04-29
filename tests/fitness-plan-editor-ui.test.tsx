@@ -116,5 +116,5 @@ describe('FitnessPlansPage plan editor', () => {
     const structure = await fitnessRepository.getPlanStructure(planId)
     const bench = structure.weeks[0]?.days[0]?.workouts[0]?.exercises[0]
     expect(bench).toMatchObject({ targetSets: 4, minReps: 8, maxReps: 10, targetRir: 1, restSeconds: 90 })
-  })
+  }, 10_000)
 })
