@@ -36,7 +36,7 @@ describe('FitnessPlansPage exercise library management', () => {
   })
 
   test('edits and archives custom exercises while starter exercises stay protected', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const confirmSpy = vi.spyOn(window, 'confirm')
 
     await act(async () => {
       root.render(<FitnessPlansPage />)
@@ -103,6 +103,17 @@ describe('FitnessPlansPage exercise library management', () => {
       await waitForAsyncUi()
     })
 
+    expect(container.textContent).toContain('Archivovať Low Cable Fly?')
+
+    const confirmArchiveButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.trim() === 'Archivovať cvik')
+    expect(confirmArchiveButton).toBeDefined()
+
+    await act(async () => {
+      confirmArchiveButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(confirmSpy).not.toHaveBeenCalled()
     expect(container.textContent).toContain('Low Cable Fly archivovaný')
     exercises = await fitnessRepository.listExercises()
     expect(exercises.some((exercise) => exercise.id === customExerciseId)).toBe(false)

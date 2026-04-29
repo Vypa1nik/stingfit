@@ -46,7 +46,7 @@ describe('FitnessSettingsPage', () => {
   })
 
   test('updates display units, exports fitness JSON, and resets starter data with confirmation', async () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const confirmSpy = vi.spyOn(window, 'confirm')
 
     await act(async () => {
       root.render(<FitnessSettingsPage />)
@@ -86,7 +86,17 @@ describe('FitnessSettingsPage', () => {
       await waitForAsyncUi()
     })
 
-    expect(confirmSpy).toHaveBeenCalled()
+    expect(container.textContent).toContain('Obnoviť vstavané štartovacie plány?')
+
+    const confirmResetButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.trim() === 'Áno, obnoviť štartovacie dáta')
+    expect(confirmResetButton).toBeDefined()
+
+    await act(async () => {
+      confirmResetButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(confirmSpy).not.toHaveBeenCalled()
     expect(container.textContent).toContain('Štartovacie dáta obnovené: 3 štartovacie plány')
   })
 })

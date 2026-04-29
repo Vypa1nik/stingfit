@@ -5,6 +5,7 @@ import { AlertTriangle, CalendarDays, CheckCircle2, ChevronDown, ChevronRight, C
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { FITNESS_MUSCLE_GROUPS, formatMuscleGroupLabel } from '@/features/fitness/fitnessMuscleGroups'
 import { buildPlanReadinessReport } from '@/features/fitness/fitnessPlanReadiness'
 import { getPlanDayStatus, summarizePlanWeek, type FitnessPlanDayStatusTone } from '@/features/fitness/fitnessPlanPresentation'
@@ -77,6 +78,12 @@ interface ExerciseLibraryDraft {
   defaultRestSeconds: string
 }
 
+type PlanConfirmation =
+  | { kind: 'archiveCustomExercise'; exercise: FitnessExerciseRecord }
+  | { kind: 'removePlanExercise'; exercise: FitnessPlanExerciseRecord }
+  | { kind: 'removePlanWorkout'; workout: FitnessPlanWorkoutRecord }
+  | { kind: 'removePlanDay'; day: FitnessPlanDayRecord }
+
 export function FitnessPlansPage() {
   const [starterPlans, setStarterPlans] = useState<FitnessPlanRecord[]>([])
   const [personalPlans, setPersonalPlans] = useState<FitnessPlanRecord[]>([])
@@ -94,6 +101,7 @@ export function FitnessPlansPage() {
   const [exerciseLibraryDrafts, setExerciseLibraryDrafts] = useState<Record<string, ExerciseLibraryDraft>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [isMutating, setIsMutating] = useState(false)
+  const [pendingConfirmation, setPendingConfirmation] = useState<PlanConfirmation | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
@@ -328,10 +336,10 @@ export function FitnessPlansPage() {
   }
 
   const archiveCustomExercise = async (exercise: FitnessExerciseRecord) => {
-    if (!window.confirm(`Archivovať ${exercise.name}? Existujúce plány si ponechajú snímky, ale cvik sa skryje z budúceho výberu.`)) {
-      return
-    }
+    setPendingConfirmation({ kind: 'archiveCustomExercise', exercise })
+  }
 
+  const confirmArchiveCustomExercise = async (exercise: FitnessExerciseRecord) => {
     setIsMutating(true)
     setError(null)
     setSuccessMessage(null)
@@ -343,6 +351,7 @@ export function FitnessPlansPage() {
       setError(cause instanceof Error ? cause.message : `Nepodarilo sa archivovať ${exercise.name}.`)
     } finally {
       setIsMutating(false)
+      setPendingConfirmation(null)
     }
   }
 
@@ -552,10 +561,10 @@ export function FitnessPlansPage() {
   }
 
   const removePlanExercise = async (exercise: FitnessPlanExerciseRecord) => {
-    if (!window.confirm(`Odstrániť ${exercise.exerciseName} z tohto tréningu?`)) {
-      return
-    }
+    setPendingConfirmation({ kind: 'removePlanExercise', exercise })
+  }
 
+  const confirmRemovePlanExercise = async (exercise: FitnessPlanExerciseRecord) => {
     setIsMutating(true)
     setError(null)
     setSuccessMessage(null)
@@ -567,14 +576,15 @@ export function FitnessPlansPage() {
       setError(cause instanceof Error ? cause.message : `Nepodarilo sa odstrániť ${exercise.exerciseName}.`)
     } finally {
       setIsMutating(false)
+      setPendingConfirmation(null)
     }
   }
 
   const removePlanWorkout = async (workout: FitnessPlanWorkoutRecord) => {
-    if (!window.confirm(`Odstrániť tréning ${workout.name}? Plánované cviky v tomto tréningu sa odstránia tiež.`)) {
-      return
-    }
+    setPendingConfirmation({ kind: 'removePlanWorkout', workout })
+  }
 
+  const confirmRemovePlanWorkout = async (workout: FitnessPlanWorkoutRecord) => {
     setIsMutating(true)
     setError(null)
     setSuccessMessage(null)
@@ -586,14 +596,15 @@ export function FitnessPlansPage() {
       setError(cause instanceof Error ? cause.message : `Nepodarilo sa odstrániť tréning ${workout.name}.`)
     } finally {
       setIsMutating(false)
+      setPendingConfirmation(null)
     }
   }
 
   const removePlanDay = async (day: FitnessPlanDayRecord) => {
-    if (!window.confirm(`Odstrániť deň ${day.label}? Tréningy a plánované cviky v tento deň sa odstránia tiež.`)) {
-      return
-    }
+    setPendingConfirmation({ kind: 'removePlanDay', day })
+  }
 
+  const confirmRemovePlanDay = async (day: FitnessPlanDayRecord) => {
     setIsMutating(true)
     setError(null)
     setSuccessMessage(null)
@@ -605,6 +616,7 @@ export function FitnessPlansPage() {
       setError(cause instanceof Error ? cause.message : `Nepodarilo sa odstrániť deň ${day.label}.`)
     } finally {
       setIsMutating(false)
+      setPendingConfirmation(null)
     }
   }
 
@@ -624,8 +636,31 @@ export function FitnessPlansPage() {
     }
   }
 
+  const confirmPendingPlanAction = async () => {
+    if (!pendingConfirmation) {
+      return
+    }
+
+    if (pendingConfirmation.kind === 'archiveCustomExercise') {
+      await confirmArchiveCustomExercise(pendingConfirmation.exercise)
+      return
+    }
+    if (pendingConfirmation.kind === 'removePlanExercise') {
+      await confirmRemovePlanExercise(pendingConfirmation.exercise)
+      return
+    }
+    if (pendingConfirmation.kind === 'removePlanWorkout') {
+      await confirmRemovePlanWorkout(pendingConfirmation.workout)
+      return
+    }
+    await confirmRemovePlanDay(pendingConfirmation.day)
+  }
+
+  const confirmationCopy = getPlanConfirmationCopy(pendingConfirmation)
+
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       <section className="fitness-hero-panel p-6 lg:p-8">
         <div className="flex flex-wrap items-center gap-3">
           <Badge className="fitness-badge">Tvorba plánov</Badge>
@@ -790,8 +825,60 @@ export function FitnessPlansPage() {
           </div>
         </div>
       </Card>
-    </div>
+      </div>
+
+      {confirmationCopy ? (
+        <ConfirmModal
+          open={Boolean(pendingConfirmation)}
+          title={confirmationCopy.title}
+          description={confirmationCopy.description}
+          confirmLabel={confirmationCopy.confirmLabel}
+          warningText={confirmationCopy.warningText}
+          isConfirming={isMutating}
+          onConfirm={() => void confirmPendingPlanAction()}
+          onClose={() => setPendingConfirmation(null)}
+        />
+      ) : null}
+    </>
   )
+}
+
+function getPlanConfirmationCopy(confirmation: PlanConfirmation | null) {
+  if (!confirmation) {
+    return null
+  }
+
+  if (confirmation.kind === 'archiveCustomExercise') {
+    return {
+      title: `Archivovať ${confirmation.exercise.name}?`,
+      description: 'Existujúce plány si ponechajú svoje snímky, ale cvik sa skryje z budúceho výberu v knižnici.',
+      confirmLabel: 'Archivovať cvik',
+      warningText: 'Archivácia nevymaže historické tréningy ani snímky plánov. Cvik sa iba prestane ponúkať pre budúce plánovanie.',
+    }
+  }
+  if (confirmation.kind === 'removePlanExercise') {
+    return {
+      title: `Odstrániť ${confirmation.exercise.exerciseName} z tréningu?`,
+      description: 'Cvik sa odstráni iba z tohto plánovaného tréningu. Dokončené tréningy a knižnica cvikov zostanú nezmenené.',
+      confirmLabel: 'Odstrániť cvik',
+      warningText: 'Táto úprava ovplyvní iba budúcu snímku plánu. Tréningová história zostáva lokálne zachovaná.',
+    }
+  }
+  if (confirmation.kind === 'removePlanWorkout') {
+    return {
+      title: `Odstrániť tréning ${confirmation.workout.name}?`,
+      description: 'Plánované cviky v tomto tréningu sa odstránia tiež. Ostatné tréningy v dni zostanú zachované.',
+      confirmLabel: 'Odstrániť tréning',
+      warningText: 'Odstránenie mení iba osobný plán do budúcna. Dokončené tréningy sa neprepisujú.',
+    }
+  }
+
+  return {
+    title: `Odstrániť deň ${confirmation.day.label}?`,
+    description: 'Tréningy a plánované cviky v tento deň sa odstránia tiež. Ostatné dni týždňa zostanú zachované.',
+    confirmLabel: 'Odstrániť deň',
+    warningText: 'Odstránenie dňa mení iba plánovaciu štruktúru. História tréningov zostáva nedotknutá.',
+  }
 }
 
 function ExerciseLibrary({

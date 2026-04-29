@@ -99,7 +99,7 @@ describe('FitnessSettingsPage import flow', () => {
   test('previews pasted fitness JSON and restores it after confirmation', async () => {
     const exportJson = await createExportJson()
     await clearAllData()
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const confirmSpy = vi.spyOn(window, 'confirm')
 
     await act(async () => {
       root.render(<FitnessSettingsPage />)
@@ -136,6 +136,17 @@ describe('FitnessSettingsPage import flow', () => {
       await waitForAsyncUi()
     })
 
+    expect(container.textContent).toContain('Nahradiť tréningové dáta týmto JSON súborom?')
+
+    const confirmRestoreButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.trim() === 'Nahradiť tréningové dáta')
+    expect(confirmRestoreButton).toBeDefined()
+
+    await act(async () => {
+      confirmRestoreButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(confirmSpy).not.toHaveBeenCalled()
     expect(container.textContent).toContain('Import tréningových dát obnovený: 1 osobných plánov a 1 tréningových záznamov.')
     await expect(fitnessRepository.getSettings()).resolves.toMatchObject({ displayUnit: 'lb' })
     expect((await fitnessRepository.listPersonalPlans()).map((plan) => plan.name)).toContain('My PPL Block')

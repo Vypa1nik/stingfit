@@ -5,6 +5,8 @@ import { AlertTriangle, DatabaseBackup, Eye, EyeOff, RotateCcw, Scale, ShieldChe
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { TypedConfirmModal } from '@/components/ui/TypedConfirmModal'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
 import type { FitnessImportPreview, FitnessSettingsRecord, FitnessStrongCsvPreview } from '@/features/fitness/fitnessTypes'
 import type { FitnessDisplayUnit } from '@/features/fitness/fitnessUnits'
@@ -22,6 +24,8 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<BeforeInstallPromptChoice>
 }
 
+type SettingsConfirmation = 'resetStarterData' | 'restoreFitnessImport'
+
 export function FitnessSettingsPage() {
   const [settings, setSettings] = useState<FitnessSettingsRecord | null>(null)
   const [importText, setImportText] = useState('')
@@ -32,6 +36,8 @@ export function FitnessSettingsPage() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isStandalone, setIsStandalone] = useState(false)
   const [isMutating, setIsMutating] = useState(false)
+  const [pendingConfirmation, setPendingConfirmation] = useState<SettingsConfirmation | null>(null)
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
@@ -184,11 +190,6 @@ export function FitnessSettingsPage() {
   }
 
   const resetStarterData = async () => {
-    const confirmed = window.confirm('Obnoviť vstavané štartovacie plány StingFit? Tvoje osobné plány, tréningové záznamy a vlastné cviky zostanú lokálne a nezmenené.')
-    if (!confirmed) {
-      return
-    }
-
     setIsMutating(true)
     setError(null)
     setSuccessMessage(null)
@@ -199,17 +200,11 @@ export function FitnessSettingsPage() {
       setError(cause instanceof Error ? cause.message : 'Nepodarilo sa obnoviť štartovacie dáta.')
     } finally {
       setIsMutating(false)
+      setPendingConfirmation(null)
     }
   }
 
   const deleteAllFitnessData = async () => {
-    const confirmation = window.prompt('Na trvalé vymazanie všetkých tréningových dát StingFit z tohto zariadenia napíš VYMAZAT TRENING (bez diakritiky). Táto akcia vymaže iba tréningové dáta StingFit uložené na tomto zariadení.')
-    if (confirmation !== 'VYMAZAT TRENING') {
-      setSuccessMessage(null)
-      setError('Vymazanie tréningových dát zrušené. Na potvrdenie napíš VYMAZAT TRENING.')
-      return
-    }
-
     setIsMutating(true)
     setError(null)
     setSuccessMessage(null)
@@ -226,6 +221,7 @@ export function FitnessSettingsPage() {
       setError(cause instanceof Error ? cause.message : 'Nepodarilo sa vymazať tréningové dáta.')
     } finally {
       setIsMutating(false)
+      setDeleteConfirmationOpen(false)
     }
   }
 
@@ -272,11 +268,6 @@ export function FitnessSettingsPage() {
   }
 
   const restoreFitnessImport = async () => {
-    const confirmed = window.confirm('Nahradiť všetky lokálne tréningové dáta StingFit týmto JSON súborom? Táto akcia prepíše iba fitness tabuľky StingFit.')
-    if (!confirmed) {
-      return
-    }
-
     setIsMutating(true)
     setError(null)
     setSuccessMessage(null)
@@ -291,6 +282,7 @@ export function FitnessSettingsPage() {
       setError(cause instanceof Error ? cause.message : 'Nepodarilo sa obnoviť import tréningového JSON.')
     } finally {
       setIsMutating(false)
+      setPendingConfirmation(null)
     }
   }
 
@@ -300,7 +292,8 @@ export function FitnessSettingsPage() {
   const restVibrationEnabled = settings?.restVibrationEnabled ?? true
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       <section className="fitness-hero-panel p-6 lg:p-8">
         <Badge className="fitness-badge">Lokálne nastavenia</Badge>
         <h1 className="mt-4 text-4xl font-black tracking-[-0.06em] text-white sm:text-5xl">Súkromné tréningové dáta v zariadení.</h1>
@@ -409,7 +402,7 @@ export function FitnessSettingsPage() {
             <RotateCcw className="size-5 text-fitness-yellow" />
             <span className="text-sm">Obnov Tlak/Ťah/Nohy, Vrch/Spodok a Celé telo 3× bez vymazania osobných dát.</span>
           </div>
-          <Button variant="secondary" className="mt-4 w-full" leadingIcon={<RotateCcw className="size-4" />} onClick={() => void resetStarterData()} disabled={isLoading || isMutating}>
+          <Button variant="secondary" className="mt-4 w-full" leadingIcon={<RotateCcw className="size-4" />} onClick={() => setPendingConfirmation('resetStarterData')} disabled={isLoading || isMutating}>
             Obnoviť štartovacie dáta
           </Button>
         </Card>
@@ -488,7 +481,7 @@ export function FitnessSettingsPage() {
             <Button variant="secondary" onClick={previewFitnessImport} disabled={isLoading || isMutating || !importText.trim()}>
               Zobraziť náhľad importu
             </Button>
-            <Button className="fitness-action" onClick={() => void restoreFitnessImport()} disabled={isLoading || isMutating || !importText.trim()}>
+            <Button className="fitness-action" onClick={() => setPendingConfirmation('restoreFitnessImport')} disabled={isLoading || isMutating || !importText.trim()}>
               Obnoviť tréningový JSON
             </Button>
           </div>
@@ -500,7 +493,7 @@ export function FitnessSettingsPage() {
           <Trash2 className="mt-0.5 size-5 shrink-0 text-rose-300" />
           <span>Vymaže cviky, plány, tréningové záznamy, série a tréningové nastavenia — iba tréningové dáta StingFit uložené na tomto zariadení.</span>
         </div>
-        <Button variant="danger" className="mt-4 w-full" leadingIcon={<Trash2 className="size-4" />} onClick={() => void deleteAllFitnessData()} disabled={isLoading || isMutating}>
+        <Button variant="danger" className="mt-4 w-full" leadingIcon={<Trash2 className="size-4" />} onClick={() => setDeleteConfirmationOpen(true)} disabled={isLoading || isMutating}>
           Vymazať tréningové dáta
         </Button>
       </Card>
@@ -511,7 +504,41 @@ export function FitnessSettingsPage() {
           Žiadne účty, predplatné, analytika, telemetria ani paywally nie sú súčasťou smerovania produktu.
         </div>
       </Card>
-    </div>
+      </div>
+
+      <ConfirmModal
+        open={pendingConfirmation === 'resetStarterData'}
+        title="Obnoviť vstavané štartovacie plány?"
+        description="Tvoje osobné plány, tréningové záznamy a vlastné cviky zostanú lokálne a nezmenené. Obnovia sa iba vstavané StingFit šablóny."
+        confirmLabel="Áno, obnoviť štartovacie dáta"
+        warningText="Bezpečná obnova nevymaže osobné tréningové dáta. Pokračuj iba, ak chceš znova pripraviť vstavané šablóny."
+        isConfirming={isMutating}
+        onConfirm={() => void resetStarterData()}
+        onClose={() => setPendingConfirmation(null)}
+      />
+      <ConfirmModal
+        open={pendingConfirmation === 'restoreFitnessImport'}
+        title="Nahradiť tréningové dáta týmto JSON súborom?"
+        description="Táto akcia prepíše iba fitness tabuľky StingFit v tomto zariadení obsahom vloženého JSON exportu."
+        confirmLabel="Nahradiť tréningové dáta"
+        warningText="Pred nahradením dát maj pripravenú lokálnu zálohu. Strong CSV import ostáva append-only; toto JSON obnovenie je replace režim."
+        isConfirming={isMutating}
+        onConfirm={() => void restoreFitnessImport()}
+        onClose={() => setPendingConfirmation(null)}
+      />
+      <TypedConfirmModal
+        open={deleteConfirmationOpen}
+        title="Trvalo vymazať tréningové dáta?"
+        description="Vymažú sa cviky, plány, tréningové záznamy, série a tréningové nastavenia StingFit uložené na tomto zariadení."
+        requiredText="VYMAZAT TRENING"
+        inputLabel="Potvrdenie vymazania tréningových dát"
+        confirmLabel="Vymazať tréningové dáta natrvalo"
+        warningText="Táto akcia je nevratná a týka sa iba lokálnych tréningových dát StingFit. Pred pokračovaním exportuj zálohu, ak si ju chceš ponechať."
+        isConfirming={isMutating}
+        onConfirm={() => void deleteAllFitnessData()}
+        onClose={() => setDeleteConfirmationOpen(false)}
+      />
+    </>
   )
 }
 

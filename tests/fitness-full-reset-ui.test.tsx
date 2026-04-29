@@ -61,20 +61,41 @@ describe('FitnessSettingsPage full fitness data reset', () => {
     expect(container.textContent).toContain('Nebezpečná zóna')
     expect(container.textContent).toContain('Vymazať tréningové dáta')
 
-    promptSpy.mockReturnValueOnce('delete')
     await act(async () => {
       findButton(container, 'Vymazať tréningové dáta')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       await waitForAsyncUi()
     })
 
+    expect(container.textContent).toContain('Trvalo vymazať tréningové dáta?')
+
+    const typedInput = container.querySelector<HTMLInputElement>('input[aria-label="Potvrdenie vymazania tréningových dát"]')
+    expect(typedInput).toBeTruthy()
+
+    await act(async () => {
+      if (typedInput) {
+        typedInput.value = 'delete'
+        typedInput.dispatchEvent(new Event('input', { bubbles: true }))
+      }
+      await waitForAsyncUi()
+    })
+
+    expect(findButton(container, 'Vymazať tréningové dáta natrvalo')?.disabled).toBe(true)
     await expect(fitnessRepository.listPersonalPlans()).resolves.toHaveLength(1)
 
-    promptSpy.mockReturnValueOnce('VYMAZAT TRENING')
     await act(async () => {
-      findButton(container, 'Vymazať tréningové dáta')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      if (typedInput) {
+        typedInput.value = 'VYMAZAT TRENING'
+        typedInput.dispatchEvent(new Event('input', { bubbles: true }))
+      }
       await waitForAsyncUi()
     })
 
+    await act(async () => {
+      findButton(container, 'Vymazať tréningové dáta natrvalo')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(promptSpy).not.toHaveBeenCalled()
     expect(container.textContent).toContain('Tréningové dáta sú vymazané')
     await expect(fitnessRepository.listPersonalPlans()).resolves.toHaveLength(0)
     await expect(fitnessRepository.listExercises()).resolves.toHaveLength(0)

@@ -33,8 +33,14 @@ describe('StingFit V1 release shell copy', () => {
   test('settings safety copy no longer references removed productivity modules', () => {
     const settingsSource = readText('src/features/fitness/FitnessSettingsPage.tsx')
 
+    const plansSource = readText('src/features/fitness/FitnessPlansPage.tsx')
+
     expect(settingsSource).not.toContain('Poznámky/úlohy/projekty')
     expect(settingsSource).not.toContain('úlohy a projekty')
+    expect(settingsSource).not.toContain('window.confirm')
+    expect(settingsSource).not.toContain('window.prompt')
+    expect(plansSource).not.toContain('window.confirm')
+    expect(plansSource).not.toContain('window.prompt')
     expect(settingsSource).toContain('iba fitness tabuľky StingFit')
     expect(settingsSource).toContain('tréningové dáta StingFit uložené na tomto zariadení')
   })

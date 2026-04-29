@@ -34,6 +34,19 @@ async function createCleanupPlan() {
   return plan
 }
 
+function findButton(container: HTMLDivElement, label: string, mode: 'exact' | 'includes' = 'includes') {
+  const button = Array.from(container.querySelectorAll('button')).find((item) => {
+    const text = item.textContent?.trim() ?? ''
+    return mode === 'exact' ? text === label : text.includes(label)
+  })
+  expect(button).toBeDefined()
+  return button
+}
+
+function clickButton(container: HTMLDivElement, label: string, mode: 'exact' | 'includes' = 'includes') {
+  findButton(container, label, mode)?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+}
+
 describe('FitnessPlansPage safe cleanup controls', () => {
   let container: HTMLDivElement
   let root: Root
@@ -58,7 +71,7 @@ describe('FitnessPlansPage safe cleanup controls', () => {
     await resetDatabaseState()
   })
 
-  test('confirms and removes planned exercises, workouts, and days', async () => {
+  test('confirms and removes planned exercises, workouts, and days with custom modals', async () => {
     const confirmSpy = vi.spyOn(window, 'confirm')
 
     await act(async () => {
@@ -71,24 +84,28 @@ describe('FitnessPlansPage safe cleanup controls', () => {
     expect(container.textContent).toContain('Cable Fly')
     expect(container.textContent).toContain('3×12–15 · RIR 2 · 75s pauza')
 
-    confirmSpy.mockReturnValueOnce(false)
-    const cancelRemoveExerciseButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Odstrániť Cable Fly'))
-    expect(cancelRemoveExerciseButton).toBeDefined()
+    await act(async () => {
+      clickButton(container, 'Odstrániť Cable Fly')
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Odstrániť Cable Fly z tréningu?')
 
     await act(async () => {
-      cancelRemoveExerciseButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      clickButton(container, 'Zrušiť', 'exact')
       await waitForAsyncUi()
     })
 
     let structure = await fitnessRepository.getPlanStructure(planId)
     expect(structure.weeks[0]?.days[0]?.workouts[0]?.exercises).toHaveLength(1)
 
-    confirmSpy.mockReturnValueOnce(true)
-    const removeExerciseButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Odstrániť Cable Fly'))
-    expect(removeExerciseButton).toBeDefined()
+    await act(async () => {
+      clickButton(container, 'Odstrániť Cable Fly')
+      await waitForAsyncUi()
+    })
 
     await act(async () => {
-      removeExerciseButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      clickButton(container, 'Odstrániť cvik', 'exact')
       await waitForAsyncUi()
     })
 
@@ -96,12 +113,15 @@ describe('FitnessPlansPage safe cleanup controls', () => {
     structure = await fitnessRepository.getPlanStructure(planId)
     expect(structure.weeks[0]?.days[0]?.workouts[0]?.exercises).toEqual([])
 
-    confirmSpy.mockReturnValueOnce(true)
-    const removeWorkoutButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Odstrániť tréning Chest Builder'))
-    expect(removeWorkoutButton).toBeDefined()
+    await act(async () => {
+      clickButton(container, 'Odstrániť tréning Chest Builder')
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Odstrániť tréning Chest Builder?')
 
     await act(async () => {
-      removeWorkoutButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      clickButton(container, 'Odstrániť tréning', 'exact')
       await waitForAsyncUi()
     })
 
@@ -109,17 +129,21 @@ describe('FitnessPlansPage safe cleanup controls', () => {
     structure = await fitnessRepository.getPlanStructure(planId)
     expect(structure.weeks[0]?.days[0]?.workouts).toEqual([])
 
-    confirmSpy.mockReturnValueOnce(true)
-    const removeDayButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Odstrániť deň Chest Day'))
-    expect(removeDayButton).toBeDefined()
+    await act(async () => {
+      clickButton(container, 'Odstrániť deň Chest Day')
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Odstrániť deň Chest Day?')
 
     await act(async () => {
-      removeDayButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      clickButton(container, 'Odstrániť deň', 'exact')
       await waitForAsyncUi()
     })
 
     expect(container.textContent).toContain('Tréningový deň odstránený')
     structure = await fitnessRepository.getPlanStructure(planId)
     expect(structure.weeks[0]?.days).toEqual([])
+    expect(confirmSpy).not.toHaveBeenCalled()
   })
 })
