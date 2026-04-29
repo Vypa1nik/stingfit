@@ -16,6 +16,7 @@ All notable changes to StingFit will be documented in this file.
 - Superset metadata in plans and live-session rotation.
 - Muscle-group taxonomy, weekly volume guidance, actionable volume recommendations, and recovery signals.
 - local production PWA preview helper for phone smoke testing without Expo Go or a public tunnel.
+- simple start builder for first-run training setup: 3 days, 4 days, 5–6 days, decide-for-me, or quick workout.
 
 ### Changed
 

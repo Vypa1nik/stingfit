@@ -65,8 +65,8 @@ npm run mobile:pwa:url
 Open the first printed URL or scan `public/stingfit-mobile-preview-qr.png` from a phone on the same Wi-Fi. If the machine has virtual adapters, `npm run mobile:pwa:url` can list additional URL candidates. This serves the production build, exercises the production PWA service worker path, and avoids any public tunnel.
 
 - [ ] Open StingFit and confirm Training loads first.
-- [ ] From empty state, tap `Pripraviť Tlak / Ťah / Nohy`.
-- [ ] Confirm a startable workout is visible without horizontal scrolling.
+- [ ] From empty state, confirm the simple start builder shows `3 dni / týždeň`, `4 dni / týždeň`, `5–6 dní / týždeň`, and `Neviem, vyber za mňa`.
+- [ ] Tap `3 dni / týždeň` and confirm a startable `Celé telo A` workout is visible without horizontal scrolling.
 - [ ] Start the workout.
 - [ ] Log one set using the one-thumb logger controls.
 - [ ] Confirm rest alert controls do not block logging.

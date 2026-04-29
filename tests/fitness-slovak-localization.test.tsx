@@ -114,8 +114,9 @@ describe('Slovak StingFit localization', () => {
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Žiadny pripravený osobný plán')
-    expect(container.textContent).toContain('Pripraviť Tlak / Ťah / Nohy')
+    expect(container.textContent).toContain('Začni úplne jednoducho')
+    expect(container.textContent).toContain('3 dni / týždeň')
+    expect(container.textContent).toContain('Neviem, vyber za mňa')
     expect(container.textContent).not.toContain('Prepare Push / Pull / Legs')
   })
 

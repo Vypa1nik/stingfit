@@ -4,7 +4,9 @@ import { Dumbbell, HardDrive, Palette, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
+import { SimpleStartBuilder } from '@/features/fitness/SimpleStartBuilder'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
+import type { FitnessSimpleStartChoice } from '@/features/fitness/fitnessSimpleStart'
 import { useOnboarding } from '@/hooks/useOnboarding'
 import { useTheme } from '@/hooks/useTheme'
 import { THEME_OPTIONS } from '@/lib/constants'
@@ -26,8 +28,8 @@ const steps = [
   {
     icon: Zap,
     eyebrow: 'Štart',
-    title: 'Začni plánom alebo rýchlym tréningom',
-    description: 'Priprav si PPL blok na viac týždňov alebo rovno otvor živý zápisník bez plánu.',
+    title: 'Vyber jednoduchý začiatok',
+    description: 'Nemusíš rozumieť splitom ani plánom. Vyber počet dní a StingFit pripraví prvý tréning.',
   },
   {
     icon: Palette,
@@ -50,27 +52,24 @@ export function OnboardingFlow() {
     navigate(path)
   }
 
-  const preparePplPlan = async () => {
+  const prepareSimplePlan = async (choice: FitnessSimpleStartChoice) => {
     setIsPreparing(true)
     setError(null)
     try {
       await fitnessRepository.seedStarterData()
-      const starter = (await fitnessRepository.listStarterPlans()).find((plan) => plan.name === 'Tlak / Ťah / Nohy')
+      const starter = (await fitnessRepository.listStarterPlans()).find((plan) => plan.id === choice.starterPlanId)
       if (!starter) {
-        throw new Error('Štartovací PPL plán nie je dostupný.')
+        throw new Error(`Štartovací plán ${choice.title} nie je dostupný.`)
       }
 
-      const existingPersonalPlans = await fitnessRepository.listPersonalPlans()
-      if (existingPersonalPlans.length === 0) {
-        await fitnessRepository.createPersonalPlanFromStarter(starter.id, {
-          name: 'Môj Tlak / Ťah / Nohy blok',
-          goal: 'Silnejší a prehľadný tréningový rytmus',
-        })
-      }
+      await fitnessRepository.createPersonalPlanFromStarter(starter.id, {
+        name: choice.personalPlanName,
+        goal: choice.goal,
+      })
 
       finishAndNavigate('/training')
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Nepodarilo sa pripraviť tréningový plán.')
+      setError(cause instanceof Error ? cause.message : 'Nepodarilo sa pripraviť jednoduchý tréningový plán.')
     } finally {
       setIsPreparing(false)
     }
@@ -102,28 +101,11 @@ export function OnboardingFlow() {
                   {error}
                 </div>
               ) : null}
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  className="fitness-action"
-                  leadingIcon={<Dumbbell className="size-4" />}
-                  onClick={() => void preparePplPlan()}
-                  disabled={isPreparing}
-                >
-                  {isPreparing ? 'Pripravujem plán…' : 'Pripraviť PPL plán'}
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="border-white/15 bg-white/10 text-white hover:bg-white/15"
-                  leadingIcon={<Zap className="size-4" />}
-                  onClick={() => finishAndNavigate('/quick')}
-                  disabled={isPreparing}
-                >
-                  Otvoriť rýchly tréning
-                </Button>
-              </div>
-              <p className="text-sm text-slate-300">
-                Obe možnosti sú lokálne. Plán vieš kedykoľvek upraviť v sekcii Plány.
-              </p>
+              <SimpleStartBuilder
+                isMutating={isPreparing}
+                onSelectPlan={(choice) => void prepareSimplePlan(choice)}
+                onQuickSession={() => finishAndNavigate('/quick')}
+              />
             </div>
           ) : null}
 

@@ -12,7 +12,7 @@ async function waitForAsyncUi() {
 }
 
 function findButton(container: HTMLDivElement, label: string) {
-  const button = Array.from(container.querySelectorAll('button')).find((item) => item.textContent?.trim() === label)
+  const button = Array.from(container.querySelectorAll('button')).find((item) => item.textContent?.includes(label))
   expect(button).toBeDefined()
   return button
 }
@@ -52,15 +52,15 @@ describe('StingFit V1 smoke flow', () => {
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Žiadny pripravený osobný plán')
-    expect(container.textContent).toContain('Pripraviť Tlak / Ťah / Nohy')
+    expect(container.textContent).toContain('Začni úplne jednoducho')
+    expect(container.textContent).toContain('3 dni / týždeň')
 
-    await clickButton(container, 'Pripraviť Tlak / Ťah / Nohy')
+    await clickButton(container, '3 dni / týždeň')
 
-    expect(container.textContent).toContain('Štartovací PPL plán je pripravený')
-    expect(container.textContent).toContain('Spustiť Tlakový deň A')
+    expect(container.textContent).toContain('Jednoduchý 3-dňový plán je pripravený')
+    expect(container.textContent).toContain('Spustiť Celé telo A')
 
-    await clickButton(container, 'Spustiť Tlakový deň A')
+    await clickButton(container, 'Spustiť Celé telo A')
 
     expect(container.textContent).toContain('Tréning spustený')
     expect(container.textContent).toContain('Tlak na lavičke')
@@ -89,7 +89,7 @@ describe('StingFit V1 smoke flow', () => {
     })
 
     expect(container.textContent).toContain('Nedávne tréningy')
-    expect(container.textContent).toContain('Tlakový deň A')
+    expect(container.textContent).toContain('Celé telo A')
     expect(container.textContent).toContain('Detail tréningu')
 
     const exported = await fitnessRepository.exportFitnessData()

@@ -6,12 +6,13 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { LiveTrainingSession } from '@/features/fitness/LiveTrainingSession'
+import { SimpleStartBuilder } from '@/features/fitness/SimpleStartBuilder'
 import { FITNESS_BACKUP_NUDGE_STORAGE_KEY, shouldShowBackupNudge } from '@/features/fitness/fitnessBackupNudge'
 import { buildPlanReadinessReport } from '@/features/fitness/fitnessPlanReadiness'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
 import { pickRecommendedWorkout, type FitnessWorkoutRecommendation } from '@/features/fitness/fitnessWorkoutRecommendation'
+import type { FitnessSimpleStartChoice } from '@/features/fitness/fitnessSimpleStart'
 import type { AddUnplannedExerciseInput, FinishFitnessSessionInput, FitnessExerciseRecord, FitnessLiveSession, FitnessSettingsRecord, FitnessStartableWorkout, LogFitnessSetInput } from '@/features/fitness/fitnessTypes'
 import { useSpaNavigate } from '@/hooks/useSpaNavigate'
 import { sk } from '@/i18n/sk'
@@ -235,20 +236,20 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
     }
   }
 
-  const createStarterPlan = async () => {
+  const createSimpleStarterPlan = async (choice: FitnessSimpleStartChoice) => {
     setIsMutating(true)
     setError(null)
     setSuccessMessage(null)
     try {
-      const starter = (await fitnessRepository.listStarterPlans()).find((plan) => plan.id === 'starter-push-pull-legs')
+      const starter = (await fitnessRepository.listStarterPlans()).find((plan) => plan.id === choice.starterPlanId)
       if (!starter) {
-        throw new Error('Štartovací plán Tlak / Ťah / Nohy nie je dostupný.')
+        throw new Error(`Štartovací plán ${choice.title} nie je dostupný.`)
       }
-      await fitnessRepository.createPersonalPlanFromStarter(starter.id, { name: 'Môj PPL blok', goal: 'Budovať svaly' })
-      setSuccessMessage('Štartovací PPL plán je pripravený')
+      await fitnessRepository.createPersonalPlanFromStarter(starter.id, { name: choice.personalPlanName, goal: choice.goal })
+      setSuccessMessage(choice.successMessage)
       await loadTrainingState()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Nepodarilo sa pripraviť štartovací plán.')
+      setError(cause instanceof Error ? cause.message : 'Nepodarilo sa pripraviť jednoduchý štartovací plán.')
     } finally {
       setIsMutating(false)
     }
@@ -369,19 +370,12 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
       <div className="space-y-4">
         {successMessage ? <StatusMessage tone="success" message={successMessage} /> : null}
         {error ? <StatusMessage tone="error" message={error} /> : null}
-        <EmptyState
-          icon={Dumbbell}
-          title="Žiadny pripravený osobný plán"
-          description="Najprv vytvor štartovací PPL plán a potom spusti prvý plánovaný tréning z Tréningu. Alebo začni bez plánu rýchly tréning."
-          ctaLabel="Pripraviť Tlak / Ťah / Nohy"
-          onCta={() => void createStarterPlan()}
+        <SimpleStartBuilder
+          isMutating={isMutating}
+          onSelectPlan={(choice) => void createSimpleStarterPlan(choice)}
+          onQuickSession={() => navigate('/quick')}
         />
         {backupNudge}
-        <Card title="Rýchly tréning" description="Bez plánu: otvor živý zápisník a pridaj cviky z lokálnej knižnice až vo fitku.">
-          <Button className="fitness-action" leadingIcon={<Zap className="size-4" />} onClick={() => navigate('/quick')} disabled={isMutating}>
-            Spustiť rýchly tréning
-          </Button>
-        </Card>
       </div>
     )
   }
