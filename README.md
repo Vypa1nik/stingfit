@@ -65,6 +65,16 @@ The web build includes `public/manifest.webmanifest`, StingFit icons, install sh
 
 Install from the browser menu or Settings → `Inštalácia aplikácie`. On iOS, use Share → Add to Home Screen.
 
+For real phone smoke testing, use the local production PWA preview helper instead of Expo Go or the Vite dev server:
+
+```bash
+npm run mobile:pwa:start
+npm run mobile:pwa:url
+npm run mobile:pwa:stop
+```
+
+`mobile:pwa:start` runs `npm run build`, serves the production bundle with `vite preview --host 0.0.0.0`, writes LAN URL candidates to `.tmp-stingfit-mobile-preview-url.txt`, and creates local QR assets in `public/stingfit-mobile-preview-qr.*`. It prefers the active adapter with an IPv4 gateway, uses the same service worker path as production, and no public tunnel.
+
 ## Stack
 
 - React 19
@@ -95,11 +105,13 @@ Open the local preview at:
 
 - `http://localhost:5173/`
 
-Run a network-accessible preview:
+Run a network-accessible development server when you need hot reload:
 
 ```bash
 npm run dev -- --host 0.0.0.0
 ```
+
+For mobile/PWA QA, prefer the production PWA preview command above because the service worker only registers in production mode.
 
 ## Build
 

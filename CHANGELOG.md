@@ -15,12 +15,13 @@ All notable changes to StingFit will be documented in this file.
 - Strong CSV append import for completed workout history.
 - Superset metadata in plans and live-session rotation.
 - Muscle-group taxonomy, weekly volume guidance, actionable volume recommendations, and recovery signals.
+- local production PWA preview helper for phone smoke testing without Expo Go or a public tunnel.
 
 ### Changed
 
 - Service worker cache is now versioned as a StingFit PWA shell and includes the offline fallback page.
 - Settings now explains offline/PWA installation without introducing cloud, login, telemetry, subscription, or paywall flows.
-- Release docs and README now describe the current StingFit fitness scope, PWA path, screenshots, and privacy audit.
+- Release docs and README now describe the current StingFit fitness scope, PWA path, screenshots, privacy audit, and mobile production-preview flow.
 
 ### Blocked / deferred
 

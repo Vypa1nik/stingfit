@@ -55,7 +55,14 @@ Automated audit: `reports/stingfit-privacy-network-audit.md`.
 
 ## Manual mobile smoke checklist
 
-Use a narrow/mobile viewport or phone on the local dev server:
+Use a narrow/mobile viewport or phone on the local production preview URL. Preferred local command:
+
+```bash
+npm run mobile:pwa:start
+npm run mobile:pwa:url
+```
+
+Open the first printed URL or scan `public/stingfit-mobile-preview-qr.png` from a phone on the same Wi-Fi. If the machine has virtual adapters, `npm run mobile:pwa:url` can list additional URL candidates. This serves the production build, exercises the production PWA service worker path, and avoids any public tunnel.
 
 - [ ] Open StingFit and confirm Training loads first.
 - [ ] From empty state, tap `Pripraviť Tlak / Ťah / Nohy`.
@@ -78,14 +85,15 @@ Use a narrow/mobile viewport or phone on the local dev server:
 - [ ] Export fitness JSON.
 - [ ] Preview and restore the exported JSON.
 - [ ] Paste a small Strong CSV and import it into local history.
-- [ ] Verify Danger zone requires exact `DELETE FITNESS` before deleting local fitness data.
+- [ ] Verify Danger zone opens the in-app typed modal and requires exact `VYMAZAT TRENING` before deleting local fitness data.
+- [ ] Verify plan cleanup and settings restore/reset use StingFit modals, not native browser confirm/prompt dialogs.
 
 ## PWA/offline install checklist
 
 Use a production build or preview that serves `public/sw.js`:
 
-- [ ] Run `npm run build`.
-- [ ] Serve the production output.
+- [ ] Run `npm run mobile:pwa:start` or run `npm run build` and serve `dist/`.
+- [ ] Confirm the production preview URL opens on the phone.
 - [ ] Confirm manifest identity is `StingFit` with yellow/black theme color.
 - [ ] Install from browser UI or Settings → `Inštalácia aplikácie`.
 - [ ] On iOS, use Share → Add to Home Screen.
@@ -93,6 +101,7 @@ Use a production build or preview that serves `public/sw.js`:
 - [ ] Disconnect network after first load.
 - [ ] Reopen the installed app and confirm the shell or `offline.html` fallback is available.
 - [ ] Confirm the offline fallback says training data stays on the device.
+- [ ] Stop the local preview after testing with `npm run mobile:pwa:stop`.
 
 ## Screenshot guidance
 
