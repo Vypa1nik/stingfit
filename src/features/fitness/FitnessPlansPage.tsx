@@ -10,6 +10,7 @@ import { FITNESS_MUSCLE_GROUPS, formatMuscleGroupLabel } from '@/features/fitnes
 import { buildPlanReadinessReport } from '@/features/fitness/fitnessPlanReadiness'
 import { getPlanDayStatus, summarizePlanWeek, type FitnessPlanDayStatusTone } from '@/features/fitness/fitnessPlanPresentation'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
+import { useSpaNavigate } from '@/hooks/useSpaNavigate'
 import type {
   FitnessExerciseRecord,
   FitnessMuscleGroup,
@@ -85,6 +86,7 @@ type PlanConfirmation =
   | { kind: 'removePlanDay'; day: FitnessPlanDayRecord }
 
 export function FitnessPlansPage() {
+  const navigate = useSpaNavigate()
   const [starterPlans, setStarterPlans] = useState<FitnessPlanRecord[]>([])
   const [personalPlans, setPersonalPlans] = useState<FitnessPlanRecord[]>([])
   const [exerciseOptions, setExerciseOptions] = useState<FitnessExerciseRecord[]>([])
@@ -763,68 +765,76 @@ export function FitnessPlansPage() {
         </Card>
       </section>
 
-      <PlanEditor
-        structure={selectedStructure}
-        exerciseOptions={exerciseOptions}
-        drafts={exerciseDrafts}
-        dayDrafts={dayDrafts}
-        workoutDrafts={workoutDrafts}
-        dayEditDrafts={dayEditDrafts}
-        workoutEditDrafts={workoutEditDrafts}
-        addExerciseDrafts={addExerciseDrafts}
-        customExerciseDrafts={customExerciseDrafts}
-        isLoading={isLoading}
-        isMutating={isMutating}
-        showGuidance={showGuidance}
-        onDuplicateWeek={duplicateWeek}
-        onAddDay={addTrainingDay}
-        onDayDraftChange={updateDayDraft}
-        onAddWorkout={addWorkout}
-        onWorkoutDraftChange={updateWorkoutDraft}
-        onDayEditDraftChange={updateDayEditDraft}
-        onWorkoutEditDraftChange={updateWorkoutEditDraft}
-        onSaveDayDetails={saveDayDetails}
-        onSaveWorkoutDetails={saveWorkoutDetails}
-        onMoveWorkout={moveWorkoutInDay}
-        onMoveExercise={moveExerciseInWorkout}
-        onAddExercise={addExerciseToWorkout}
-        onAddExerciseDraftChange={updateAddExerciseDraft}
-        onCreateCustomExercise={createCustomExerciseForWorkout}
-        onCustomExerciseDraftChange={updateCustomExerciseDraft}
-        onRemoveDay={removePlanDay}
-        onToggleDayRest={toggleDayRest}
-        onRemoveWorkout={removePlanWorkout}
-        onRemoveExercise={removePlanExercise}
-        onDraftChange={updateExerciseDraft}
-        onSaveTargets={saveExerciseTargets}
-      />
+      {selectedStructure ? <BeginnerPlanSummary structure={selectedStructure} onOpenTraining={() => navigate('/training')} /> : null}
 
-      <ExerciseLibrary
-        exercises={exerciseOptions}
-        drafts={exerciseLibraryDrafts}
-        isLoading={isLoading}
-        isMutating={isMutating}
-        onDraftChange={updateExerciseLibraryDraft}
-        onSaveCustomExercise={saveCustomExercise}
-        onArchiveCustomExercise={archiveCustomExercise}
-      />
+      <details className="rounded-3xl border border-fitness-yellow/25 bg-black/55 p-4 text-fitness-warm">
+        <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.16em] text-fitness-yellow">Pokročilé úpravy plánu</summary>
+        <p className="mt-2 text-sm text-fitness-warm/65">Otvor iba vtedy, keď chceš meniť týždne, dni, cviky, série, RIR alebo pauzy.</p>
+        <div className="mt-4 space-y-6">
+          <PlanEditor
+            structure={selectedStructure}
+            exerciseOptions={exerciseOptions}
+            drafts={exerciseDrafts}
+            dayDrafts={dayDrafts}
+            workoutDrafts={workoutDrafts}
+            dayEditDrafts={dayEditDrafts}
+            workoutEditDrafts={workoutEditDrafts}
+            addExerciseDrafts={addExerciseDrafts}
+            customExerciseDrafts={customExerciseDrafts}
+            isLoading={isLoading}
+            isMutating={isMutating}
+            showGuidance={showGuidance}
+            onDuplicateWeek={duplicateWeek}
+            onAddDay={addTrainingDay}
+            onDayDraftChange={updateDayDraft}
+            onAddWorkout={addWorkout}
+            onWorkoutDraftChange={updateWorkoutDraft}
+            onDayEditDraftChange={updateDayEditDraft}
+            onWorkoutEditDraftChange={updateWorkoutEditDraft}
+            onSaveDayDetails={saveDayDetails}
+            onSaveWorkoutDetails={saveWorkoutDetails}
+            onMoveWorkout={moveWorkoutInDay}
+            onMoveExercise={moveExerciseInWorkout}
+            onAddExercise={addExerciseToWorkout}
+            onAddExerciseDraftChange={updateAddExerciseDraft}
+            onCreateCustomExercise={createCustomExerciseForWorkout}
+            onCustomExerciseDraftChange={updateCustomExerciseDraft}
+            onRemoveDay={removePlanDay}
+            onToggleDayRest={toggleDayRest}
+            onRemoveWorkout={removePlanWorkout}
+            onRemoveExercise={removePlanExercise}
+            onDraftChange={updateExerciseDraft}
+            onSaveTargets={saveExerciseTargets}
+          />
 
-      <Card title="Akcie plánu" description="Štruktúra plánu je pripravená na detailný editor.">
-        <div className="grid gap-3 text-sm text-text-secondary dark:text-text-secondary-dark">
-          <div className="flex items-center gap-3 rounded-2xl border border-border px-4 py-3 dark:border-border-dark">
-            <CalendarDays className="size-5 text-fitness-orange" />
-            <span>Duplikuj týždeň, vytvor ďalší týždeň, pridaj voľný deň.</span>
-          </div>
-          <div className="flex items-center gap-3 rounded-2xl border border-border px-4 py-3 dark:border-border-dark">
-            <Dumbbell className="size-5 text-fitness-orange" />
-            <span>Uprav tréningové cviky, ciele, RIR a pauzy.</span>
-          </div>
-          <div className="flex items-center gap-3 rounded-2xl border border-border px-4 py-3 dark:border-border-dark">
-            <Plus className="size-5 text-fitness-orange" />
-            <span>Pridaj vlastný tréningový deň do osobného plánu.</span>
-          </div>
+          <ExerciseLibrary
+            exercises={exerciseOptions}
+            drafts={exerciseLibraryDrafts}
+            isLoading={isLoading}
+            isMutating={isMutating}
+            onDraftChange={updateExerciseLibraryDraft}
+            onSaveCustomExercise={saveCustomExercise}
+            onArchiveCustomExercise={archiveCustomExercise}
+          />
+
+          <Card title="Akcie plánu" description="Štruktúra plánu je pripravená na detailný editor.">
+            <div className="grid gap-3 text-sm text-text-secondary dark:text-text-secondary-dark">
+              <div className="flex items-center gap-3 rounded-2xl border border-border px-4 py-3 dark:border-border-dark">
+                <CalendarDays className="size-5 text-fitness-orange" />
+                <span>Duplikuj týždeň, vytvor ďalší týždeň, pridaj voľný deň.</span>
+              </div>
+              <div className="flex items-center gap-3 rounded-2xl border border-border px-4 py-3 dark:border-border-dark">
+                <Dumbbell className="size-5 text-fitness-orange" />
+                <span>Uprav tréningové cviky, ciele, RIR a pauzy.</span>
+              </div>
+              <div className="flex items-center gap-3 rounded-2xl border border-border px-4 py-3 dark:border-border-dark">
+                <Plus className="size-5 text-fitness-orange" />
+                <span>Pridaj vlastný tréningový deň do osobného plánu.</span>
+              </div>
+            </div>
+          </Card>
         </div>
-      </Card>
+      </details>
       </div>
 
       {confirmationCopy ? (
@@ -841,6 +851,67 @@ export function FitnessPlansPage() {
       ) : null}
     </>
   )
+}
+
+function BeginnerPlanSummary({ structure, onOpenTraining }: { structure: FitnessPlanStructure; onOpenTraining: () => void }) {
+  const summary = summarizeBeginnerPlan(structure)
+
+  return (
+    <Card title="Môj plán bez stresu" description="Toto je všetko, čo potrebuješ vedieť pred prvým tréningom.">
+      <div className="rounded-3xl border border-fitness-yellow/35 bg-fitness-yellow/10 p-5 text-fitness-warm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <Badge className="bg-fitness-yellow text-black">Pripravené</Badge>
+            <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] text-fitness-yellow">{structure.plan.name}</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-fitness-warm/75">
+              Nemusíš nič upravovať. Prejdi do Tréning, spusti prvý tréning a plán rieš až vtedy, keď ti niečo začne vadiť.
+            </p>
+          </div>
+          <Button className="fitness-action" leadingIcon={<Zap className="size-4" />} onClick={onOpenTraining}>
+            Prejsť na Tréning
+          </Button>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-fitness-yellow/25 bg-black/70 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Rytmus</p>
+            <p className="mt-2 text-lg font-black text-white">{formatTrainingDayCount(summary.trainingDayCount)}</p>
+          </div>
+          <div className="rounded-2xl border border-fitness-yellow/25 bg-black/70 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Týždeň</p>
+            <p className="mt-2 text-lg font-black text-white">{formatWorkoutCount(summary.workoutCount)}</p>
+          </div>
+          <div className="rounded-2xl border border-fitness-yellow/25 bg-black/70 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Prvý tréning</p>
+            <p className="mt-2 text-lg font-black text-white">{summary.firstWorkoutName ?? 'Pripravený v Tréningu'}</p>
+          </div>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function summarizeBeginnerPlan(structure: FitnessPlanStructure) {
+  const days = structure.weeks.flatMap((week) => week.days)
+  const trainingDays = days.filter((day) => !day.isRestDay && day.workouts.length > 0)
+  const workouts = trainingDays.flatMap((day) => day.workouts)
+
+  return {
+    trainingDayCount: trainingDays.length,
+    workoutCount: workouts.length,
+    firstWorkoutName: workouts[0]?.name ?? null,
+  }
+}
+
+function formatTrainingDayCount(count: number) {
+  if (count === 1) return '1 tréningový deň'
+  if (count > 1 && count < 5) return `${count} tréningové dni`
+  return `${count} tréningových dní`
+}
+
+function formatWorkoutCount(count: number) {
+  if (count === 1) return '1 tréning'
+  if (count > 1 && count < 5) return `${count} tréningy`
+  return `${count} tréningov`
 }
 
 function getPlanConfirmationCopy(confirmation: PlanConfirmation | null) {
