@@ -57,15 +57,15 @@ describe('fitness session finish review UI', () => {
       await waitForAsyncUi()
     })
 
-    const finishButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Dokončiť tréning'))
-    expect(finishButton).toBeDefined()
+    const reviewButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Pridať krátku kontrolu'))
+    expect(reviewButton).toBeDefined()
 
     await act(async () => {
-      finishButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      reviewButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Kontrola pred dokončením')
+    expect(container.textContent).toContain('Krátka kontrola pred uložením')
 
     const rpeInput = container.querySelector<HTMLInputElement>('input[aria-label="RPE tréningu"]')
     const energyInput = container.querySelector<HTMLInputElement>('input[aria-label="Energia"]')

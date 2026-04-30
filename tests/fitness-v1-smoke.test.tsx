@@ -73,12 +73,6 @@ describe('StingFit V1 smoke flow', () => {
 
     await clickButton(container, 'Dokončiť tréning')
 
-    expect(container.textContent).toContain('Kontrola pred dokončením')
-    expect(container.textContent).toContain('RPE tréningu')
-    expect(container.textContent).toContain('Energia')
-
-    await clickButton(container, 'Uložiť kontrolu a dokončiť')
-
     expect(container.textContent).toContain('Tréning dokončený')
 
     await act(async () => {

@@ -115,7 +115,10 @@ export function LiveTrainingSession({
               onTargetSetsChange={setUnplannedTargetSets}
               onAddUnplannedExercise={onAddUnplannedExercise}
             />
-            <Button className="fitness-action h-fit" onClick={openFinishReview} disabled={isMutating}>Dokončiť tréning</Button>
+            <div className="flex flex-col gap-3 lg:items-end">
+              <Button className="fitness-action h-fit" onClick={() => void onFinish(session.id)} disabled={isMutating}>Dokončiť tréning</Button>
+              <Button variant="secondary" className="h-fit" onClick={openFinishReview} disabled={isMutating}>Pridať krátku kontrolu</Button>
+            </div>
           </div>
           {isFinishReviewOpen ? (
             <div className="mt-6">
@@ -268,8 +271,11 @@ export function LiveTrainingSession({
               <Button variant="secondary" leadingIcon={<FastForward className="size-4" />} onClick={() => onSkipExercise(activeExercise.id)} disabled={isMutating}>
                 Preskočiť cvik
               </Button>
-              <Button className="fitness-action" leadingIcon={<Trophy className="size-4" />} onClick={openFinishReview} disabled={isMutating}>
+              <Button className="fitness-action" leadingIcon={<Trophy className="size-4" />} onClick={() => void onFinish(session.id)} disabled={isMutating}>
                 Dokončiť tréning
+              </Button>
+              <Button variant="secondary" leadingIcon={<Trophy className="size-4" />} onClick={openFinishReview} disabled={isMutating}>
+                Pridať krátku kontrolu
               </Button>
               <Button variant="danger" leadingIcon={<AlertTriangle className="size-4" />} onClick={() => onAbandon(session.id)} disabled={isMutating}>
                 Zahodiť tréning
@@ -598,7 +604,7 @@ function FinishCheckInPanel({
   onCancel,
 }: FinishCheckInPanelProps) {
   return (
-    <Card title="Kontrola pred dokončením" description="Zachyť kontext za číslami predtým, než sa táto lokálna snímka uloží do histórie.">
+    <Card title="Krátka kontrola pred uložením" description="Voliteľné: pridaj RPE, energiu a poznámku iba vtedy, keď ti to pomôže pri ďalšom tréningu.">
       <div className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
