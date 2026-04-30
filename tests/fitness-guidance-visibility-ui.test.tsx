@@ -70,7 +70,7 @@ describe('fitness optional guidance visibility', () => {
       await waitForAsyncUi()
     })
 
-    expect(training.container.textContent).toContain('Spustiť odporúčaný tréning: Ťahový deň A')
+    expect(training.container.textContent).toContain('Spustiť Ťahový deň A')
     expect(training.container.textContent).not.toContain('Štart vytvorí snímku tréningu')
     expect(training.container.textContent).not.toContain('4 cviky · 12 plánovaných sérií')
 

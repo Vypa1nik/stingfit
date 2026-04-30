@@ -10,24 +10,24 @@ async function waitForAsyncUi() {
   await new Promise((resolve) => window.setTimeout(resolve, 500))
 }
 
-async function createPplPlan() {
+async function createSimplePlan() {
   await fitnessRepository.seedStarterData()
-  const starter = (await fitnessRepository.listStarterPlans()).find((plan) => plan.name === 'Tlak / Ťah / Nohy')
+  const starter = (await fitnessRepository.listStarterPlans()).find((plan) => plan.id === 'starter-full-body-3x')
   if (!starter) {
-    throw new Error('PPL starter missing')
+    throw new Error('Full-body starter missing')
   }
 
-  await fitnessRepository.createPersonalPlanFromStarter(starter.id, { name: 'My PPL Block', goal: 'Build muscle' })
+  await fitnessRepository.createPersonalPlanFromStarter(starter.id, { name: 'Môj jednoduchý 3-dňový plán', goal: 'Začať pravidelne' })
 }
 
-describe('FitnessDashboard training start summary', () => {
+describe('FitnessDashboard beginner training focus', () => {
   let container: HTMLDivElement
   let root: Root
 
   beforeEach(async () => {
     await resetDatabaseState()
     await clearAllData()
-    await createPplPlan()
+    await createSimplePlan()
     container = document.createElement('div')
     document.body.appendChild(container)
     root = createRoot(container)
@@ -41,7 +41,7 @@ describe('FitnessDashboard training start summary', () => {
     await resetDatabaseState()
   })
 
-  test('shows snapshot preview details before starting a workout', async () => {
+  test('focuses a new user on one first workout instead of a dense workout list', async () => {
     await act(async () => {
       root.render(<FitnessDashboard />)
     })
@@ -49,11 +49,12 @@ describe('FitnessDashboard training start summary', () => {
       await waitForAsyncUi()
     })
 
+    expect(container.textContent).toContain('Dnes stačí spustiť jeden tréning')
     expect(container.textContent).toContain('Tvoj prvý tréning')
-    expect(container.textContent).toContain('Pripravený prvý tréning')
-    expect(container.textContent).toContain('4 cviky · 12 plánovaných sérií')
-    expect(container.textContent).toContain('Prvý cvik: Tlak na lavičke')
-    expect(container.textContent).toContain('Štart vytvorí snímku tréningu')
-    expect(container.textContent).toContain('Spustiť Tlakový deň A')
+    expect(container.textContent).toContain('Celé telo A')
+    expect(container.textContent).toContain('Nerieš celý plán naraz')
+    expect(container.textContent).toContain('Ukázať všetky tréningy')
+    expect(container.textContent).not.toContain('Nabitý tréning')
+    expect(container.textContent).not.toContain('Spustiteľné tréningy')
   })
 })

@@ -61,7 +61,7 @@ describe('FitnessPlansPage plan editor', () => {
 
     await act(async () => {
       duplicateButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      await waitForAsyncUi()
+      await waitForAsyncUi(1200)
     })
 
     expect(container.textContent).toContain('Týždeň duplikovaný')

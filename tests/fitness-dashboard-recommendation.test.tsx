@@ -56,9 +56,9 @@ describe('FitnessDashboard workout recommendation', () => {
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Nasleduje')
+    expect(container.textContent).toContain('Tvoj ďalší tréning')
     expect(container.textContent).toContain('Odporúčaný ďalší tréning: Ťahový deň A')
     expect(container.textContent).toContain('Naposledy dokončené: Tlakový deň A')
-    expect(container.textContent).toContain('Spustiť odporúčaný tréning: Ťahový deň A')
+    expect(container.textContent).toContain('Spustiť Ťahový deň A')
   })
 })

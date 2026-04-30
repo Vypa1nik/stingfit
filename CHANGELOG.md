@@ -20,6 +20,8 @@ All notable changes to StingFit will be documented in this file.
 
 ### Changed
 
+- Training dashboard now focuses beginners on one first/next workout and hides the full workout list behind an explicit reveal.
+
 - Service worker cache is now versioned as a StingFit PWA shell and includes the offline fallback page.
 - Settings now explains offline/PWA installation without introducing cloud, login, telemetry, subscription, or paywall flows.
 - Release docs and README now describe the current StingFit fitness scope, PWA path, screenshots, privacy audit, and mobile production-preview flow.

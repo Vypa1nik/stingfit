@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { AlertTriangle, Download, Dumbbell, Plus, Zap } from 'lucide-react'
+import { AlertTriangle, Download, Zap } from 'lucide-react'
 
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -385,32 +385,38 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
       {successMessage ? <StatusMessage tone="success" message={successMessage} /> : null}
       {error ? <StatusMessage tone="error" message={error} /> : null}
 
-      <section className="fitness-hero-panel relative p-6 lg:p-8">
-        <div className="wasp-stripes absolute inset-0 opacity-50" />
+      <section className="fitness-hero-panel relative p-5 sm:p-6 lg:p-8">
+        <div className="wasp-stripes absolute inset-0 opacity-40" />
         <div className="relative">
-          <Badge className="fitness-badge">Nabitý tréning</Badge>
-          <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-[-0.06em] text-white sm:text-5xl">
-            Vyber plánovaný tréning a spusti živý zápisník.
+          <Badge className="fitness-badge">Tréning</Badge>
+          <h1 className="mt-4 max-w-3xl text-3xl font-black tracking-[-0.055em] text-white sm:text-5xl">
+            Dnes stačí spustiť jeden tréning.
           </h1>
-          <Button className="fitness-action mt-5" leadingIcon={<Zap className="size-4" />} onClick={() => navigate('/quick')} disabled={isMutating}>
-            Spustiť rýchly tréning
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-fitness-warm/75">
+            Nerieš celý plán naraz. Stlač žlté tlačidlo, zapisuj série a po tréningu sa vráť späť.
+          </p>
+          <Button variant="secondary" className="mt-5 border-fitness-yellow/25 bg-black/60 text-fitness-warm hover:bg-fitness-yellow/10" leadingIcon={<Zap className="size-4" />} onClick={() => navigate('/quick')} disabled={isMutating}>
+            Len rýchly tréning bez plánu
           </Button>
-          {settings.showGuidance ? (
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-fitness-warm/75">
-              Tréning sa uloží ako snímka plánu. Neskoršie úpravy plánu neprepíšu tréningovú históriu.
-            </p>
-          ) : null}
         </div>
       </section>
 
       {backupNudge}
 
       {recommendedWorkout ? (
-        <UpNextWorkoutCard recommendation={recommendedWorkout} showGuidance={settings.showGuidance} isMutating={isMutating} onStartWorkout={startWorkout} />
+        <UpNextWorkoutCard
+          recommendation={recommendedWorkout}
+          showGuidance={settings.showGuidance}
+          isFirstWorkout={completedSessionCount === 0}
+          isMutating={isMutating}
+          onStartWorkout={startWorkout}
+        />
       ) : null}
 
-      <Card title="Spustiteľné tréningy" description={settings.showGuidance ? 'Najrýchlejšia cesta: spusti ďalší tréning zo svojho osobného plánu.' : undefined}>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <details className="rounded-3xl border border-fitness-yellow/20 bg-black/55 p-4 text-fitness-warm">
+        <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.16em] text-fitness-yellow">Ukázať všetky tréningy</summary>
+        <p className="mt-2 text-sm text-fitness-warm/65">Toto je len záloha, keď chceš vedome vybrať iný deň. Najjednoduchšia cesta je karta vyššie.</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {startableWorkouts.map((workout) => (
             <article key={workout.workoutId} className="rounded-2xl border border-fitness-yellow/25 bg-black px-4 py-4 text-fitness-warm">
               <div className="flex h-full flex-col gap-4">
@@ -422,7 +428,6 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
                     <>
                       <p className="mt-3 text-sm font-semibold text-fitness-warm/80">{formatStartSummary(workout)}</p>
                       <p className="mt-1 text-xs text-fitness-warm/60">Prvý cvik: {workout.firstExerciseName ?? 'Nenastavené'}</p>
-                      <p className="mt-2 text-xs font-semibold text-fitness-yellow/80">Štart vytvorí snímku tréningu</p>
                     </>
                   ) : null}
                 </div>
@@ -433,19 +438,9 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
             </article>
           ))}
         </div>
-      </Card>
+      </details>
 
       {notReadyReasons.length > 0 ? <NotReadyWorkoutsCard reasons={notReadyReasons} onOpenPlans={() => navigate('/plans')} /> : null}
-
-      {settings.showGuidance ? (
-        <Card title="Kontroly pre zmeny vo fitku" description="Praktické ovládanie je dostupné počas živého tréningu.">
-          <div className="grid gap-3 text-sm text-text-secondary dark:text-text-secondary-dark sm:grid-cols-3">
-            <div className="rounded-2xl border border-border px-4 py-3 dark:border-border-dark"><Plus className="mb-2 size-5 text-fitness-orange" />Pridať sériu</div>
-            <div className="rounded-2xl border border-border px-4 py-3 dark:border-border-dark"><Dumbbell className="mb-2 size-5 text-fitness-orange" />Preskočiť cvik</div>
-            <div className="rounded-2xl border border-border px-4 py-3 dark:border-border-dark"><Zap className="mb-2 size-5 text-fitness-orange" />Dokončiť tréning</div>
-          </div>
-        </Card>
-      ) : null}
     </div>
   )
 }
@@ -453,22 +448,30 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
 function UpNextWorkoutCard({
   recommendation,
   showGuidance,
+  isFirstWorkout,
   isMutating,
   onStartWorkout,
 }: {
   recommendation: FitnessWorkoutRecommendation
   showGuidance: boolean
+  isFirstWorkout: boolean
   isMutating: boolean
   onStartWorkout: (workoutId: string) => Promise<void>
 }) {
   const { workout } = recommendation
+  const title = isFirstWorkout ? 'Tvoj prvý tréning' : 'Tvoj ďalší tréning'
+  const description = isFirstWorkout
+    ? 'Najjednoduchšia cesta: spusti tréning a zapisuj série. Plán vieš riešiť neskôr.'
+    : 'Odvodené z tvojich lokálne dokončených tréningov. Kontrola zostáva u teba; StingFit iba odporúča.'
 
   return (
-    <Card title="Nasleduje" description={showGuidance ? 'Odvodené z tvojich lokálne dokončených tréningov. Kontrola zostáva u teba; StingFit iba odporúča.' : undefined}>
+    <Card title={title} description={showGuidance ? description : undefined}>
       <div className="rounded-3xl border border-fitness-yellow/40 bg-fitness-yellow/10 p-5 text-fitness-warm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Odporúčaný ďalší tréning: {workout.workoutName}</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+              {isFirstWorkout ? 'Pripravený prvý tréning' : `Odporúčaný ďalší tréning: ${workout.workoutName}`}
+            </p>
             <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-fitness-yellow">{workout.workoutName}</h2>
             <p className="mt-2 text-sm text-fitness-warm/70">Týždeň {workout.weekNumber} · {workout.dayLabel} · {workout.planName}</p>
             {showGuidance ? (
@@ -486,7 +489,7 @@ function UpNextWorkoutCard({
           <Zap className="size-8 text-fitness-yellow" />
         </div>
         <Button className="fitness-action mt-5" leadingIcon={<Zap className="size-4" />} onClick={() => void onStartWorkout(workout.workoutId)} disabled={isMutating}>
-          Spustiť odporúčaný tréning: {workout.workoutName}
+          Spustiť {workout.workoutName}
         </Button>
       </div>
     </Card>
