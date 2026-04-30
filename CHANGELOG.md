@@ -24,6 +24,7 @@ All notable changes to StingFit will be documented in this file.
 - Plans page now shows a simple beginner summary first and keeps the detailed editor behind `Pokročilé úpravy plánu`.
 - Live workout view now focuses on the current exercise and next set, with full workout controls behind `Celý tréning a akcie`.
 - Finish workout flow now saves immediately, with RPE, energy, and notes kept as an optional short check-in.
+- History now shows a simple latest-workout result first and keeps filters/older workout selection behind `Vybrať starší tréning alebo filtrovať`.
 
 - Service worker cache is now versioned as a StingFit PWA shell and includes the offline fallback page.
 - Settings now explains offline/PWA installation without introducing cloud, login, telemetry, subscription, or paywall flows.

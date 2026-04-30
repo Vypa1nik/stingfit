@@ -9,8 +9,8 @@ import { WorkoutHistoryDetail } from '@/features/fitness/WorkoutHistoryDetail'
 import { formatCorrectedSetSummary, formatTotalCorrectionSummary, shouldShowTotalCorrectionSummary } from '@/features/fitness/fitnessCorrectionAudit'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
 import { summarizeSession } from '@/features/fitness/fitnessProgress'
-import type { FitnessLiveSession, FitnessSettingsRecord, LogFitnessSetInput } from '@/features/fitness/fitnessTypes'
-import { formatVolumeWeight } from '@/features/fitness/fitnessUnits'
+import type { FitnessLiveSession, FitnessSessionSetRecord, FitnessSettingsRecord, LogFitnessSetInput } from '@/features/fitness/fitnessTypes'
+import { formatVolumeWeight, formatWeight } from '@/features/fitness/fitnessUnits'
 import { useSpaNavigate } from '@/hooks/useSpaNavigate'
 
 async function loadCompletedHistory() {
@@ -65,6 +65,9 @@ export function FitnessHistoryPage() {
 
   const filteredSessions = useMemo(() => filterHistorySessions(sessions, historyFilter, correctionFilter), [sessions, historyFilter, correctionFilter])
   const summaries = useMemo(() => filteredSessions.map(summarizeSession), [filteredSessions])
+  const latestSession = sessions[0] ?? null
+  const latestSummary = useMemo(() => latestSession ? summarizeSession(latestSession) : null, [latestSession])
+  const latestBestSet = useMemo(() => latestSession ? findBestCompletedSet(latestSession) : null, [latestSession])
   const selectedSession = filteredSessions.find((session) => session.id === selectedSessionId) ?? filteredSessions[0] ?? null
   const hasActiveHistoryFilters = historyFilter.trim().length > 0 || correctionFilter !== 'all'
 
@@ -124,6 +127,51 @@ export function FitnessHistoryPage() {
 
       {!isLoading && !error && sessions.length > 0 ? (
         <>
+          {latestSession && latestSummary ? (
+            <Card title="Posledný výsledok" description="Najprv jednoduchý záver. Detailné filtre a staršie tréningy otvoríš až keď ich potrebuješ.">
+              <div className="rounded-3xl border border-fitness-yellow/30 bg-black p-5 text-fitness-warm">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <Badge className="bg-fitness-yellow text-black">Hotovo</Badge>
+                    <h2 className="mt-3 text-2xl font-black text-fitness-yellow">Hotovo: {latestSession.name}</h2>
+                    <p className="mt-2 text-sm text-fitness-warm/70">Toto je tvoj posledný uložený tréning. Ak chceš, pozri detail alebo oprav preklep nižšie.</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="min-h-11 rounded-full border border-fitness-yellow/40 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-fitness-yellow transition-colors hover:bg-fitness-yellow hover:text-black"
+                    onClick={() => setSelectedSessionId(latestSession.id)}
+                  >
+                    Pozrieť detail
+                  </button>
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-fitness-yellow/20 bg-black/80 px-4 py-4">
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Objem</p>
+                    <p className="mt-2 text-xl font-black text-white">{formatVolumeWeight(latestSummary.totalVolumeKg, settings.displayUnit)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-fitness-yellow/20 bg-black/80 px-4 py-4">
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Série</p>
+                    <p className="mt-2 text-xl font-black text-white">{latestSummary.completedSets}/{latestSummary.totalSets}</p>
+                  </div>
+                  <div className="rounded-2xl border border-fitness-yellow/20 bg-black/80 px-4 py-4">
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Cviky</p>
+                    <p className="mt-2 text-xl font-black text-white">{latestSummary.exerciseCount}</p>
+                  </div>
+                </div>
+                <div className="mt-3 rounded-2xl border border-fitness-yellow/20 bg-fitness-yellow/10 px-4 py-4">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Najlepší zápis</p>
+                  <p className="mt-2 text-sm font-black text-white">
+                    {latestBestSet ? `${latestBestSet.exerciseName} · ${formatWeight(latestBestSet.set.weightKg, settings.displayUnit)} × ${latestBestSet.set.reps}` : 'Zatiaľ bez zapísanej série.'}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ) : null}
+
+          <details className="rounded-3xl border border-fitness-yellow/20 bg-black/55 p-4 text-fitness-warm">
+            <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.16em] text-fitness-yellow">Vybrať starší tréning alebo filtrovať</summary>
+            <p className="mt-2 text-sm text-fitness-warm/65">Otvor iba vtedy, keď hľadáš starší tréning, opravený záznam alebo konkrétny cvik.</p>
+            <div className="mt-4 space-y-6">
           <Card title="Filter histórie" description="Rýchlo nájdi tréning podľa názvu tréningu, cviku alebo zobraz len opravené záznamy.">
             <div className="grid gap-3 lg:grid-cols-[1fr,auto]">
               <label className="block text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
@@ -212,6 +260,9 @@ export function FitnessHistoryPage() {
             )}
           </Card>
 
+            </div>
+          </details>
+
           {selectedSession ? (
             <div data-testid="selected-history-session">
               <WorkoutHistoryDetail
@@ -257,6 +308,14 @@ function filterHistorySessions(sessions: FitnessLiveSession[], filter: string, c
     ].join(' '))
     return searchableText.includes(normalizedFilter)
   })
+}
+
+function findBestCompletedSet(session: FitnessLiveSession): { exerciseName: string; set: FitnessSessionSetRecord } | null {
+  return session.exercises
+    .flatMap((exercise) => exercise.sets
+      .filter((set) => set.status === 'completed')
+      .map((set) => ({ exerciseName: exercise.nameSnapshot, set })))
+    .sort((left, right) => (right.set.weightKg * right.set.reps) - (left.set.weightKg * left.set.reps))[0] ?? null
 }
 
 function normalizeFilterText(value: string) {
