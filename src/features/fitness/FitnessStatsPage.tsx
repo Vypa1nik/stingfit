@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
-import { buildProgressSnapshot } from '@/features/fitness/fitnessProgress'
+import { buildProgressSnapshot, summarizeSession } from '@/features/fitness/fitnessProgress'
 import type { FitnessLiveSession, FitnessMuscleVolumeStatus, FitnessOneRepMaxSeries, FitnessRecoverySignalSeverity, FitnessSettingsRecord, FitnessTrainingHeatmapIntensity, FitnessTrainingHeatmapWeek } from '@/features/fitness/fitnessTypes'
 import { formatVolumeWeight, formatWeight } from '@/features/fitness/fitnessUnits'
 import { useSpaNavigate } from '@/hooks/useSpaNavigate'
@@ -53,6 +53,9 @@ export function FitnessStatsPage() {
 
   const snapshot = useMemo(() => buildProgressSnapshot(sessions), [sessions])
   const heatmapSummary = useMemo(() => summarizeHeatmap(snapshot.trainingHeatmapWeeks), [snapshot.trainingHeatmapWeeks])
+  const thisWeekSummary = useMemo(() => summarizeCurrentWeek(sessions), [sessions])
+  const bestProgressEvent = snapshot.prEvents[0] ?? null
+  const primaryRecoverySignal = snapshot.recoverySignals[0] ?? null
 
   return (
     <div className="space-y-6">
@@ -93,6 +96,37 @@ export function FitnessStatsPage() {
 
       {!isLoading && !error && sessions.length > 0 ? (
         <>
+          <Card title="Ako sa ti darí?" description="Najprv jednoduchý týždenný stav. Grafy a detailné odporúčania sú nižšie, keď ich chceš riešiť.">
+            <div data-testid="stats-beginner-summary" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-2xl border border-fitness-yellow/30 bg-black p-4 text-fitness-warm">
+                <Activity className="size-5 text-fitness-yellow" />
+                <p className="mt-3 text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Tréningy tento týždeň</p>
+                <p className="mt-2 text-3xl font-black text-fitness-yellow">{formatWorkoutCount(thisWeekSummary.workouts)}</p>
+              </div>
+              <div className="rounded-2xl border border-fitness-yellow/30 bg-black p-4 text-fitness-warm">
+                <Flame className="size-5 text-fitness-orange" />
+                <p className="mt-3 text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Objem tento týždeň</p>
+                <p className="mt-2 text-3xl font-black text-fitness-yellow">{formatVolumeWeight(thisWeekSummary.volumeKg, settings.displayUnit)}</p>
+              </div>
+              <div className="rounded-2xl border border-fitness-yellow/30 bg-black p-4 text-fitness-warm">
+                <Trophy className="size-5 text-fitness-yellow" />
+                <p className="mt-3 text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Najlepší progres</p>
+                <p className="mt-2 text-sm font-black leading-5 text-fitness-yellow">
+                  {bestProgressEvent ? `${bestProgressEvent.exerciseName} · ${formatWeight(bestProgressEvent.estimatedOneRepMaxKg, settings.displayUnit)} e1RM` : 'Zapíš viac sérií a progres sa ukáže tu.'}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-fitness-yellow/30 bg-black p-4 text-fitness-warm">
+                <Zap className="size-5 text-fitness-yellow" />
+                <p className="mt-3 text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Regenerácia</p>
+                <p className="mt-2 text-sm font-black leading-5 text-fitness-yellow">{primaryRecoverySignal ? primaryRecoverySignal.title : 'Bez varovania'}</p>
+              </div>
+            </div>
+          </Card>
+
+          <details className="rounded-3xl border border-fitness-yellow/20 bg-black/55 p-4 text-fitness-warm">
+            <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.16em] text-fitness-yellow">Podrobné grafy a odporúčania</summary>
+            <p className="mt-2 text-sm text-fitness-warm/65">Otvor, keď chceš riešiť 12-týždňovú konzistentnosť, objem podľa svalov, recovery signály alebo 1RM grafy.</p>
+            <div className="mt-4 space-y-6">
           <section className="grid gap-6 lg:grid-cols-[0.9fr,1.1fr]">
             <Card title="Snímka progresu" description="Prvé užitočné čísla bez ťažkej analytiky.">
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -304,10 +338,54 @@ export function FitnessStatsPage() {
               <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Zapíš celé cieľové série na hornej hranici opakovaní a odomkneš odporúčanie.</p>
             )}
           </Card>
+            </div>
+          </details>
         </>
       ) : null}
     </div>
   )
+}
+
+function summarizeCurrentWeek(sessions: FitnessLiveSession[]) {
+  const now = new Date()
+  const weekStart = getWeekStartKey(now)
+  const weekEnd = getDateKey(addDays(getDateFromKey(weekStart), 6))
+  const summaries = sessions
+    .filter((session) => session.status === 'completed')
+    .filter((session) => {
+      const dateKey = getSessionDateKey(session)
+      return Boolean(dateKey) && dateKey! >= weekStart && dateKey! <= weekEnd
+    })
+    .map(summarizeSession)
+
+  return {
+    workouts: summaries.length,
+    volumeKg: summaries.reduce((sum, summary) => sum + summary.totalVolumeKg, 0),
+  }
+}
+
+function getSessionDateKey(session: FitnessLiveSession) {
+  return (session.completedAt ?? session.startedAt ?? session.updatedAt)?.slice(0, 10) ?? null
+}
+
+function getWeekStartKey(date: Date) {
+  const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
+  start.setUTCDate(start.getUTCDate() - ((start.getUTCDay() + 6) % 7))
+  return getDateKey(start)
+}
+
+function getDateFromKey(dateKey: string) {
+  return new Date(`${dateKey}T00:00:00.000Z`)
+}
+
+function addDays(date: Date, days: number) {
+  const nextDate = new Date(date)
+  nextDate.setUTCDate(nextDate.getUTCDate() + days)
+  return nextDate
+}
+
+function getDateKey(date: Date) {
+  return date.toISOString().slice(0, 10)
 }
 
 function summarizeHeatmap(weeks: FitnessTrainingHeatmapWeek[]) {
