@@ -144,54 +144,62 @@ export function LiveTrainingSession({
         <div className="relative grid gap-6 p-6 lg:grid-cols-[1.35fr,0.95fr] lg:p-8">
           <div className="space-y-5">
             <div className="flex flex-wrap items-center gap-3">
-              <Badge className="fitness-badge">Živý tréning</Badge>
+              <Badge className="fitness-badge">Teraz robíš</Badge>
               {showGuidance ? <Badge className="fitness-badge">Aktívna snímka tréningu</Badge> : null}
               {isActiveSuperset ? <Badge className="fitness-badge">Superset {activeExercise.supersetGroup}</Badge> : null}
               <span className="text-sm font-semibold text-fitness-yellow/80">{completedSetCount} dokončených · {totalSets} sérií spolu</span>
               <span className="text-sm font-semibold text-fitness-yellow/80">Zobrazená jednotka: {displayUnit}</span>
             </div>
-            <div>
-              <p className="text-sm font-black uppercase tracking-[0.22em] text-fitness-yellow">{session.name}</p>
+            <div className="rounded-3xl border border-fitness-yellow/35 bg-black/75 p-5">
+              <p className="text-sm font-black uppercase tracking-[0.22em] text-fitness-yellow">Teraz robíš</p>
               <h1 className="mt-3 text-4xl font-black tracking-[-0.06em] text-white sm:text-5xl">{activeExercise.nameSnapshot}</h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-fitness-warm/75">
-                Cieľ: {activeExercise.targetSets}×{activeExercise.minReps}–{activeExercise.maxReps} · RIR {activeExercise.targetRir ?? 'voľné'}
+                Stačí zapísať aktuálnu sériu. Poradie cvikov, doplnkové akcie a plán sú nižšie, keď ich budeš potrebovať.
               </p>
               {showGuidance ? <p className="mt-2 text-sm font-semibold text-fitness-yellow/80">Zmeny plánu neovplyvnia tento tréning.</p> : null}
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Ďalšia séria</p>
+                  <p className="mt-2 text-lg font-black text-white">{currentSet ? `Séria ${currentSet.setNumber} z ${activeExercise.sets.length}` : 'Cvik dokončený'}</p>
+                </div>
+                <div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Cieľ</p>
+                  <p className="mt-2 text-lg font-black text-white">{activeExercise.minReps}–{activeExercise.maxReps} opak.</p>
+                  <p className="mt-1 text-xs font-semibold text-fitness-warm/60">RIR {activeExercise.targetRir ?? 'voľné'}</p>
+                </div>
+                <div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Hotovo</p>
+                  <p className="mt-2 text-lg font-black text-white">{completedActiveSets.length}/{activeExercise.sets.length} sérií</p>
+                </div>
+              </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Cviky</p>
-                <p className="mt-2 text-lg font-black text-white">{exerciseCount} {exerciseCount === 1 ? 'cvik' : exerciseCount < 5 ? 'cviky' : 'cvikov'}</p>
+            <details className="rounded-2xl border border-fitness-yellow/20 bg-black/60 p-4 text-fitness-warm">
+              <summary className="cursor-pointer text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow">Prehľad tréningu</summary>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Cviky</p>
+                  <p className="mt-2 text-lg font-black text-white">{exerciseCount} {exerciseCount === 1 ? 'cvik' : exerciseCount < 5 ? 'cviky' : 'cvikov'}</p>
+                </div>
+                <div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Plánované série</p>
+                  <p className="mt-2 text-lg font-black text-white">{plannedSetCount} plánovaných {plannedSetCount === 1 ? 'séria' : plannedSetCount < 5 ? 'série' : 'sérií'}</p>
+                </div>
+                <div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Dokončené série</p>
+                  <p className="mt-2 text-lg font-black text-white">{completedSetCount} dokončených {completedSetCount === 1 ? 'séria' : completedSetCount < 5 ? 'série' : 'sérií'}</p>
+                </div>
               </div>
-              <div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Plánované série</p>
-                <p className="mt-2 text-lg font-black text-white">{plannedSetCount} plánovaných {plannedSetCount === 1 ? 'séria' : plannedSetCount < 5 ? 'série' : 'sérií'}</p>
-              </div>
-              <div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Dokončené série</p>
-                <p className="mt-2 text-lg font-black text-white">{completedSetCount} dokončených {completedSetCount === 1 ? 'séria' : completedSetCount < 5 ? 'série' : 'sérií'}</p>
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Stav cviku</p>
-                <p className="mt-2 text-lg font-black text-white">{formatExerciseStatus(activeExercise.status)}</p>
-              </div>
-              <div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Pokrok</p>
-                <p className="mt-2 text-lg font-black text-white">{completedSetCount} dokončených</p>
-              </div>
-              {isActiveSuperset ? (
-                <SupersetTransitionCard group={activeExercise.supersetGroup ?? ''} exercises={activeSupersetExercises.map((exercise) => exercise.nameSnapshot)} />
-              ) : (
-                <RestTimer
-                  seconds={activeExercise.restSeconds}
-                  startedAt={lastCompletedSet?.completedAt}
-                  soundEnabled={restSoundEnabled}
-                  vibrationEnabled={restVibrationEnabled}
-                />
-              )}
-            </div>
+            </details>
+            {isActiveSuperset ? (
+              <SupersetTransitionCard group={activeExercise.supersetGroup ?? ''} exercises={activeSupersetExercises.map((exercise) => exercise.nameSnapshot)} />
+            ) : (
+              <RestTimer
+                seconds={activeExercise.restSeconds}
+                startedAt={lastCompletedSet?.completedAt}
+                soundEnabled={restSoundEnabled}
+                vibrationEnabled={restVibrationEnabled}
+              />
+            )}
           </div>
 
           {currentSet ? (
@@ -206,7 +214,10 @@ export function LiveTrainingSession({
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.4fr,0.9fr]">
+      <details className="rounded-3xl border border-fitness-yellow/20 bg-black/55 p-4 text-fitness-warm">
+        <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.16em] text-fitness-yellow">Celý tréning a akcie</summary>
+        <p className="mt-2 text-sm text-fitness-warm/65">Otvor, keď chceš preskočiť cvik, pridať sériu, pozrieť poradie alebo dokončiť tréning.</p>
+        <section className="mt-4 grid gap-6 xl:grid-cols-[1.4fr,0.9fr]">
         <Card title="Poradie cvikov" description={showGuidance ? 'Snímka z tvojho osobného plánu. História zostane stabilná aj po neskoršej zmene plánu.' : undefined}>
           <div className="space-y-3">
             {session.exercises.map((exercise, index) => (
@@ -334,7 +345,8 @@ export function LiveTrainingSession({
             </Card>
           ) : null}
         </div>
-      </section>
+        </section>
+      </details>
     </div>
   )
 }
