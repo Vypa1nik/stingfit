@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { AlertTriangle, Download, Zap } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Download, Zap } from 'lucide-react'
 
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -20,6 +20,10 @@ import { downloadBlob } from '@/lib/download'
 
 interface FitnessDashboardProps {
   autoStartQuick?: boolean
+}
+
+interface PostWorkoutActionState {
+  sessionName: string
 }
 
 function readBackupNudgeDismissedCount() {
@@ -58,6 +62,7 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
   const [isMutating, setIsMutating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [postWorkoutAction, setPostWorkoutAction] = useState<PostWorkoutActionState | null>(null)
   const [pendingAbandonSessionId, setPendingAbandonSessionId] = useState<string | null>(null)
 
   const loadTrainingState = useCallback(async () => {
@@ -119,6 +124,7 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
     setIsMutating(true)
     setError(null)
     setSuccessMessage(null)
+    setPostWorkoutAction(null)
     try {
       const nextSession = await operation()
       setActiveSession(nextSession)
@@ -183,7 +189,21 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
   }
 
   const finishWorkout = async (sessionId: string, input?: FinishFitnessSessionInput) => {
-    await runMutation(() => fitnessRepository.finishSession(sessionId, input), 'Tréning dokončený')
+    setIsMutating(true)
+    setError(null)
+    setSuccessMessage(null)
+    setPostWorkoutAction(null)
+    try {
+      const completedSession = await fitnessRepository.finishSession(sessionId, input)
+      setActiveSession(completedSession)
+      setSuccessMessage('Tréning dokončený')
+      setPostWorkoutAction({ sessionName: completedSession.name })
+      await loadTrainingState()
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Tréningová akcia zlyhala.')
+    } finally {
+      setIsMutating(false)
+    }
   }
 
   const requestAbandonWorkout = async (sessionId: string) => {
@@ -261,6 +281,15 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
       isMutating={isMutating}
       onExport={() => void exportBackupFromNudge()}
       onDismiss={dismissBackupNudge}
+    />
+  ) : null
+  const postWorkoutActionCard = postWorkoutAction ? (
+    <PostWorkoutActionCard
+      sessionName={postWorkoutAction.sessionName}
+      isMutating={isMutating}
+      onOpenHistory={() => navigate('/history')}
+      onExportBackup={() => void exportBackupFromNudge()}
+      onDismiss={() => setPostWorkoutAction(null)}
     />
   ) : null
 
@@ -353,6 +382,7 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
         <div className="space-y-4">
           {successMessage ? <StatusMessage tone="success" message={successMessage} /> : null}
           {error ? <StatusMessage tone="error" message={error} /> : null}
+          {postWorkoutActionCard}
           <section className="fitness-hero-panel p-6 lg:p-8">
             <Badge className="fitness-badge">Tréning zablokovaný</Badge>
             <h1 className="mt-4 text-4xl font-black tracking-[-0.06em] text-white sm:text-5xl">Plán potrebuje úpravy pred tréningom.</h1>
@@ -370,6 +400,7 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
       <div className="space-y-4">
         {successMessage ? <StatusMessage tone="success" message={successMessage} /> : null}
         {error ? <StatusMessage tone="error" message={error} /> : null}
+        {postWorkoutActionCard}
         <SimpleStartBuilder
           isMutating={isMutating}
           onSelectPlan={(choice) => void createSimpleStarterPlan(choice)}
@@ -384,6 +415,7 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
     <div className="space-y-6">
       {successMessage ? <StatusMessage tone="success" message={successMessage} /> : null}
       {error ? <StatusMessage tone="error" message={error} /> : null}
+      {postWorkoutActionCard}
 
       <section className="fitness-hero-panel relative p-5 sm:p-6 lg:p-8">
         <div className="wasp-stripes absolute inset-0 opacity-40" />
@@ -504,6 +536,46 @@ function formatCompletedWorkoutCount(count: number) {
   if (count === 1) return '1 dokončený tréning'
   if (count > 1 && count < 5) return `${count} dokončené tréningy`
   return `${count} dokončených tréningov`
+}
+
+function PostWorkoutActionCard({
+  sessionName,
+  isMutating,
+  onOpenHistory,
+  onExportBackup,
+  onDismiss,
+}: {
+  sessionName: string
+  isMutating: boolean
+  onOpenHistory: () => void
+  onExportBackup: () => void
+  onDismiss: () => void
+}) {
+  return (
+    <Card title="Tréning uložený" description="Hotovo. Teraz si môžeš pozrieť výsledok, nechať ďalší tréning na neskôr alebo stiahnuť lokálnu zálohu.">
+      <div className="rounded-3xl border border-fitness-yellow/35 bg-fitness-yellow/10 p-5 text-fitness-warm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <Badge className="bg-fitness-yellow text-black"><CheckCircle2 className="mr-1 size-3" />Hotovo</Badge>
+            <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] text-fitness-yellow">{sessionName}</h2>
+            <p className="mt-2 text-sm leading-6 text-fitness-warm/75">Tréning je uložený v lokálnej histórii. Ak chceš iba odísť z fitka, môžeš zavrieť túto kartu.</p>
+          </div>
+          <CheckCircle2 className="size-8 text-fitness-yellow" />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Button className="fitness-action" leadingIcon={<Zap className="size-4" />} onClick={onOpenHistory} disabled={isMutating}>
+            Pozrieť výsledok
+          </Button>
+          <Button variant="secondary" onClick={onDismiss} disabled={isMutating}>
+            Spustiť ďalší tréning neskôr
+          </Button>
+          <Button variant="secondary" leadingIcon={<Download className="size-4" />} onClick={onExportBackup} disabled={isMutating}>
+            Exportovať zálohu
+          </Button>
+        </div>
+      </div>
+    </Card>
+  )
 }
 
 function BackupNudgeCard({
