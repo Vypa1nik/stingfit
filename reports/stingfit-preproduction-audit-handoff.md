@@ -1,19 +1,21 @@
 # StingFit pre-production audit handoff
 
 Date: 2026-05-01
-Candidate commit: `a0cb07b fix: recommend next workout after finish`
+Candidate commit: `2dc04ce fix: complete starter plan creation flows`
 
 ## Scope
 
 This candidate is the React/Vite web/PWA production path for StingFit. The app is still local-first and private: no login, cloud sync, telemetry, analytics, subscription, or paywall logic was added.
 
-Recent stabilization focused on beginner gym flow and post-workout handoff:
+Recent stabilization focused on beginner gym flow, post-workout handoff, and plan completion:
 
 - Quick workout starts with one-tap common exercise buttons before advanced selection.
 - Finishing a workout saves immediately by default.
 - After finishing, Training shows `Tréning uložený` with result, history, and local backup actions.
 - History recognizes `#/history?from=finish` and labels the latest result as `Práve dokončený tréning`.
 - The post-workout result recommends the next planned workout and links back to Training.
+- Plans can now create a personal copy from every starter template, not only PPL.
+- Unfinished plans no longer look ready; they offer `Dostavať z Celé telo 3×` as the simplest recovery path.
 
 ## Verification run
 
@@ -52,13 +54,19 @@ Result:
    - Log a set.
    - Finish and inspect History.
 
-3. Local data safety:
+3. Plans path:
+   - Open Plans.
+   - Confirm every starter template has `Vytvoriť osobnú kópiu`.
+   - Create `Celé telo 3×` and confirm the beginner summary shows `3 tréningové dni` and `Celé telo A`.
+   - Create a blank plan and confirm it shows `Treba dostavať` / `Dostavať z Celé telo 3×` instead of pretending it is ready.
+
+4. Local data safety:
    - Open Settings.
    - Confirm `Bezpečnosť dát` is first.
    - Export local backup.
    - Confirm import/reset controls remain behind advanced sections.
 
-4. Mobile/PWA path:
+5. Mobile/PWA path:
    - Run production preview with `npm run mobile:pwa:start`.
    - Open printed LAN URL on a phone on the same network.
    - Smoke bottom navigation, Training, Quick, History, Stats, Settings.
