@@ -306,7 +306,25 @@ export function FitnessSettingsPage() {
       {successMessage ? <StatusMessage tone="success" message={successMessage} /> : null}
       {error ? <StatusMessage tone="error" message={error} /> : null}
 
-      <section className="grid gap-6 lg:grid-cols-4">
+      <Card title="Bezpečnosť dát" description="Najprv si sprav lokálnu zálohu. Až potom rieš importy, reset alebo technické nastavenia.">
+        <div className="grid gap-4 lg:grid-cols-[1fr,auto] lg:items-center">
+          <div className="flex items-start gap-3 rounded-2xl border border-fitness-yellow/30 bg-black px-4 py-4 text-fitness-warm">
+            <DatabaseBackup className="mt-0.5 size-5 shrink-0 text-fitness-yellow" />
+            <div>
+              <p className="text-sm font-black text-fitness-yellow">Bez účtu, cloudu a telemetrie</p>
+              <p className="mt-1 text-sm leading-6 text-fitness-warm/70">Stiahni si čitateľný JSON súbor iba s tréningovými dátami. Export sa pripraví v prehliadači a nič sa nikam neposiela.</p>
+            </div>
+          </div>
+          <Button className="fitness-action h-fit" leadingIcon={<DatabaseBackup className="size-4" />} onClick={() => void exportFitnessJson()} disabled={isLoading || isMutating}>
+            Exportovať lokálnu zálohu
+          </Button>
+        </div>
+      </Card>
+
+      <details className="rounded-3xl border border-fitness-yellow/20 bg-black/55 p-4 text-fitness-warm">
+        <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.16em] text-fitness-yellow">Nastavenia tréningu a aplikácie</summary>
+        <p className="mt-2 text-sm text-fitness-warm/65">Otvor, keď chceš meniť kg/lb, pomocné texty, signál pauzy, štartovacie dáta alebo PWA inštaláciu.</p>
+        <section className="mt-4 grid gap-6 lg:grid-cols-3">
         <Card title="Jednotky" description="Uložené váhy zostávajú v kg; zobrazenie môžeš prepínať bez zmeny histórie.">
           <div className="rounded-2xl bg-fitness-yellow px-4 py-4 text-center text-2xl font-black text-black">kg / lb</div>
           <p className="mt-3 text-sm font-semibold text-text-secondary dark:text-text-secondary-dark">Aktuálna jednotka zobrazenia: {displayUnit}</p>
@@ -387,16 +405,6 @@ export function FitnessSettingsPage() {
           <p className="mt-3 text-xs text-text-secondary dark:text-text-secondary-dark">Zvuk sa pripraví po prvom ťuknutí v tréningu; vibrácie fungujú len na podporovaných zariadeniach.</p>
         </Card>
 
-        <Card title="Záloha" description="Export a záloha zostávajú lokálne a čitateľné.">
-          <div className="flex items-center gap-3 rounded-2xl border border-fitness-yellow/30 bg-black px-4 py-4 text-fitness-warm">
-            <DatabaseBackup className="size-5 text-fitness-yellow" />
-            <span className="text-sm">Stiahni JSON snímku iba s tréningovými dátami. Neodosiela sa žiadna sieťová požiadavka.</span>
-          </div>
-          <Button className="fitness-action mt-4 w-full" leadingIcon={<DatabaseBackup className="size-4" />} onClick={() => void exportFitnessJson()} disabled={isLoading || isMutating}>
-            Exportovať tréningový JSON
-          </Button>
-        </Card>
-
         <Card title="Štartovacie dáta" description="Bezpečná obnova vstavaných štartovacích plánov.">
           <div className="flex items-center gap-3 rounded-2xl border border-fitness-yellow/30 bg-black px-4 py-4 text-fitness-warm">
             <RotateCcw className="size-5 text-fitness-yellow" />
@@ -420,8 +428,13 @@ export function FitnessSettingsPage() {
             <p className="mt-3 text-xs text-text-secondary dark:text-text-secondary-dark">{sk.fitness.pwa.manualInstallHint}</p>
           ) : null}
         </Card>
-      </section>
+        </section>
+      </details>
 
+      <details className="rounded-3xl border border-fitness-yellow/20 bg-black/55 p-4 text-fitness-warm">
+        <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.16em] text-fitness-yellow">Import, obnova a nebezpečná zóna</summary>
+        <p className="mt-2 text-sm text-fitness-warm/65">Otvor iba vtedy, keď importuješ zo Strong, obnovuješ JSON alebo chceš vymazať lokálne tréningové dáta.</p>
+        <div className="mt-4 space-y-6">
       <Card title="Import zo Strong CSV" description="Vlož export zo Strong. Import sa pridá do histórie ako dokončené lokálne tréningy bez cloudu a bez prepísania existujúcich dát.">
         <div className="space-y-4">
           <label className="block text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
@@ -497,6 +510,8 @@ export function FitnessSettingsPage() {
           Vymazať tréningové dáta
         </Button>
       </Card>
+        </div>
+      </details>
 
       <Card title="Sľub súkromia" description="Produkt zostáva lokálny a súkromný už v návrhu.">
         <div className="flex items-center gap-3 rounded-2xl border border-fitness-yellow/30 bg-fitness-yellow/10 px-4 py-4 text-sm text-text-secondary dark:text-text-secondary-dark">

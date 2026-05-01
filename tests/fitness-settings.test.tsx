@@ -68,7 +68,7 @@ describe('FitnessSettingsPage', () => {
     expect(container.textContent).toContain('Nastavenia uložené: lb')
     await expect(fitnessRepository.getSettings()).resolves.toMatchObject({ displayUnit: 'lb' })
 
-    const exportButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Exportovať tréningový JSON'))
+    const exportButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Exportovať lokálnu zálohu'))
     expect(exportButton).toBeDefined()
 
     await act(async () => {

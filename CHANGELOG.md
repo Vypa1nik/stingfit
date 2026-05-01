@@ -26,6 +26,7 @@ All notable changes to StingFit will be documented in this file.
 - Finish workout flow now saves immediately, with RPE, energy, and notes kept as an optional short check-in.
 - History now shows a simple latest-workout result first and keeps filters/older workout selection behind `Vybrať starší tréning alebo filtrovať`.
 - Stats now start with `Tréningy tento týždeň`, weekly volume, best progress, and recovery before detailed graphs.
+- Settings now start with `Bezpečnosť dát` and a local backup CTA, with import/reset controls moved behind advanced sections.
 
 - Service worker cache is now versioned as a StingFit PWA shell and includes the offline fallback page.
 - Settings now explains offline/PWA installation without introducing cloud, login, telemetry, subscription, or paywall flows.
