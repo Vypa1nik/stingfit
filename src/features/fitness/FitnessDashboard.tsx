@@ -287,7 +287,7 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
     <PostWorkoutActionCard
       sessionName={postWorkoutAction.sessionName}
       isMutating={isMutating}
-      onOpenHistory={() => navigate('/history')}
+      onOpenHistory={() => navigate('/history?from=finish')}
       onExportBackup={() => void exportBackupFromNudge()}
       onDismiss={() => setPostWorkoutAction(null)}
     />

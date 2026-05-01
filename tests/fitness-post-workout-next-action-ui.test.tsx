@@ -81,6 +81,6 @@ describe('FitnessDashboard post-workout next action', () => {
       await waitForAsyncUi()
     })
 
-    expect(window.location.hash).toBe('#/history')
+    expect(window.location.hash).toBe('#/history?from=finish')
   })
 })

@@ -70,6 +70,7 @@ export function FitnessHistoryPage() {
   const latestBestSet = useMemo(() => latestSession ? findBestCompletedSet(latestSession) : null, [latestSession])
   const selectedSession = filteredSessions.find((session) => session.id === selectedSessionId) ?? filteredSessions[0] ?? null
   const hasActiveHistoryFilters = historyFilter.trim().length > 0 || correctionFilter !== 'all'
+  const isPostWorkoutHandoff = hasPostWorkoutHandoffIntent()
 
   const updateHistorySet = async (setId: string, input: LogFitnessSetInput) => {
     setIsMutating(true)
@@ -128,13 +129,13 @@ export function FitnessHistoryPage() {
       {!isLoading && !error && sessions.length > 0 ? (
         <>
           {latestSession && latestSummary ? (
-            <Card title="Posledný výsledok" description="Najprv jednoduchý záver. Detailné filtre a staršie tréningy otvoríš až keď ich potrebuješ.">
+            <Card title={isPostWorkoutHandoff ? 'Práve dokončený tréning' : 'Posledný výsledok'} description={isPostWorkoutHandoff ? 'Toto je výsledok tréningu, ktorý si práve uložil. Detailné úpravy sú nižšie, iba ak ich potrebuješ.' : 'Najprv jednoduchý záver. Detailné filtre a staršie tréningy otvoríš až keď ich potrebuješ.'}>
               <div className="rounded-3xl border border-fitness-yellow/30 bg-black p-5 text-fitness-warm">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <Badge className="bg-fitness-yellow text-black">Hotovo</Badge>
                     <h2 className="mt-3 text-2xl font-black text-fitness-yellow">Hotovo: {latestSession.name}</h2>
-                    <p className="mt-2 text-sm text-fitness-warm/70">Toto je tvoj posledný uložený tréning. Ak chceš, pozri detail alebo oprav preklep nižšie.</p>
+                    <p className="mt-2 text-sm text-fitness-warm/70">{isPostWorkoutHandoff ? 'Toto je tvoj práve dokončený tréning. Ak čísla sedia, nemusíš robiť nič.' : 'Toto je tvoj posledný uložený tréning. Ak chceš, pozri detail alebo oprav preklep nižšie.'}</p>
                   </div>
                   <button
                     type="button"
@@ -164,6 +165,12 @@ export function FitnessHistoryPage() {
                     {latestBestSet ? `${latestBestSet.exerciseName} · ${formatWeight(latestBestSet.set.weightKg, settings.displayUnit)} × ${latestBestSet.set.reps}` : 'Zatiaľ bez zapísanej série.'}
                   </p>
                 </div>
+                {isPostWorkoutHandoff ? (
+                  <div className="mt-3 rounded-2xl border border-fitness-yellow/25 bg-black/80 px-4 py-4">
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Čo spraviť nabudúce</p>
+                    <p className="mt-2 text-sm font-semibold leading-6 text-fitness-warm/75">Ak čísla sedia, nemusíš robiť nič. Nabudúce otvor Tréning a StingFit ti ukáže ďalší jednoduchý krok.</p>
+                  </div>
+                ) : null}
               </div>
             </Card>
           ) : null}
@@ -316,6 +323,17 @@ function findBestCompletedSet(session: FitnessLiveSession): { exerciseName: stri
       .filter((set) => set.status === 'completed')
       .map((set) => ({ exerciseName: exercise.nameSnapshot, set })))
     .sort((left, right) => (right.set.weightKg * right.set.reps) - (left.set.weightKg * left.set.reps))[0] ?? null
+}
+
+function hasPostWorkoutHandoffIntent() {
+  if (typeof window === 'undefined') {
+    return false
+  }
+
+  const hash = window.location.hash
+  const hashQuery = hash.includes('?') ? hash.slice(hash.indexOf('?') + 1) : ''
+  const params = new URLSearchParams(hashQuery || window.location.search)
+  return params.get('from') === 'finish'
 }
 
 function normalizeFilterText(value: string) {

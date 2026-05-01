@@ -38,6 +38,7 @@ describe('FitnessHistoryPage simplified history result', () => {
   let root: Root
 
   beforeEach(async () => {
+    window.history.replaceState(null, '', '/#/history')
     await resetDatabaseState()
     await clearAllData()
     await createFinishedWorkout()
@@ -75,5 +76,21 @@ describe('FitnessHistoryPage simplified history result', () => {
     expect(advancedHistory).toBeDefined()
     expect(advancedHistory?.hasAttribute('open')).toBe(false)
     expect(advancedHistory?.textContent).toContain('Filter histórie')
+  })
+
+  test('labels the latest result as the just-finished workout after finish handoff', async () => {
+    window.history.replaceState(null, '', '/#/history?from=finish')
+
+    await act(async () => {
+      root.render(<FitnessHistoryPage />)
+    })
+    await act(async () => {
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Práve dokončený tréning')
+    expect(container.textContent).toContain('Toto je tvoj práve dokončený tréning.')
+    expect(container.textContent).toContain('Čo spraviť nabudúce')
+    expect(container.textContent).toContain('Ak čísla sedia, nemusíš robiť nič.')
   })
 })
