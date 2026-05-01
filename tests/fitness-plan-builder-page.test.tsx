@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
 import { FitnessPlansPage } from '@/features/fitness/FitnessPlansPage'
+import { fitnessRepository } from '@/features/fitness/fitnessRepository'
 import { clearAllData, resetDatabaseState } from '@/lib/database'
 
 async function waitForAsyncUi() {
@@ -29,7 +30,7 @@ describe('FitnessPlansPage repository integration', () => {
     await resetDatabaseState()
   })
 
-  test('loads starter plans and can create a personal plan from PPL', async () => {
+  test('loads starter plans and can create personal plans from every starter template', async () => {
     await act(async () => {
       root.render(<FitnessPlansPage />)
     })
@@ -41,17 +42,32 @@ describe('FitnessPlansPage repository integration', () => {
     expect(container.textContent).toContain('Štartovacie šablóny pripravené: 3')
     expect(container.textContent).toContain('Osobné plány: 0')
 
-    const createButton = Array.from(container.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Vytvoriť z Tlak / Ťah / Nohy'),
-    )
-    expect(createButton).toBeDefined()
+    const fullBodyButton = container.querySelector<HTMLButtonElement>('button[aria-label="Vytvoriť osobný plán zo šablóny Celé telo 3×"]')
+    expect(fullBodyButton).toBeDefined()
 
     await act(async () => {
-      createButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      fullBodyButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Môj PPL blok')
+    expect(container.textContent).toContain('Osobný plán vytvorený zo šablóny Celé telo 3×.')
+    expect(container.textContent).toContain('Môj plán Celé telo 3×')
+    expect(container.textContent).toContain('3 tréningové dni')
+    expect(container.textContent).toContain('Celé telo A')
     expect(container.textContent).toContain('Osobné plány: 1')
+
+    const upperLowerButton = container.querySelector<HTMLButtonElement>('button[aria-label="Vytvoriť osobný plán zo šablóny Vrch / Spodok"]')
+    expect(upperLowerButton).toBeDefined()
+
+    await act(async () => {
+      upperLowerButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Osobný plán vytvorený zo šablóny Vrch / Spodok.')
+    expect(container.textContent).toContain('Môj plán Vrch / Spodok')
+    expect(container.textContent).toContain('Osobné plány: 2')
+
+    await expect(fitnessRepository.listPersonalPlans()).resolves.toHaveLength(2)
   })
 })

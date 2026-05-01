@@ -165,6 +165,24 @@ export function FitnessPlansPage() {
     }
   }, [loadPlans])
 
+  const createFromStarter = async (starter: FitnessPlanRecord) => {
+    setIsMutating(true)
+    setError(null)
+    setSuccessMessage(null)
+    try {
+      const plan = await fitnessRepository.createPersonalPlanFromStarter(starter.id, {
+        name: createPersonalPlanName(starter),
+        goal: createPersonalPlanGoal(starter),
+      })
+      setSuccessMessage(`Osobný plán vytvorený zo šablóny ${starter.name}.`)
+      await loadPlans(plan.id)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Nepodarilo sa vytvoriť osobný plán.')
+    } finally {
+      setIsMutating(false)
+    }
+  }
+
   const createFromPpl = async () => {
     const starter = starterPlans.find((plan) => plan.id === 'starter-push-pull-legs')
     if (!starter) {
@@ -172,21 +190,7 @@ export function FitnessPlansPage() {
       return
     }
 
-    setIsMutating(true)
-    setError(null)
-    setSuccessMessage(null)
-    try {
-      const plan = await fitnessRepository.createPersonalPlanFromStarter(starter.id, {
-        name: 'Môj PPL blok',
-        goal: 'Budovať svaly',
-      })
-      setSuccessMessage('Osobný plán vytvorený zo šablóny Tlak / Ťah / Nohy.')
-      await loadPlans(plan.id)
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Nepodarilo sa vytvoriť osobný plán.')
-    } finally {
-      setIsMutating(false)
-    }
+    await createFromStarter(starter)
   }
 
   const createBlank = async () => {
@@ -658,6 +662,7 @@ export function FitnessPlansPage() {
     await confirmRemovePlanDay(pendingConfirmation.day)
   }
 
+  const fullBodyStarterPlan = starterPlans.find((plan) => plan.id === 'starter-full-body-3x')
   const confirmationCopy = getPlanConfirmationCopy(pendingConfirmation)
 
   return (
@@ -733,7 +738,17 @@ export function FitnessPlansPage() {
                       <p className="mt-1 text-sm text-fitness-warm/70">{plan.goal}</p>
                       {showGuidance ? <p className="mt-2 text-xs font-semibold text-fitness-warm/55">Na úpravy vytvor osobnú kópiu.</p> : null}
                     </div>
-                    <Badge className="bg-fitness-yellow text-black">Šablóna chránená</Badge>
+                    <div className="flex flex-col items-end gap-3">
+                      <Badge className="bg-fitness-yellow text-black">Šablóna chránená</Badge>
+                      <Button
+                        variant="secondary"
+                        aria-label={`Vytvoriť osobný plán zo šablóny ${plan.name}`}
+                        onClick={() => void createFromStarter(plan)}
+                        disabled={isLoading || isMutating}
+                      >
+                        Vytvoriť osobnú kópiu
+                      </Button>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -765,7 +780,14 @@ export function FitnessPlansPage() {
         </Card>
       </section>
 
-      {selectedStructure ? <BeginnerPlanSummary structure={selectedStructure} onOpenTraining={() => navigate('/training')} /> : null}
+      {selectedStructure ? (
+        <BeginnerPlanSummary
+          structure={selectedStructure}
+          isMutating={isMutating}
+          onOpenTraining={() => navigate('/training')}
+          onCompleteFromStarter={fullBodyStarterPlan ? () => void createFromStarter(fullBodyStarterPlan) : undefined}
+        />
+      ) : null}
 
       <details className="rounded-3xl border border-fitness-yellow/25 bg-black/55 p-4 text-fitness-warm">
         <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.16em] text-fitness-yellow">Pokročilé úpravy plánu</summary>
@@ -853,23 +875,56 @@ export function FitnessPlansPage() {
   )
 }
 
-function BeginnerPlanSummary({ structure, onOpenTraining }: { structure: FitnessPlanStructure; onOpenTraining: () => void }) {
+function createPersonalPlanName(starter: FitnessPlanRecord) {
+  if (starter.id === 'starter-push-pull-legs') {
+    return 'Môj PPL blok'
+  }
+
+  return `Môj plán ${starter.name}`
+}
+
+function createPersonalPlanGoal(starter: FitnessPlanRecord) {
+  if (starter.id === 'starter-push-pull-legs') {
+    return 'Budovať svaly'
+  }
+
+  return starter.goal
+}
+
+function BeginnerPlanSummary({
+  structure,
+  isMutating,
+  onOpenTraining,
+  onCompleteFromStarter,
+}: {
+  structure: FitnessPlanStructure
+  isMutating: boolean
+  onOpenTraining: () => void
+  onCompleteFromStarter?: () => void
+}) {
   const summary = summarizeBeginnerPlan(structure)
+  const readiness = buildPlanReadinessReport(structure)
 
   return (
-    <Card title="Môj plán bez stresu" description="Toto je všetko, čo potrebuješ vedieť pred prvým tréningom.">
-      <div className="rounded-3xl border border-fitness-yellow/35 bg-fitness-yellow/10 p-5 text-fitness-warm">
+    <Card title="Môj plán bez stresu" description={readiness.ready ? 'Toto je všetko, čo potrebuješ vedieť pred prvým tréningom.' : 'Plán najprv dostavaj z hotovej šablóny alebo v pokročilých úpravách.'}>
+      <div className={readiness.ready ? 'rounded-3xl border border-fitness-yellow/35 bg-fitness-yellow/10 p-5 text-fitness-warm' : 'rounded-3xl border border-rose-500/35 bg-rose-500/10 p-5 text-fitness-warm'}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <Badge className="bg-fitness-yellow text-black">Pripravené</Badge>
+            <Badge className={readiness.ready ? 'bg-fitness-yellow text-black' : 'bg-rose-500 text-white'}>{readiness.ready ? 'Pripravené' : 'Treba dostavať'}</Badge>
             <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] text-fitness-yellow">{structure.plan.name}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-fitness-warm/75">
-              Nemusíš nič upravovať. Prejdi do Tréning, spusti prvý tréning a plán rieš až vtedy, keď ti niečo začne vadiť.
+              {readiness.ready ? 'Nemusíš nič upravovať. Prejdi do Tréning, spusti prvý tréning a plán rieš až vtedy, keď ti niečo začne vadiť.' : 'Tento plán ešte nie je spustiteľný. Ak nechceš skladať dni a cviky ručne, dostavaj ho z jednoduchej 3-dňovej šablóny.'}
             </p>
           </div>
-          <Button className="fitness-action" leadingIcon={<Zap className="size-4" />} onClick={onOpenTraining}>
-            Prejsť na Tréning
-          </Button>
+          {readiness.ready ? (
+            <Button className="fitness-action" leadingIcon={<Zap className="size-4" />} onClick={onOpenTraining}>
+              Prejsť na Tréning
+            </Button>
+          ) : onCompleteFromStarter ? (
+            <Button className="fitness-action" leadingIcon={<CopyPlus className="size-4" />} onClick={onCompleteFromStarter} disabled={isMutating}>
+              Dostavať z Celé telo 3×
+            </Button>
+          ) : null}
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-fitness-yellow/25 bg-black/70 p-4">

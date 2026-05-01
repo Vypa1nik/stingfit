@@ -49,6 +49,21 @@ describe('FitnessPlansPage plan readiness', () => {
     expect(container.textContent).toContain('Pripravenosť plánu')
     expect(container.textContent).toContain('Pred tréningom treba opravy')
     expect(container.textContent).toContain('Týždeň 1 nemá žiadne tréningové dni.')
+    expect(container.textContent).toContain('Tento plán ešte nie je spustiteľný')
+    expect(container.textContent).toContain('Dostavať z Celé telo 3×')
+
+    const completeFromStarterButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Dostavať z Celé telo 3×'))
+    expect(completeFromStarterButton).toBeDefined()
+
+    await act(async () => {
+      completeFromStarterButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Osobný plán vytvorený zo šablóny Celé telo 3×.')
+    expect(container.textContent).toContain('Pripravené')
+    expect(container.textContent).toContain('3 tréningové dni')
+    expect(container.textContent).toContain('Celé telo A')
 
     act(() => {
       root.unmount()
