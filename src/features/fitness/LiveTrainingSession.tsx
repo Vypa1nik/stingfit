@@ -521,6 +521,13 @@ interface QuickAddExerciseCardProps {
   onAddUnplannedExercise: (sessionId: string, input: AddUnplannedExerciseInput) => Promise<void>
 }
 
+const QUICK_SESSION_EXERCISE_ORDER = [
+  'Tlak na lavičke',
+  'Drep',
+  'Mŕtvy ťah',
+  'Príťahy veľkej činky v predklone',
+]
+
 function QuickAddExerciseCard({
   sessionId,
   exerciseOptions,
@@ -531,53 +538,86 @@ function QuickAddExerciseCard({
   onTargetSetsChange,
   onAddUnplannedExercise,
 }: QuickAddExerciseCardProps) {
+  const quickExerciseOptions = [...exerciseOptions]
+    .sort((left, right) => getQuickExerciseOrder(left.name) - getQuickExerciseOrder(right.name) || left.name.localeCompare(right.name, 'sk'))
+    .slice(0, 4)
+  const parsedTargetSets = Math.max(1, Number(targetSets) || 1)
+
   return (
-    <Card title="Pridaj prvý cvik" description="Vyber cvik z lokálnej knižnice; StingFit vytvorí série priamo v rýchlom tréningu.">
+    <Card title="Rýchly štart bez plánu" description="Pridaj prvý cvik jedným ťuknutím. Pokročilý výber otvor iba vtedy, keď potrebuješ iný cvik alebo počet sérií.">
       {exerciseOptions.length > 0 ? (
-        <div className="space-y-3">
-          <label className="block text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
-            Cvik
-            <select
-              aria-label="Neplánovaný cvik"
-              className="mt-2 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-3 py-3 text-sm font-bold text-fitness-warm outline-none focus:border-fitness-yellow"
-              value={selectedExerciseId}
-              onChange={(event) => onExerciseChange(event.target.value)}
-            >
-              {exerciseOptions.map((exercise) => (
-                <option key={exercise.id} value={exercise.id}>{exercise.name}</option>
+        <div className="space-y-4">
+          <div className="rounded-3xl border border-fitness-yellow/30 bg-black p-4 text-fitness-warm">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Najčastejšie cviky</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {quickExerciseOptions.map((exercise) => (
+                <Button
+                  key={exercise.id}
+                  className="justify-start"
+                  variant="secondary"
+                  leadingIcon={<Zap className="size-4" />}
+                  onClick={() => void onAddUnplannedExercise(sessionId, { exerciseId: exercise.id, targetSets: parsedTargetSets })}
+                  disabled={isMutating}
+                >
+                  Začať: {exercise.name}
+                </Button>
               ))}
-            </select>
-          </label>
-          <label className="block text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
-            Cieľové série
-            <input
-              aria-label="Cieľové série pre neplánovaný cvik"
-              className="mt-2 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-3 py-3 text-sm font-bold text-fitness-warm outline-none focus:border-fitness-yellow"
-              inputMode="numeric"
-              value={targetSets}
-              onInput={(event) => onTargetSetsChange(event.currentTarget.value)}
-            />
-          </label>
-          <Button
-            variant="secondary"
-            leadingIcon={<ListPlus className="size-4" />}
-            onClick={() => {
-              if (!selectedExerciseId) return
-              void onAddUnplannedExercise(sessionId, {
-                exerciseId: selectedExerciseId,
-                targetSets: Math.max(1, Number(targetSets) || 1),
-              })
-            }}
-            disabled={isMutating || !selectedExerciseId}
-          >
-            Pridať neplánovaný cvik
-          </Button>
+            </div>
+          </div>
+
+          <details className="rounded-2xl border border-fitness-yellow/20 bg-black/60 p-4 text-fitness-warm">
+            <summary className="cursor-pointer text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow">Pokročilý výber cviku</summary>
+            <div className="mt-4 space-y-3">
+              <label className="block text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+                Cvik
+                <select
+                  aria-label="Neplánovaný cvik"
+                  className="mt-2 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-3 py-3 text-sm font-bold text-fitness-warm outline-none focus:border-fitness-yellow"
+                  value={selectedExerciseId}
+                  onChange={(event) => onExerciseChange(event.target.value)}
+                >
+                  {exerciseOptions.map((exercise) => (
+                    <option key={exercise.id} value={exercise.id}>{exercise.name}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+                Cieľové série
+                <input
+                  aria-label="Cieľové série pre neplánovaný cvik"
+                  className="mt-2 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-3 py-3 text-sm font-bold text-fitness-warm outline-none focus:border-fitness-yellow"
+                  inputMode="numeric"
+                  value={targetSets}
+                  onInput={(event) => onTargetSetsChange(event.currentTarget.value)}
+                />
+              </label>
+              <Button
+                variant="secondary"
+                leadingIcon={<ListPlus className="size-4" />}
+                onClick={() => {
+                  if (!selectedExerciseId) return
+                  void onAddUnplannedExercise(sessionId, {
+                    exerciseId: selectedExerciseId,
+                    targetSets: parsedTargetSets,
+                  })
+                }}
+                disabled={isMutating || !selectedExerciseId}
+              >
+                Pridať neplánovaný cvik
+              </Button>
+            </div>
+          </details>
         </div>
       ) : (
         <p className="text-sm text-fitness-warm/70">Zatiaľ nie sú dostupné žiadne cviky.</p>
       )}
     </Card>
   )
+}
+
+function getQuickExerciseOrder(exerciseName: string) {
+  const index = QUICK_SESSION_EXERCISE_ORDER.indexOf(exerciseName)
+  return index === -1 ? QUICK_SESSION_EXERCISE_ORDER.length : index
 }
 
 interface FinishCheckInPanelProps {

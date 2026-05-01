@@ -31,6 +31,35 @@ describe('quick fitness session flow', () => {
     await resetDatabaseState()
   })
 
+  test('shows one-tap common exercise starters before advanced selection', async () => {
+    await act(async () => {
+      root.render(<FitnessDashboard autoStartQuick />)
+    })
+    await act(async () => {
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Rýchly štart bez plánu')
+    expect(container.textContent).toContain('Najčastejšie cviky')
+    expect(container.textContent).toContain('Začať: Tlak na lavičke')
+
+    const advancedPicker = Array.from(container.querySelectorAll('details')).find((details) => details.textContent?.includes('Pokročilý výber cviku'))
+    expect(advancedPicker).toBeDefined()
+    expect(advancedPicker?.hasAttribute('open')).toBe(false)
+    expect(advancedPicker?.textContent).toContain('Pridať neplánovaný cvik')
+
+    const quickBenchButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Začať: Tlak na lavičke'))
+    expect(quickBenchButton).toBeDefined()
+
+    await act(async () => {
+      quickBenchButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Tlak na lavičke')
+    expect(container.textContent).toContain('Zapísať sériu ⚡ pauza')
+  })
+
   test('starts a route-backed quick session and adds the first exercise', async () => {
     await act(async () => {
       root.render(<FitnessDashboard autoStartQuick />)
@@ -40,7 +69,7 @@ describe('quick fitness session flow', () => {
     })
 
     expect(container.textContent).toContain('Rýchly tréning')
-    expect(container.textContent).toContain('Pridaj prvý cvik')
+    expect(container.textContent).toContain('Rýchly štart bez plánu')
 
     const exerciseSelect = container.querySelector<HTMLSelectElement>('select[aria-label="Neplánovaný cvik"]')
     const benchOption = Array.from(exerciseSelect?.options ?? []).find((option) => option.textContent === 'Tlak na lavičke')
