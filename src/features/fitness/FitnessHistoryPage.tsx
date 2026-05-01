@@ -9,7 +9,8 @@ import { WorkoutHistoryDetail } from '@/features/fitness/WorkoutHistoryDetail'
 import { formatCorrectedSetSummary, formatTotalCorrectionSummary, shouldShowTotalCorrectionSummary } from '@/features/fitness/fitnessCorrectionAudit'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
 import { summarizeSession } from '@/features/fitness/fitnessProgress'
-import type { FitnessLiveSession, FitnessSessionSetRecord, FitnessSettingsRecord, LogFitnessSetInput } from '@/features/fitness/fitnessTypes'
+import { pickRecommendedWorkout } from '@/features/fitness/fitnessWorkoutRecommendation'
+import type { FitnessLiveSession, FitnessSessionSetRecord, FitnessSettingsRecord, FitnessStartableWorkout, LogFitnessSetInput } from '@/features/fitness/fitnessTypes'
 import { formatVolumeWeight, formatWeight } from '@/features/fitness/fitnessUnits'
 import { useSpaNavigate } from '@/hooks/useSpaNavigate'
 
@@ -17,12 +18,14 @@ async function loadCompletedHistory() {
   return Promise.all([
     fitnessRepository.listCompletedSessions(),
     fitnessRepository.getSettings(),
+    fitnessRepository.listStartableWorkouts(),
   ])
 }
 
 export function FitnessHistoryPage() {
   const navigate = useSpaNavigate()
   const [sessions, setSessions] = useState<FitnessLiveSession[]>([])
+  const [startableWorkouts, setStartableWorkouts] = useState<FitnessStartableWorkout[]>([])
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
   const [historyFilter, setHistoryFilter] = useState('')
   const [correctionFilter, setCorrectionFilter] = useState<'all' | 'corrected'>('all')
@@ -39,11 +42,12 @@ export function FitnessHistoryPage() {
       setIsLoading(true)
       setError(null)
       try {
-        const [completedSessions, loadedSettings] = await loadCompletedHistory()
+        const [completedSessions, loadedSettings, loadedStartableWorkouts] = await loadCompletedHistory()
         if (!cancelled) {
           setSessions(completedSessions)
           setSelectedSessionId((current) => resolveSelectedSessionId(current, completedSessions))
           setSettings(loadedSettings)
+          setStartableWorkouts(loadedStartableWorkouts)
         }
       } catch (cause) {
         if (!cancelled) {
@@ -71,6 +75,7 @@ export function FitnessHistoryPage() {
   const selectedSession = filteredSessions.find((session) => session.id === selectedSessionId) ?? filteredSessions[0] ?? null
   const hasActiveHistoryFilters = historyFilter.trim().length > 0 || correctionFilter !== 'all'
   const isPostWorkoutHandoff = hasPostWorkoutHandoffIntent()
+  const nextWorkoutRecommendation = useMemo(() => isPostWorkoutHandoff ? pickRecommendedWorkout(startableWorkouts, sessions) : null, [isPostWorkoutHandoff, sessions, startableWorkouts])
 
   const updateHistorySet = async (setId: string, input: LogFitnessSetInput) => {
     setIsMutating(true)
@@ -78,10 +83,11 @@ export function FitnessHistoryPage() {
     setSuccessMessage(null)
     try {
       await fitnessRepository.updateLoggedSet(setId, input)
-      const [completedSessions, loadedSettings] = await loadCompletedHistory()
+      const [completedSessions, loadedSettings, loadedStartableWorkouts] = await loadCompletedHistory()
       setSessions(completedSessions)
       setSelectedSessionId((current) => resolveSelectedSessionId(current, completedSessions))
       setSettings(loadedSettings)
+      setStartableWorkouts(loadedStartableWorkouts)
       setSuccessMessage('Séria v histórii opravená')
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Nepodarilo sa opraviť sériu v histórii.')
@@ -168,7 +174,23 @@ export function FitnessHistoryPage() {
                 {isPostWorkoutHandoff ? (
                   <div className="mt-3 rounded-2xl border border-fitness-yellow/25 bg-black/80 px-4 py-4">
                     <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Čo spraviť nabudúce</p>
-                    <p className="mt-2 text-sm font-semibold leading-6 text-fitness-warm/75">Ak čísla sedia, nemusíš robiť nič. Nabudúce otvor Tréning a StingFit ti ukáže ďalší jednoduchý krok.</p>
+                    {nextWorkoutRecommendation ? (
+                      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-black text-white">Nabudúce ťa čaká: {nextWorkoutRecommendation.workout.workoutName}</p>
+                          <p className="mt-1 text-sm font-semibold leading-6 text-fitness-warm/75">Ak čísla sedia, nemusíš robiť nič. StingFit ti tento tréning ukáže aj na obrazovke Tréning.</p>
+                        </div>
+                        <button
+                          type="button"
+                          className="min-h-11 rounded-full border border-fitness-yellow/40 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-fitness-yellow transition-colors hover:bg-fitness-yellow hover:text-black"
+                          onClick={() => navigate('/training')}
+                        >
+                          Otvoriť Tréning
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-sm font-semibold leading-6 text-fitness-warm/75">Ak čísla sedia, nemusíš robiť nič. Nabudúce otvor Tréning a StingFit ti ukáže ďalší jednoduchý krok.</p>
+                    )}
                   </div>
                 ) : null}
               </div>

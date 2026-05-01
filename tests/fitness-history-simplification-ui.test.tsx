@@ -10,6 +10,12 @@ async function waitForAsyncUi() {
   await new Promise((resolve) => window.setTimeout(resolve, 500))
 }
 
+function findButton(container: HTMLDivElement, label: string) {
+  const button = Array.from(container.querySelectorAll('button')).find((item) => item.textContent?.includes(label))
+  expect(button).toBeDefined()
+  return button
+}
+
 async function createFinishedWorkout() {
   await fitnessRepository.seedStarterData()
   const starter = (await fitnessRepository.listStarterPlans()).find((plan) => plan.name === 'Tlak / Ťah / Nohy')
@@ -92,5 +98,13 @@ describe('FitnessHistoryPage simplified history result', () => {
     expect(container.textContent).toContain('Toto je tvoj práve dokončený tréning.')
     expect(container.textContent).toContain('Čo spraviť nabudúce')
     expect(container.textContent).toContain('Ak čísla sedia, nemusíš robiť nič.')
+    expect(container.textContent).toContain('Nabudúce ťa čaká: Ťahový deň A')
+
+    await act(async () => {
+      findButton(container, 'Otvoriť Tréning')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(window.location.hash).toBe('#/training')
   })
 })

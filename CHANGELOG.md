@@ -30,6 +30,7 @@ All notable changes to StingFit will be documented in this file.
 - Quick workout now starts with one-tap common exercise buttons and keeps the full exercise picker behind `Pokročilý výber cviku`.
 - Training now shows a post-workout next-action card with result, history, and local backup actions after finishing a workout.
 - History now recognizes the post-workout handoff and labels the latest result as the just-finished workout with a simple next-step note.
+- The post-workout history handoff now recommends the next planned workout and links back to Training.
 
 - Service worker cache is now versioned as a StingFit PWA shell and includes the offline fallback page.
 - Settings now explains offline/PWA installation without introducing cloud, login, telemetry, subscription, or paywall flows.
