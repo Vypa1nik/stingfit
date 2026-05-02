@@ -10,6 +10,12 @@ async function waitForAsyncUi() {
   await new Promise((resolve) => window.setTimeout(resolve, 500))
 }
 
+function findButton(container: HTMLDivElement, label: string) {
+  const button = Array.from(container.querySelectorAll('button')).find((item) => item.textContent?.includes(label))
+  expect(button).toBeDefined()
+  return button
+}
+
 describe('FitnessPlansPage repository integration', () => {
   let container: HTMLDivElement
   let root: Root
@@ -28,6 +34,58 @@ describe('FitnessPlansPage repository integration', () => {
     })
     container.remove()
     await resetDatabaseState()
+  })
+
+  test('renames and archives a personal plan from the plans page', async () => {
+    await fitnessRepository.seedStarterData()
+    await fitnessRepository.createBlankPersonalPlan({ name: 'Old Block', goal: 'Old goal' })
+
+    await act(async () => {
+      root.render(<FitnessPlansPage />)
+    })
+    await act(async () => {
+      await waitForAsyncUi()
+    })
+
+    const nameInput = container.querySelector<HTMLInputElement>('input[aria-label="Názov osobného plánu Old Block"]')
+    const goalInput = container.querySelector<HTMLInputElement>('input[aria-label="Cieľ osobného plánu Old Block"]')
+    expect(nameInput).toBeTruthy()
+    expect(goalInput).toBeTruthy()
+
+    await act(async () => {
+      if (nameInput) {
+        nameInput.value = 'Strength Block'
+        nameInput.dispatchEvent(new Event('input', { bubbles: true }))
+      }
+      if (goalInput) {
+        goalInput.value = 'Build strength'
+        goalInput.dispatchEvent(new Event('input', { bubbles: true }))
+      }
+    })
+
+    await act(async () => {
+      findButton(container, 'Uložiť plán')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Strength Block aktualizovaný')
+    expect(container.textContent).toContain('Build strength')
+
+    await act(async () => {
+      findButton(container, 'Archivovať plán')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Archivovať Strength Block?')
+
+    await act(async () => {
+      findButton(container, 'Áno, archivovať plán')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Strength Block archivovaný')
+    expect(container.textContent).toContain('Osobné plány: 0')
+    await expect(fitnessRepository.listPersonalPlans()).resolves.toEqual([])
   })
 
   test('loads starter plans and can create personal plans from every starter template', async () => {

@@ -407,6 +407,11 @@ export interface CreatePersonalPlanInput {
   sourceTemplateId?: string | null
 }
 
+export interface UpdatePersonalPlanInput {
+  name?: string
+  goal?: string
+}
+
 export interface AddPlanDayInput {
   dayIndex: number
   label: string

@@ -39,6 +39,7 @@ import type {
   StarterPlanStructureDay,
   UpdateFitnessExerciseInput,
   UpdateFitnessSettingsInput,
+  UpdatePersonalPlanInput,
   UpdatePlanDayInput,
   UpdatePlanExerciseInput,
   UpdatePlanWorkoutInput,
@@ -564,6 +565,22 @@ async function getPlanRow(planId: string) {
   }
 
   return row
+}
+
+async function getAnyPlanRow(planId: string) {
+  const rows = await query<FitnessPlanRow>(`SELECT * FROM fitness_plans WHERE id = ?`, [planId])
+  const row = rows[0]
+  if (!row) {
+    throw new Error('Fitness plan not found')
+  }
+
+  return row
+}
+
+function requirePersonalPlan(row: FitnessPlanRow) {
+  if (row.kind !== 'personal') {
+    throw new Error('Only personal plans can be changed.')
+  }
 }
 
 async function getWeekRow(weekId: string) {
@@ -1456,6 +1473,34 @@ export const fitnessRepository = {
     const plan = await fitnessRepository.createPersonalPlan(input)
     await insertWeek(plan.id, 1, '')
     return plan
+  },
+
+  updatePersonalPlan: async (planId: string, patch: UpdatePersonalPlanInput) => {
+    const current = await getPlanRow(planId)
+    requirePersonalPlan(current)
+    const name = patch.name === undefined ? current.name : requireName(patch.name, 'Plan name is required')
+    const goal = patch.goal === undefined ? current.goal : patch.goal.trim()
+    const timestamp = nowIso()
+
+    await execute(
+      `UPDATE fitness_plans SET name = ?, goal = ?, updated_at = ? WHERE id = ?`,
+      [name, goal, timestamp, planId],
+    )
+
+    return planFromRow(await getPlanRow(planId))
+  },
+
+  archivePersonalPlan: async (planId: string) => {
+    const current = await getPlanRow(planId)
+    requirePersonalPlan(current)
+    const timestamp = nowIso()
+
+    await execute(
+      `UPDATE fitness_plans SET status = 'archived', deleted_at = ?, updated_at = ? WHERE id = ?`,
+      [timestamp, timestamp, planId],
+    )
+
+    return planFromRow(await getAnyPlanRow(planId))
   },
 
   createPersonalPlanFromStarter: async (starterPlanId: string, input: CreatePersonalPlanInput) => {

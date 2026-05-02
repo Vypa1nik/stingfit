@@ -32,6 +32,7 @@ All notable changes to StingFit will be documented in this file.
 - History now recognizes the post-workout handoff and labels the latest result as the just-finished workout with a simple next-step note.
 - The post-workout history handoff now recommends the next planned workout and links back to Training.
 - Plans can now create personal copies from every starter template and unfinished plans offer a one-click `Dostavať z Celé telo 3×` path instead of pretending they are ready.
+- Personal plans can now be renamed, retargeted, and archived from Plans while preserving completed workout history.
 
 - Service worker cache is now versioned as a StingFit PWA shell and includes the offline fallback page.
 - Settings now explains offline/PWA installation without introducing cloud, login, telemetry, subscription, or paywall flows.

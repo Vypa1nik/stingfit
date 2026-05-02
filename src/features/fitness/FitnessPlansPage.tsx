@@ -79,7 +79,13 @@ interface ExerciseLibraryDraft {
   defaultRestSeconds: string
 }
 
+interface PersonalPlanDraft {
+  name: string
+  goal: string
+}
+
 type PlanConfirmation =
+  | { kind: 'archivePersonalPlan'; plan: FitnessPlanRecord }
   | { kind: 'archiveCustomExercise'; exercise: FitnessExerciseRecord }
   | { kind: 'removePlanExercise'; exercise: FitnessPlanExerciseRecord }
   | { kind: 'removePlanWorkout'; workout: FitnessPlanWorkoutRecord }
@@ -101,6 +107,7 @@ export function FitnessPlansPage() {
   const [addExerciseDrafts, setAddExerciseDrafts] = useState<Record<string, AddExerciseDraft>>({})
   const [customExerciseDrafts, setCustomExerciseDrafts] = useState<Record<string, CustomExerciseDraft>>({})
   const [exerciseLibraryDrafts, setExerciseLibraryDrafts] = useState<Record<string, ExerciseLibraryDraft>>({})
+  const [personalPlanDrafts, setPersonalPlanDrafts] = useState<Record<string, PersonalPlanDraft>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [isMutating, setIsMutating] = useState(false)
   const [pendingConfirmation, setPendingConfirmation] = useState<PlanConfirmation | null>(null)
@@ -121,6 +128,7 @@ export function FitnessPlansPage() {
     setExerciseOptions(exercises)
     setShowGuidance(loadedSettings.showGuidance)
     setExerciseLibraryDrafts(buildExerciseLibraryDrafts(exercises))
+    setPersonalPlanDrafts(buildPersonalPlanDrafts(personal))
 
     const nextSelectedPlanId = preferredPlanId ?? personal[0]?.id ?? null
     if (!nextSelectedPlanId || !personal.some((plan) => plan.id === nextSelectedPlanId)) {
@@ -205,6 +213,52 @@ export function FitnessPlansPage() {
       setError(cause instanceof Error ? cause.message : 'Nepodarilo sa vytvoriť prázdny plán.')
     } finally {
       setIsMutating(false)
+    }
+  }
+
+  const updatePersonalPlanDraft = (planId: string, key: keyof PersonalPlanDraft, value: string) => {
+    setPersonalPlanDrafts((current) => ({
+      ...current,
+      [planId]: {
+        ...current[planId],
+        [key]: value,
+      },
+    }))
+  }
+
+  const savePersonalPlan = async (plan: FitnessPlanRecord) => {
+    const draft = personalPlanDrafts[plan.id] ?? planToDraft(plan)
+    setIsMutating(true)
+    setError(null)
+    setSuccessMessage(null)
+    try {
+      const updated = await fitnessRepository.updatePersonalPlan(plan.id, draft)
+      setSuccessMessage(`${updated.name} aktualizovaný`)
+      await loadPlans(updated.id)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : `Nepodarilo sa aktualizovať ${plan.name}.`)
+    } finally {
+      setIsMutating(false)
+    }
+  }
+
+  const archivePersonalPlan = async (plan: FitnessPlanRecord) => {
+    setPendingConfirmation({ kind: 'archivePersonalPlan', plan })
+  }
+
+  const confirmArchivePersonalPlan = async (plan: FitnessPlanRecord) => {
+    setIsMutating(true)
+    setError(null)
+    setSuccessMessage(null)
+    try {
+      await fitnessRepository.archivePersonalPlan(plan.id)
+      setSuccessMessage(`${plan.name} archivovaný`)
+      await loadPlans(selectedPlanId === plan.id ? null : selectedPlanId)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : `Nepodarilo sa archivovať ${plan.name}.`)
+    } finally {
+      setIsMutating(false)
+      setPendingConfirmation(null)
     }
   }
 
@@ -647,6 +701,10 @@ export function FitnessPlansPage() {
       return
     }
 
+    if (pendingConfirmation.kind === 'archivePersonalPlan') {
+      await confirmArchivePersonalPlan(pendingConfirmation.plan)
+      return
+    }
     if (pendingConfirmation.kind === 'archiveCustomExercise') {
       await confirmArchiveCustomExercise(pendingConfirmation.exercise)
       return
@@ -763,19 +821,50 @@ export function FitnessPlansPage() {
             </div>
           ) : null}
           <div className="grid gap-3">
-            {personalPlans.map((plan) => (
-              <article key={plan.id} className={plan.id === selectedPlanId ? 'rounded-2xl border border-fitness-yellow bg-fitness-yellow/10 px-4 py-4 text-fitness-warm' : 'rounded-2xl border border-fitness-yellow/20 bg-black px-4 py-4 text-fitness-warm'}>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-sm font-black text-fitness-yellow">{plan.name}</h3>
-                    <p className="mt-1 text-sm text-fitness-warm/70">{plan.goal || 'Cieľ zatiaľ nie je nastavený.'}</p>
+            {personalPlans.map((plan) => {
+              const draft = personalPlanDrafts[plan.id] ?? planToDraft(plan)
+              return (
+                <article key={plan.id} className={plan.id === selectedPlanId ? 'rounded-2xl border border-fitness-yellow bg-fitness-yellow/10 px-4 py-4 text-fitness-warm' : 'rounded-2xl border border-fitness-yellow/20 bg-black px-4 py-4 text-fitness-warm'}>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-black text-fitness-yellow">{plan.name}</h3>
+                      <p className="mt-1 text-sm text-fitness-warm/70">{plan.goal || 'Cieľ zatiaľ nie je nastavený.'}</p>
+                    </div>
+                    <Button variant="secondary" onClick={() => void selectPlan(plan.id)} disabled={isLoading || isMutating}>
+                      Otvoriť editor
+                    </Button>
                   </div>
-                  <Button variant="secondary" onClick={() => void selectPlan(plan.id)} disabled={isLoading || isMutating}>
-                    Otvoriť editor
-                  </Button>
-                </div>
-              </article>
-            ))}
+                  <div className="mt-4 grid gap-3">
+                    <label className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+                      Názov plánu
+                      <input
+                        aria-label={`Názov osobného plánu ${plan.name}`}
+                        className="mt-2 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-3 py-2 text-sm font-bold text-fitness-warm outline-none focus:border-fitness-yellow"
+                        value={draft.name}
+                        onInput={(event) => updatePersonalPlanDraft(plan.id, 'name', event.currentTarget.value)}
+                      />
+                    </label>
+                    <label className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+                      Cieľ
+                      <input
+                        aria-label={`Cieľ osobného plánu ${plan.name}`}
+                        className="mt-2 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-3 py-2 text-sm font-bold text-fitness-warm outline-none focus:border-fitness-yellow"
+                        value={draft.goal}
+                        onInput={(event) => updatePersonalPlanDraft(plan.id, 'goal', event.currentTarget.value)}
+                      />
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="secondary" leadingIcon={<Save className="size-4" />} onClick={() => void savePersonalPlan(plan)} disabled={isLoading || isMutating}>
+                        Uložiť plán
+                      </Button>
+                      <Button variant="danger" leadingIcon={<Trash2 className="size-4" />} onClick={() => void archivePersonalPlan(plan)} disabled={isLoading || isMutating}>
+                        Archivovať plán
+                      </Button>
+                    </div>
+                  </div>
+                </article>
+              )
+            })}
           </div>
         </Card>
       </section>
@@ -972,6 +1061,15 @@ function formatWorkoutCount(count: number) {
 function getPlanConfirmationCopy(confirmation: PlanConfirmation | null) {
   if (!confirmation) {
     return null
+  }
+
+  if (confirmation.kind === 'archivePersonalPlan') {
+    return {
+      title: `Archivovať ${confirmation.plan.name}?`,
+      description: 'Plán sa skryje zo zoznamu osobných plánov a nebude ponúkať budúce tréningy. Dokončená história zostane zachovaná.',
+      confirmLabel: 'Áno, archivovať plán',
+      warningText: 'Archivácia nevymaže dokončené tréningy ani lokálnu históriu. Odstráni iba plán z budúcej ponuky.',
+    }
   }
 
   if (confirmation.kind === 'archiveCustomExercise') {
@@ -1926,6 +2024,17 @@ function exerciseToDraft(exercise: FitnessPlanExerciseRecord): PlanExerciseDraft
     restSeconds: String(exercise.restSeconds),
     supersetGroup: exercise.supersetGroup ?? '',
   }
+}
+
+function planToDraft(plan: FitnessPlanRecord): PersonalPlanDraft {
+  return {
+    name: plan.name,
+    goal: plan.goal,
+  }
+}
+
+function buildPersonalPlanDrafts(plans: FitnessPlanRecord[]) {
+  return Object.fromEntries(plans.map((plan) => [plan.id, planToDraft(plan)]))
 }
 
 function buildExerciseLibraryDrafts(exercises: FitnessExerciseRecord[]) {

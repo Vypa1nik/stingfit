@@ -39,6 +39,21 @@ describe('fitness plan builder repository', () => {
     expect(structure.weeks[0]?.days).toEqual([])
   })
 
+  test('updates and archives only personal plans', async () => {
+    const plan = await fitnessRepository.createBlankPersonalPlan({ name: 'Old Block', goal: 'Old goal' })
+
+    const updated = await fitnessRepository.updatePersonalPlan(plan.id, { name: 'Strength Block', goal: 'Build strength' })
+    expect(updated).toMatchObject({ id: plan.id, name: 'Strength Block', goal: 'Build strength', kind: 'personal', deletedAt: null })
+
+    const archived = await fitnessRepository.archivePersonalPlan(plan.id)
+    expect(archived).toMatchObject({ id: plan.id, status: 'archived' })
+    expect(archived.deletedAt).toEqual(expect.any(String))
+    await expect(fitnessRepository.listPersonalPlans()).resolves.toEqual([])
+
+    const starter = (await fitnessRepository.listStarterPlans())[0]
+    await expect(fitnessRepository.updatePersonalPlan(starter!.id, { name: 'Bad idea' })).rejects.toThrow('Only personal plans can be changed.')
+  })
+
   test('duplicates a week and creates the next week from an existing week', async () => {
     const starter = (await fitnessRepository.listStarterPlans())[0]
     const plan = await fitnessRepository.createPersonalPlanFromStarter(starter!.id, { name: 'Scale PPL', goal: 'Hypertrophy' })
