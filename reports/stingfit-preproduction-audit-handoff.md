@@ -1,7 +1,7 @@
 # StingFit pre-production audit handoff
 
 Date: 2026-05-01
-Candidate commit: `2dc04ce fix: complete starter plan creation flows`
+Candidate commit: `09a2fc8 fix: add personal plan management`
 
 ## Scope
 
@@ -16,6 +16,7 @@ Recent stabilization focused on beginner gym flow, post-workout handoff, and pla
 - The post-workout result recommends the next planned workout and links back to Training.
 - Plans can now create a personal copy from every starter template, not only PPL.
 - Unfinished plans no longer look ready; they offer `Dostavať z Celé telo 3×` as the simplest recovery path.
+- Personal plans can be renamed, retargeted, and archived without deleting completed workout history.
 
 ## Verification run
 
@@ -59,6 +60,7 @@ Result:
    - Confirm every starter template has `Vytvoriť osobnú kópiu`.
    - Create `Celé telo 3×` and confirm the beginner summary shows `3 tréningové dni` and `Celé telo A`.
    - Create a blank plan and confirm it shows `Treba dostavať` / `Dostavať z Celé telo 3×` instead of pretending it is ready.
+   - Rename a personal plan, change its goal, save it, then archive it and confirm it disappears from `Osobné plány` without affecting History.
 
 4. Local data safety:
    - Open Settings.
