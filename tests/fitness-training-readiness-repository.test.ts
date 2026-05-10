@@ -43,4 +43,30 @@ describe('fitness training readiness repository', () => {
       expect.arrayContaining([expect.objectContaining({ workoutId: workout.id, workoutName: 'Chest Builder' })]),
     )
   })
+
+  test('uses only the active personal plan when one is selected', async () => {
+    const starters = await fitnessRepository.listStarterPlans()
+    const fullBodyStarter = starters.find((plan) => plan.name === 'Celé telo 3×')
+    const upperLowerStarter = starters.find((plan) => plan.name === 'Vrch / Spodok')
+    if (!fullBodyStarter || !upperLowerStarter) {
+      throw new Error('Starter plans missing')
+    }
+
+    const fullBody = await fitnessRepository.createPersonalPlanFromStarter(fullBodyStarter.id, { name: 'Full Body', goal: 'Simple start' })
+    const upperLower = await fitnessRepository.createPersonalPlanFromStarter(upperLowerStarter.id, { name: 'Upper Lower', goal: 'More days' })
+
+    const allWorkouts = await fitnessRepository.listStartableWorkouts()
+    expect(new Set(allWorkouts.map((workout) => workout.planId))).toEqual(new Set([fullBody.id, upperLower.id]))
+
+    const active = await fitnessRepository.activatePersonalPlan(upperLower.id)
+    expect(active).toMatchObject({ id: upperLower.id, status: 'active' })
+
+    const filteredWorkouts = await fitnessRepository.listStartableWorkouts()
+    expect(new Set(filteredWorkouts.map((workout) => workout.planId))).toEqual(new Set([upperLower.id]))
+
+    const plans = await fitnessRepository.listPersonalPlans()
+    expect(plans.find((plan) => plan.id === fullBody.id)?.status).toBe('draft')
+    expect(plans.find((plan) => plan.id === upperLower.id)?.status).toBe('active')
+  })
+
 })

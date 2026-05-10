@@ -88,6 +88,41 @@ describe('FitnessPlansPage repository integration', () => {
     await expect(fitnessRepository.listPersonalPlans()).resolves.toEqual([])
   })
 
+
+  test('marks one personal plan as active for Training', async () => {
+    await fitnessRepository.seedStarterData()
+    const starters = await fitnessRepository.listStarterPlans()
+    const fullBodyStarter = starters.find((plan) => plan.name === 'Celé telo 3×')
+    const upperLowerStarter = starters.find((plan) => plan.name === 'Vrch / Spodok')
+    if (!fullBodyStarter || !upperLowerStarter) {
+      throw new Error('Starter plans missing')
+    }
+    await fitnessRepository.createPersonalPlanFromStarter(fullBodyStarter.id, { name: 'Full Body', goal: 'Simple start' })
+    await fitnessRepository.createPersonalPlanFromStarter(upperLowerStarter.id, { name: 'Upper Lower', goal: 'More days' })
+
+    await act(async () => {
+      root.render(<FitnessPlansPage />)
+    })
+    await act(async () => {
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Návrh')
+    const activateFullBody = container.querySelector<HTMLButtonElement>('button[aria-label="Používať plán Full Body v Tréningu"]')
+    expect(activateFullBody).toBeDefined()
+
+    await act(async () => {
+      activateFullBody?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Full Body je aktívny tréningový plán.')
+    expect(container.textContent).toContain('Aktívny plán')
+    const plans = await fitnessRepository.listPersonalPlans()
+    expect(plans.find((plan) => plan.name === 'Full Body')?.status).toBe('active')
+    expect(plans.find((plan) => plan.name === 'Upper Lower')?.status).toBe('draft')
+  })
+
   test('loads starter plans and can create personal plans from every starter template', async () => {
     await act(async () => {
       root.render(<FitnessPlansPage />)

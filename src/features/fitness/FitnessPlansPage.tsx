@@ -242,6 +242,21 @@ export function FitnessPlansPage() {
     }
   }
 
+  const activatePersonalPlan = async (plan: FitnessPlanRecord) => {
+    setIsMutating(true)
+    setError(null)
+    setSuccessMessage(null)
+    try {
+      const activePlan = await fitnessRepository.activatePersonalPlan(plan.id)
+      setSuccessMessage(`${activePlan.name} je aktívny tréningový plán.`)
+      await loadPlans(activePlan.id)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : `Nepodarilo sa aktivovať ${plan.name}.`)
+    } finally {
+      setIsMutating(false)
+    }
+  }
+
   const archivePersonalPlan = async (plan: FitnessPlanRecord) => {
     setPendingConfirmation({ kind: 'archivePersonalPlan', plan })
   }
@@ -827,12 +842,28 @@ export function FitnessPlansPage() {
                 <article key={plan.id} className={plan.id === selectedPlanId ? 'rounded-2xl border border-fitness-yellow bg-fitness-yellow/10 px-4 py-4 text-fitness-warm' : 'rounded-2xl border border-fitness-yellow/20 bg-black px-4 py-4 text-fitness-warm'}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-sm font-black text-fitness-yellow">{plan.name}</h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-sm font-black text-fitness-yellow">{plan.name}</h3>
+                        <Badge className={plan.status === 'active' ? 'bg-fitness-yellow text-black' : 'bg-fitness-yellow/15 text-fitness-yellow'}>
+                          {getPersonalPlanStatusLabel(plan.status)}
+                        </Badge>
+                      </div>
                       <p className="mt-1 text-sm text-fitness-warm/70">{plan.goal || 'Cieľ zatiaľ nie je nastavený.'}</p>
                     </div>
-                    <Button variant="secondary" onClick={() => void selectPlan(plan.id)} disabled={isLoading || isMutating}>
-                      Otvoriť editor
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="secondary"
+                        aria-label={`Používať plán ${plan.name} v Tréningu`}
+                        leadingIcon={<Zap className="size-4" />}
+                        onClick={() => void activatePersonalPlan(plan)}
+                        disabled={isLoading || isMutating || plan.status === 'active'}
+                      >
+                        Používať v Tréningu
+                      </Button>
+                      <Button variant="secondary" onClick={() => void selectPlan(plan.id)} disabled={isLoading || isMutating}>
+                        Otvoriť editor
+                      </Button>
+                    </div>
                   </div>
                   <div className="mt-4 grid gap-3">
                     <label className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
@@ -978,6 +1009,10 @@ function createPersonalPlanGoal(starter: FitnessPlanRecord) {
   }
 
   return starter.goal
+}
+
+function getPersonalPlanStatusLabel(status: FitnessPlanRecord['status']) {
+  return status === 'active' ? 'Aktívny plán' : 'Návrh'
 }
 
 function BeginnerPlanSummary({

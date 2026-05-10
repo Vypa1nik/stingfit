@@ -1490,6 +1490,22 @@ export const fitnessRepository = {
     return planFromRow(await getPlanRow(planId))
   },
 
+  activatePersonalPlan: async (planId: string) => {
+    const current = await getPlanRow(planId)
+    requirePersonalPlan(current)
+    const timestamp = nowIso()
+
+    await execute(
+      `UPDATE fitness_plans
+       SET status = CASE WHEN id = ? THEN 'active' ELSE 'draft' END,
+           updated_at = CASE WHEN id = ? OR status = 'active' THEN ? ELSE updated_at END
+       WHERE kind = 'personal' AND deleted_at IS NULL`,
+      [planId, planId, timestamp],
+    )
+
+    return planFromRow(await getPlanRow(planId))
+  },
+
   archivePersonalPlan: async (planId: string) => {
     const current = await getPlanRow(planId)
     requirePersonalPlan(current)
@@ -1724,6 +1740,16 @@ export const fitnessRepository = {
        JOIN fitness_plans fp ON fp.id = fpweek.plan_id
        WHERE fp.kind = 'personal'
        AND fp.deleted_at IS NULL
+       AND (
+         NOT EXISTS (
+           SELECT 1
+           FROM fitness_plans active_fp
+           WHERE active_fp.kind = 'personal'
+             AND active_fp.status = 'active'
+             AND active_fp.deleted_at IS NULL
+         )
+         OR fp.status = 'active'
+       )
        AND fpd.is_rest_day = 0
        AND EXISTS (SELECT 1 FROM fitness_plan_exercises fpe WHERE fpe.plan_workout_id = fpw.id)
        ORDER BY fp.created_at ASC, fpweek.week_number ASC, fpd.day_index ASC, fpw.sort_order ASC`,
