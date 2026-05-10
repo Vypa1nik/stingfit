@@ -1,152 +1,131 @@
-import { useState } from 'react'
+import { useState } from "react";
 
-import { Dumbbell, HardDrive, Palette, Zap } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { HardDrive, Palette, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-import { Button } from '@/components/ui/Button'
-import { SimpleStartBuilder } from '@/features/fitness/SimpleStartBuilder'
-import { fitnessRepository } from '@/features/fitness/fitnessRepository'
-import type { FitnessSimpleStartChoice } from '@/features/fitness/fitnessSimpleStart'
-import { useOnboarding } from '@/hooks/useOnboarding'
-import { useTheme } from '@/hooks/useTheme'
-import { THEME_OPTIONS } from '@/lib/constants'
-import { OnboardingStep } from './OnboardingStep'
-
-const steps = [
-  {
-    icon: Dumbbell,
-    eyebrow: 'StingFit',
-    title: 'Rýchly tréningový zápisník bez cloudu',
-    description: 'StingFit drží plány, série, históriu a nastavenia lokálne v tomto zariadení.',
-  },
-  {
-    icon: HardDrive,
-    eyebrow: 'Súkromie',
-    title: 'Tvoje dáta ostávajú u teba',
-    description: 'Žiadny login, žiadna synchronizácia, žiadna telemetria. Export a import nájdeš v Nastaveniach.',
-  },
-  {
-    icon: Zap,
-    eyebrow: 'Štart',
-    title: 'Vyber jednoduchý začiatok',
-    description: 'Nemusíš rozumieť splitom ani plánom. Vyber počet dní a StingFit pripraví prvý tréning.',
-  },
-  {
-    icon: Palette,
-    eyebrow: 'Vzhľad',
-    title: 'Vyber tréningový režim',
-    description: 'Tmavý režim je najčitateľnejší vo fitku, svetlý sa hodí pri plánovaní.',
-  },
-] as const
+import { SimpleStartBuilder } from "@/features/fitness/SimpleStartBuilder";
+import { fitnessRepository } from "@/features/fitness/fitnessRepository";
+import type { FitnessSimpleStartChoice } from "@/features/fitness/fitnessSimpleStart";
+import { useOnboarding } from "@/hooks/useOnboarding";
+import { useTheme } from "@/hooks/useTheme";
+import { sk } from "@/i18n/sk";
+import { THEME_OPTIONS } from "@/lib/constants";
+import { OnboardingStep } from "./OnboardingStep";
 
 export function OnboardingFlow() {
-  const navigate = useNavigate()
-  const { currentStep, setCurrentStep, complete } = useOnboarding()
-  const { mode, setMode } = useTheme()
-  const [isPreparing, setIsPreparing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const step = steps[currentStep]
+	const navigate = useNavigate();
+	const { complete } = useOnboarding();
+	const { mode, setMode } = useTheme();
+	const [isPreparing, setIsPreparing] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
-  const finishAndNavigate = (path: string) => {
-    complete()
-    navigate(path)
-  }
+	const finishAndNavigate = (path: string) => {
+		complete();
+		navigate(path);
+	};
 
-  const prepareSimplePlan = async (choice: FitnessSimpleStartChoice) => {
-    setIsPreparing(true)
-    setError(null)
-    try {
-      await fitnessRepository.seedStarterData()
-      const starter = (await fitnessRepository.listStarterPlans()).find((plan) => plan.id === choice.starterPlanId)
-      if (!starter) {
-        throw new Error(`Štartovací plán ${choice.title} nie je dostupný.`)
-      }
+	const prepareSimplePlan = async (choice: FitnessSimpleStartChoice) => {
+		setIsPreparing(true);
+		setError(null);
+		try {
+			await fitnessRepository.seedStarterData();
+			const starter = (await fitnessRepository.listStarterPlans()).find(
+				(plan) => plan.id === choice.starterPlanId,
+			);
+			if (!starter) {
+				throw new Error(sk.fitness.onboarding.starterUnavailable(choice.title));
+			}
 
-      await fitnessRepository.createPersonalPlanFromStarter(starter.id, {
-        name: choice.personalPlanName,
-        goal: choice.goal,
-      })
+			await fitnessRepository.createPersonalPlanFromStarter(starter.id, {
+				name: choice.personalPlanName,
+				goal: choice.goal,
+			});
 
-      finishAndNavigate('/training')
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Nepodarilo sa pripraviť jednoduchý tréningový plán.')
-    } finally {
-      setIsPreparing(false)
-    }
-  }
+			finishAndNavigate("/training");
+		} catch (cause) {
+			setError(
+				cause instanceof Error
+					? cause.message
+					: sk.fitness.onboarding.preparePlanError,
+			);
+		} finally {
+			setIsPreparing(false);
+		}
+	};
 
-  return (
-    <div className="fixed inset-0 z-[70] overflow-y-auto bg-[#05070B] px-4 py-8 text-white">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-6 flex justify-center gap-2">
-          {steps.map((item, index) => (
-            <span
-              key={item.title}
-              className={`h-1.5 w-16 rounded-full ${index === currentStep ? 'bg-fitness-yellow' : 'bg-white/10'}`}
-            />
-          ))}
-        </div>
+	return (
+		<div className="fixed inset-0 z-[70] overflow-y-auto bg-[#05070B] px-4 py-8 text-white">
+			<div className="mx-auto max-w-5xl">
+				<OnboardingStep
+					icon={Zap}
+					eyebrow={sk.fitness.onboarding.eyebrow}
+					title={sk.fitness.onboarding.title}
+					description={sk.fitness.onboarding.description}
+				>
+					<div className="space-y-5">
+						{error ? (
+							<div className="rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100">
+								{error}
+							</div>
+						) : null}
 
-        <OnboardingStep icon={step.icon} eyebrow={step.eyebrow} title={step.title} description={step.description}>
-          {currentStep === 1 ? (
-            <div className="rounded-2xl border border-fitness-yellow/20 bg-fitness-yellow/10 px-4 py-4 text-sm font-semibold text-fitness-warm">
-              Lokálna databáza je uložená v prehliadači alebo desktopovom profile StingFit. Exportuj JSON pred resetom zariadenia.
-            </div>
-          ) : null}
+						<SimpleStartBuilder
+							isMutating={isPreparing}
+							onSelectPlan={(choice) => void prepareSimplePlan(choice)}
+							onQuickSession={() => finishAndNavigate("/quick")}
+						/>
 
-          {currentStep === 2 ? (
-            <div className="space-y-4">
-              {error ? (
-                <div className="rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100">
-                  {error}
-                </div>
-              ) : null}
-              <SimpleStartBuilder
-                isMutating={isPreparing}
-                onSelectPlan={(choice) => void prepareSimplePlan(choice)}
-                onQuickSession={() => finishAndNavigate('/quick')}
-              />
-            </div>
-          ) : null}
+						<div className="grid gap-3 md:grid-cols-2">
+							<section className="rounded-3xl border border-fitness-yellow/20 bg-black/60 p-4 text-sm text-fitness-warm/75">
+								<div className="flex items-center gap-3">
+									<span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-fitness-yellow/15 text-fitness-yellow">
+										<HardDrive className="size-5" />
+									</span>
+									<div>
+										<h3 className="font-black text-white">
+											{sk.fitness.onboarding.privacyTitle}
+										</h3>
+										<p className="mt-1 leading-6">
+											{sk.fitness.onboarding.privacyDescription}
+										</p>
+									</div>
+								</div>
+							</section>
 
-          {currentStep === 3 ? (
-            <div className="grid gap-3 md:grid-cols-3">
-              {THEME_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  className={`rounded-2xl border px-4 py-4 text-left transition-colors ${
-                    mode === option.value ? 'border-fitness-yellow bg-fitness-yellow/15' : 'border-white/10 bg-white/5'
-                  }`}
-                  onClick={() => setMode(option.value)}
-                >
-                  <p className="text-sm font-semibold">{option.label}</p>
-                  <p className="mt-2 text-sm text-slate-300">{option.description}</p>
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          <div className="mt-8 flex items-center justify-between">
-            <Button
-              variant="secondary"
-              className="border-white/15 bg-white/10 text-white hover:bg-white/15"
-              disabled={currentStep === 0 || isPreparing}
-              onClick={() => setCurrentStep(Math.max(currentStep - 1, 0))}
-            >
-              Späť
-            </Button>
-            {currentStep === steps.length - 1 ? (
-              <Button className="fitness-action" onClick={() => finishAndNavigate('/training')} disabled={isPreparing}>
-                Začať tréning
-              </Button>
-            ) : (
-              <Button className="fitness-action" onClick={() => setCurrentStep(Math.min(currentStep + 1, steps.length - 1))} disabled={isPreparing}>
-                Pokračovať
-              </Button>
-            )}
-          </div>
-        </OnboardingStep>
-      </div>
-    </div>
-  )
+							<section className="rounded-3xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
+								<div className="flex items-start gap-3">
+									<span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-fitness-yellow">
+										<Palette className="size-5" />
+									</span>
+									<div className="min-w-0 flex-1">
+										<h3 className="font-black text-white">
+											{sk.fitness.onboarding.themeTitle}
+										</h3>
+										<p className="mt-1 leading-6">
+											{sk.fitness.onboarding.themeDescription}
+										</p>
+										<div className="mt-3 grid gap-2 sm:grid-cols-3">
+											{THEME_OPTIONS.map((option) => (
+												<button
+													key={option.value}
+													className={`rounded-2xl border px-3 py-3 text-left text-xs transition-colors ${
+														mode === option.value
+															? "border-fitness-yellow bg-fitness-yellow/15 text-white"
+															: "border-white/10 bg-black/30 text-slate-300 hover:border-fitness-yellow/50"
+													}`}
+													onClick={() => setMode(option.value)}
+												>
+													<span className="font-black">{option.label}</span>
+												</button>
+											))}
+										</div>
+									</div>
+								</div>
+							</section>
+						</div>
+					</div>
+				</OnboardingStep>
+			</div>
+		</div>
+	);
 }

@@ -1,66 +1,205 @@
-import { act } from 'react'
-import { createRoot, type Root } from 'react-dom/client'
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { RestTimer } from '@/features/fitness/RestTimer'
+import { RestTimer } from "@/features/fitness/RestTimer";
+import { SetLogger } from "@/features/fitness/SetLogger";
 
-async function waitForEffects() {
-  await new Promise((resolve) => window.setTimeout(resolve, 0))
+class FakeAudioParam {
+	setValueAtTime = vi.fn();
+	exponentialRampToValueAtTime = vi.fn();
 }
 
-describe('rest timer alerts', () => {
-  let container: HTMLDivElement
-  let root: Root
-  let vibrateSpy: ReturnType<typeof vi.fn>
+class FakeOscillatorNode {
+	type: OscillatorType = "sine";
+	frequency = new FakeAudioParam();
+	connect = vi.fn();
+	start = vi.fn();
+	stop = vi.fn();
+}
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-    root = createRoot(container)
-    vibrateSpy = vi.fn()
-    Object.defineProperty(window.navigator, 'vibrate', {
-      configurable: true,
-      value: vibrateSpy,
-    })
-  })
+class FakeGainNode {
+	gain = new FakeAudioParam();
+	connect = vi.fn();
+}
 
-  afterEach(() => {
-    act(() => {
-      root.unmount()
-    })
-    container.remove()
-    vi.restoreAllMocks()
-  })
+class FakeAudioContext {
+	state: AudioContextState = "suspended";
+	currentTime = 10;
+	destination = {};
+	resume = vi.fn(async () => {
+		this.state = "running";
+	});
+	createOscillator = vi.fn(() => new FakeOscillatorNode());
+	createGain = vi.fn(() => new FakeGainNode());
+}
 
-  test('vibrates once when the rest timer reaches zero', async () => {
-    const startedAt = new Date(Date.now() - 2_000).toISOString()
+const audioContexts: FakeAudioContext[] = [];
 
-    await act(async () => {
-      root.render(<RestTimer seconds={1} startedAt={startedAt} soundEnabled={false} vibrationEnabled />)
-      await waitForEffects()
-    })
+class TestAudioContext extends FakeAudioContext {
+	constructor() {
+		super();
+		audioContexts.push(this);
+	}
+}
 
-    expect(container.textContent).toContain('Pauza hotová')
-    expect(vibrateSpy).toHaveBeenCalledTimes(1)
-    expect(vibrateSpy).toHaveBeenCalledWith([200, 100, 200])
+function getLatestAudioContext() {
+	return audioContexts[audioContexts.length - 1] ?? null;
+}
 
-    await act(async () => {
-      root.render(<RestTimer seconds={1} startedAt={startedAt} soundEnabled={false} vibrationEnabled />)
-      await waitForEffects()
-    })
+async function waitForEffects() {
+	await new Promise((resolve) => window.setTimeout(resolve, 0));
+}
 
-    expect(vibrateSpy).toHaveBeenCalledTimes(1)
-  })
+describe("rest timer alerts", () => {
+	let container: HTMLDivElement;
+	let root: Root;
+	let vibrateSpy: ReturnType<typeof vi.fn>;
 
-  test('does not vibrate when vibration alerts are disabled', async () => {
-    const startedAt = new Date(Date.now() - 2_000).toISOString()
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+		root = createRoot(container);
+		vibrateSpy = vi.fn();
+		Object.defineProperty(window.navigator, "vibrate", {
+			configurable: true,
+			value: vibrateSpy,
+		});
+		Object.defineProperty(window, "AudioContext", {
+			configurable: true,
+			value: TestAudioContext,
+		});
+	});
 
-    await act(async () => {
-      root.render(<RestTimer seconds={1} startedAt={startedAt} soundEnabled={false} vibrationEnabled={false} />)
-      await waitForEffects()
-    })
+	afterEach(() => {
+		act(() => {
+			root.unmount();
+		});
+		container.remove();
+		vi.restoreAllMocks();
+	});
 
-    expect(container.textContent).toContain('Pauza hotová')
-    expect(vibrateSpy).not.toHaveBeenCalled()
-  })
-})
+	test("vibrates once when the rest timer reaches zero", async () => {
+		const startedAt = new Date(Date.now() - 2_000).toISOString();
+
+		await act(async () => {
+			root.render(
+				<RestTimer
+					seconds={1}
+					startedAt={startedAt}
+					soundEnabled={false}
+					vibrationEnabled
+				/>,
+			);
+			await waitForEffects();
+		});
+
+		expect(container.textContent).toContain("Pauza hotová");
+		expect(vibrateSpy).toHaveBeenCalledTimes(1);
+		expect(vibrateSpy).toHaveBeenCalledWith([200, 100, 200]);
+
+		await act(async () => {
+			root.render(
+				<RestTimer
+					seconds={1}
+					startedAt={startedAt}
+					soundEnabled={false}
+					vibrationEnabled
+				/>,
+			);
+			await waitForEffects();
+		});
+
+		expect(vibrateSpy).toHaveBeenCalledTimes(1);
+	});
+
+	test("does not vibrate when vibration alerts are disabled", async () => {
+		const startedAt = new Date(Date.now() - 2_000).toISOString();
+
+		await act(async () => {
+			root.render(
+				<RestTimer
+					seconds={1}
+					startedAt={startedAt}
+					soundEnabled={false}
+					vibrationEnabled={false}
+				/>,
+			);
+			await waitForEffects();
+		});
+
+		expect(container.textContent).toContain("Pauza hotová");
+		expect(vibrateSpy).not.toHaveBeenCalled();
+	});
+
+	test("plays a WebAudio beep when the rest timer reaches zero with sound enabled", async () => {
+		const startedAt = new Date(Date.now() - 2_000).toISOString();
+
+		await act(async () => {
+			root.render(
+				<RestTimer
+					seconds={1}
+					startedAt={startedAt}
+					soundEnabled
+					vibrationEnabled
+				/>,
+			);
+			await waitForEffects();
+		});
+
+		const audioContext = getLatestAudioContext();
+		expect(vibrateSpy).toHaveBeenCalledWith([200, 100, 200]);
+		expect(audioContext?.resume).toHaveBeenCalledTimes(1);
+		expect(audioContext?.createOscillator).toHaveBeenCalledTimes(1);
+		expect(audioContext?.createGain).toHaveBeenCalledTimes(1);
+	});
+
+	test("arms the WebAudio context on the first set logging tap", async () => {
+		const onLog = vi.fn(async () => undefined);
+
+		await act(async () => {
+			root.render(
+				<SetLogger
+					displayUnit="kg"
+					onLog={onLog}
+					set={{
+						id: "set-1",
+						sessionExerciseId: "session-exercise-1",
+						setNumber: 1,
+						weightKg: 80,
+						reps: 8,
+						rir: 2,
+						setType: "working",
+						weightEntryMode: "total",
+						leftWeightKg: null,
+						rightWeightKg: null,
+						status: "planned",
+						completedAt: null,
+						createdAt: "2026-05-05T10:00:00.000Z",
+						updatedAt: "2026-05-05T10:00:00.000Z",
+					}}
+				/>,
+			);
+		});
+
+		const logButton = Array.from(container.querySelectorAll("button")).find(
+			(button) => button.textContent?.includes("Zapísať sériu"),
+		);
+		const existingAudioContext = getLatestAudioContext();
+		if (existingAudioContext) {
+			existingAudioContext.state = "suspended";
+			existingAudioContext.resume.mockClear();
+		}
+
+		await act(async () => {
+			logButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+			await waitForEffects();
+		});
+
+		expect(getLatestAudioContext()?.resume).toHaveBeenCalledTimes(1);
+		expect(onLog).toHaveBeenCalledWith(
+			"set-1",
+			expect.objectContaining({ weightKg: 80, reps: 8, rir: 2 }),
+		);
+	});
+});
