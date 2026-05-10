@@ -7,6 +7,7 @@ All notable changes to StingFit will be documented in this file.
 ### Added
 
 - Phase 4 PWA install funnel now has a step-by-step install guide in `docs/install.md`, a cached `/install.html` fallback, and a Settings link for iOS Safari, Android Chrome, and desktop Chrome/Edge installs.
+- Tauri desktop build readiness is documented in `reports/stingfit-tauri-desktop-builds.md`, including the current native toolchain blocker and verified PWA-only fallback.
 - V2 Phase 1 starts bundle guardrails with `tools/bundle-budget.mjs`, lazy database/sql.js startup imports, debug-channel DB boot metrics, an explicit `useDatabase` boot boundary, and tests that keep startup entrypoints from pulling the DB layer into the main bundle.
 - V2 Phase 0 now has an active source map in `docs/source-map.md`, verified dependency and scratch-hygiene audits, a README contributor pointer, and a baseline repository surface test so future refactors keep the fitness API explicit.
 - PWA install metadata, offline fallback, and install guidance in Settings.
@@ -63,7 +64,7 @@ All notable changes to StingFit will be documented in this file.
 ### Blocked / deferred
 
 - Phase 1 mobile PWA smoke remains blocked until a real iOS Safari device and a real Android Chrome device are available for `npm run mobile:pwa:start` verification.
-- Desktop installer verification is deferred because the current machine does not expose `cargo`/`rustc` in PATH, so `npm run tauri:build` cannot be verified here.
+- Desktop installer verification remains blocked by missing Rust, Cargo, rustup, and MSVC/Windows SDK tooling, so `npm run tauri:build` cannot be verified here.
 - Full string extraction to `i18n/sk.ts` remains a future cleanup track; current user-facing copy is already Slovak in the verified app surface.
 
 ## 1.0.0 - 2026-04-25

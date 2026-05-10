@@ -109,7 +109,7 @@ describe("StingFit telemetry-free privacy and network audit", () => {
 		expect(serviceWorker).toContain(
 			"const isSameOrigin = requestUrl.origin === self.location.origin",
 		);
-		expect(serviceWorker).toContain("if (!isSameOrigin) {\n    return\n  }");
+		expect(serviceWorker).toMatch(/if \(!isSameOrigin\) \{\s*return;?\s*\}/);
 		expect(serviceWorker).toContain("cache.match(OFFLINE_FALLBACK)");
 		expect(serviceWorker).not.toMatch(
 			/navigator\.sendBeacon|XMLHttpRequest|WebSocket|analytics|telemetry/i,

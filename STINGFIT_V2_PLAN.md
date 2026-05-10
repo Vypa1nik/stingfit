@@ -463,13 +463,15 @@ laptop in under 60 seconds, and the install is signed and trustworthy.
      Android Chrome, and desktop Chrome/Edge.
    - Settings → Inštalácia aplikácie keeps the OS install prompt where
      supported and falls back to the local `/install.html` guide.
-2. **Tauri desktop builds**
-   - Verify Rust toolchain on the build machine. If unavailable, document the
-     blocker in `reports/` and proceed with PWA-only release.
-   - Build signed Windows `.msi` and macOS `.dmg`. (macOS notarization is the
-     owner's manual step; the agent prepares the unsigned/unnotarized build
-     and the script.)
-   - Wire app version, icons, window title, and HashRouter compatibility check.
+2. **Tauri desktop builds (BLOCKED 2026-05-10)**
+   - `npm run tauri -- info` confirms WebView2 is available, but Rust, Cargo,
+     rustup, and Visual Studio Build Tools with MSVC/Windows SDK components are
+     missing on this machine.
+   - The blocker is documented in `reports/stingfit-tauri-desktop-builds.md`;
+     Phase 4 continues as a PWA-only release until native build tooling is
+     available.
+   - App version, icons, window title, `frontendDist`, and HashRouter
+     compatibility are covered by `tests/fitness-tauri-desktop-builds.test.ts`.
 3. **Public hosting**
    - Choose static host: GitHub Pages or Cloudflare Pages.
    - Add a deploy workflow under `.github/workflows/deploy-pwa.yml` that
