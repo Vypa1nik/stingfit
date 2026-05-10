@@ -1,8 +1,8 @@
 # StingFit Mobile PWA Smoke
 
-Date: 2026-04-28
+Date: 2026-05-05
 Target: production PWA preview from `npm run mobile:pwa:start`
-Status: automated local HTTP smoke passed; physical phone pass pending.
+Status: BLOCKED for Phase 1 exit; physical iOS Safari and Android Chrome devices were not available in the agent environment.
 
 ## Preview command
 
@@ -23,22 +23,22 @@ npm run mobile:pwa:stop
 
 These checks were run against the local `vite preview` production server after a fresh build.
 
-| Check | Result |
-| --- | --- |
-| `npm run build` before preview | Pass |
-| `/` returns production HTML | Pass |
-| `/#/training` returns app shell | Pass |
-| `/manifest.webmanifest` served | Pass |
-| `/sw.js` served | Pass |
-| `/offline.html` served | Pass |
-| `/stingfit-icon.svg` served | Pass |
-| manifest icons served | Pass |
-| manifest screenshots served | Pass |
-| built JS/CSS assets from `index.html` served | Pass |
-| manifest name is `StingFit` | Pass |
-| manifest `start_url` is `/#/training` | Pass |
-| manifest display mode is `standalone` | Pass |
-| LAN URL candidates respond from this machine | Pass |
+| Check                                        | Result |
+| -------------------------------------------- | ------ |
+| `npm run build` before preview               | Pass   |
+| `/` returns production HTML                  | Pass   |
+| `/#/training` returns app shell              | Pass   |
+| `/manifest.webmanifest` served               | Pass   |
+| `/sw.js` served                              | Pass   |
+| `/offline.html` served                       | Pass   |
+| `/stingfit-icon.svg` served                  | Pass   |
+| manifest icons served                        | Pass   |
+| manifest screenshots served                  | Pass   |
+| built JS/CSS assets from `index.html` served | Pass   |
+| manifest name is `StingFit`                  | Pass   |
+| manifest `start_url` is `/#/training`        | Pass   |
+| manifest display mode is `standalone`        | Pass   |
+| LAN URL candidates respond from this machine | Pass   |
 
 ## Manual phone checks still needed
 
@@ -64,9 +64,9 @@ These checks were run against the local `vite preview` production server after a
 
 ## Issue log
 
-| Severity | Area | Steps | Expected | Actual | Status |
-| --- | --- | --- | --- | --- | --- |
-| Pending | Manual phone pass | Run checklist above | All critical gym/PWA paths pass | Not yet tested on physical phone in this agent session | Open |
+| Severity | Area              | Steps                                                             | Expected                        | Actual                                                       | Status |
+| -------- | ----------------- | ----------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------ | ------ |
+| Blocking | Manual phone pass | Run checklist above on real iOS Safari and Android Chrome devices | All critical gym/PWA paths pass | Physical devices are not available in this agent environment | Open   |
 
 ## Notes
 
