@@ -6,6 +6,10 @@ All notable changes to StingFit will be documented in this file.
 
 ### Added
 
+- Coach Plan Packs can now be exported and imported as tamper-evident `.stfplan` JSON blobs with local-only preview and commit behavior.
+- Trainee Recap Packs can now be exported and previewed read-only as tamper-evident `.stfrecap` JSON blobs for explicit coach handoff.
+- Coach Mode routes now have local UI for clients, Plan Pack export, future templates, and read-only Recap Pack preview.
+- Trainee handoff UI now imports coach `.stfplan` files from Settings and exports date-range `.stfrecap` files from History.
 - PWA install metadata, offline fallback, and install guidance in Settings.
 - Manifest shortcuts for Training, Quick Workout, and History, plus screenshot assets for install surfaces.
 - mobile swipe gestures for completed live sets: swipe right duplicates the set, swipe left marks it skipped.

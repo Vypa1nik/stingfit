@@ -35,7 +35,7 @@ describe("Slovak i18n catalog scaffold", () => {
 		);
 	});
 
-	test("centralizes install, backup, and gesture copy", () => {
+	test("centralizes Phase 3 install, backup, and gesture copy", () => {
 		expect(sk.fitness.pwa.installTitle).toBe("Inštalácia aplikácie");
 		expect(sk.fitness.pwa.privatePromise).toContain(
 			"Bez účtu, cloudu a telemetrie",
@@ -48,7 +48,7 @@ describe("Slovak i18n catalog scaffold", () => {
 		expect(sk.fitness.setGestures.duplicateAria(2)).toBe("Duplikovať sériu 2");
 	});
 
-	test("centralizes shared plate calculator, logger, history, stats, onboarding, profile, and Coach Mode copy", () => {
+	test("centralizes shared plate calculator, logger, history, stats, onboarding, and profile copy", () => {
 		expect(sk.fitness.plates.heroTitle).toBe("Kalkulačka kotúčov pred sériou.");
 		expect(sk.fitness.plates.targetWeightLabel("kg")).toBe("Cieľová váha v kg");
 		expect(sk.fitness.plateLoad.title).toBe("Kalkulačka kotúčov");
@@ -66,9 +66,15 @@ describe("Slovak i18n catalog scaffold", () => {
 		expect(sk.fitness.coachMode.settingsStatus(false)).toBe(
 			"Coach Mode: vypnutý",
 		);
+		expect(sk.fitness.traineeCoach.planImportTitle).toBe(
+			"Importovať plán od trénera",
+		);
+		expect(sk.fitness.traineeCoach.recapExportTitle).toBe(
+			"Vytvoriť rekap pre trénera",
+		);
 	});
 
-	test("uses the catalog in install, backup, gesture, Phase 2, and Coach Mode foundation surfaces", () => {
+	test("uses the catalog in the Phase 3 user-facing surfaces", () => {
 		expect(readText("src/features/fitness/FitnessSettingsPage.tsx")).toContain(
 			"sk.fitness.pwa.installTitle",
 		);
@@ -78,6 +84,9 @@ describe("Slovak i18n catalog scaffold", () => {
 		expect(readText("src/features/fitness/LiveTrainingSession.tsx")).toContain(
 			"sk.fitness.setGestures.completedSetAria",
 		);
+	});
+
+	test("uses the catalog in plate calculator, set logger, history, stats, onboarding, and profile surfaces", () => {
 		expect(
 			readText("src/features/fitness/FitnessPlateCalculatorPage.tsx"),
 		).toContain("sk.fitness.plates.heroTitle");
@@ -107,6 +116,12 @@ describe("Slovak i18n catalog scaffold", () => {
 		);
 		expect(readText("src/features/fitness/FitnessSettingsPage.tsx")).toContain(
 			"sk.fitness.coachMode.settingsTitle",
+		);
+		expect(readText("src/features/fitness/FitnessSettingsPage.tsx")).toContain(
+			"sk.fitness.traineeCoach.planImportTitle",
+		);
+		expect(readText("src/features/fitness/FitnessHistoryPage.tsx")).toContain(
+			"sk.fitness.traineeCoach.recapExportTitle",
 		);
 	});
 });

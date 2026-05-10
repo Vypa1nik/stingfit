@@ -3,8 +3,10 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, Clock3, Dumbbell, Trophy, Zap } from "lucide-react";
 
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { exportRecapPack } from "@/features/coach/recapPack/io";
 import { WorkoutHistoryDetail } from "@/features/fitness/WorkoutHistoryDetail";
 import {
 	formatCorrectedSetSummary,
@@ -29,6 +31,7 @@ import {
 } from "@/features/fitness/fitnessUnits";
 import { useSpaNavigate } from "@/hooks/useSpaNavigate";
 import { sk } from "@/i18n/sk";
+import { downloadBlob } from "@/lib/download";
 
 export function FitnessHistoryPage() {
 	const navigate = useSpaNavigate();
@@ -64,6 +67,8 @@ export function FitnessHistoryPage() {
 	const [isMutating, setIsMutating] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
+	const [recapFromDate, setRecapFromDate] = useState("");
+	const [recapToDate, setRecapToDate] = useState("");
 	const displayError = error ?? queryError;
 
 	const filteredSessions = useMemo(
@@ -82,6 +87,10 @@ export function FitnessHistoryPage() {
 	const latestBestSet = useMemo(
 		() => (latestSession ? findBestCompletedSet(latestSession) : null),
 		[latestSession],
+	);
+	const recapSessions = useMemo(
+		() => filterSessionsByDateRange(sessions, recapFromDate, recapToDate),
+		[recapFromDate, recapToDate, sessions],
 	);
 	const selectedSession =
 		filteredSessions.find((session) => session.id === selectedSessionId) ??
@@ -117,6 +126,34 @@ export function FitnessHistoryPage() {
 		}
 	};
 
+	const exportTraineeRecap = async () => {
+		setError(null);
+		setSuccessMessage(null);
+		if (recapSessions.length === 0) {
+			setError(sk.fitness.traineeCoach.recapEmptyRange);
+			return;
+		}
+
+		setIsMutating(true);
+		try {
+			const blob = await exportRecapPack({
+				sessionIds: recapSessions.map((session) => session.id),
+				traineeNote: buildRecapDateRangeNote(recapFromDate, recapToDate),
+			});
+			downloadBlob(blob, buildRecapFilename(recapFromDate, recapToDate));
+			setSuccessMessage(
+				`${sk.fitness.traineeCoach.recapExportSuccess}: ${sk.fitness.traineeCoach.formatRecapSessionCount(recapSessions.length)}`,
+			);
+		} catch (cause) {
+			setError(
+				cause instanceof Error
+					? cause.message
+					: sk.fitness.traineeCoach.recapExportError,
+			);
+		} finally {
+			setIsMutating(false);
+		}
+	};
 
 	return (
 		<div className="space-y-6">
@@ -280,6 +317,54 @@ export function FitnessHistoryPage() {
 							</div>
 						</Card>
 					) : null}
+
+					<Card
+						title={sk.fitness.traineeCoach.recapExportTitle}
+						description={sk.fitness.traineeCoach.recapExportDescription}
+					>
+						<div className="grid gap-3 lg:grid-cols-[1fr,1fr,auto] lg:items-end">
+							<label className="block text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+								{sk.fitness.traineeCoach.recapFromLabel}
+								<input
+									aria-label={sk.fitness.traineeCoach.recapFromLabel}
+									className="mt-2 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-3 py-3 text-sm font-bold text-fitness-warm outline-none focus:border-fitness-yellow"
+									type="date"
+									value={recapFromDate}
+									onInput={(event) =>
+										setRecapFromDate(event.currentTarget.value)
+									}
+								/>
+							</label>
+							<label className="block text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+								{sk.fitness.traineeCoach.recapToLabel}
+								<input
+									aria-label={sk.fitness.traineeCoach.recapToLabel}
+									className="mt-2 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-3 py-3 text-sm font-bold text-fitness-warm outline-none focus:border-fitness-yellow"
+									type="date"
+									value={recapToDate}
+									onInput={(event) => setRecapToDate(event.currentTarget.value)}
+								/>
+							</label>
+							<Button
+								type="button"
+								className="fitness-action"
+								onClick={() => void exportTraineeRecap()}
+								disabled={isMutating || recapSessions.length === 0}
+							>
+								{sk.fitness.traineeCoach.recapExportButton}
+							</Button>
+						</div>
+						<p className="mt-3 text-xs font-bold text-fitness-warm/65">
+							{recapSessions.length > 0
+								? sk.fitness.traineeCoach.formatRecapSessionCount(
+										recapSessions.length,
+									)
+								: sk.fitness.traineeCoach.recapEmptyRange}
+						</p>
+						<p className="mt-2 text-xs text-fitness-warm/55">
+							{sk.fitness.traineeCoach.recapPrivacyNote}
+						</p>
+					</Card>
 
 					<details className="rounded-3xl border border-fitness-yellow/20 bg-black/55 p-4 text-fitness-warm">
 						<summary className="cursor-pointer text-sm font-black uppercase tracking-[0.16em] text-fitness-yellow">
@@ -479,6 +564,20 @@ export function FitnessHistoryPage() {
 	);
 }
 
+function filterSessionsByDateRange(
+	sessions: FitnessLiveSession[],
+	fromDate: string,
+	toDate: string,
+) {
+	return sessions.filter((session) => {
+		const completedDate = session.completedAt?.slice(0, 10);
+		if (!completedDate) return false;
+		if (fromDate && completedDate < fromDate) return false;
+		if (toDate && completedDate > toDate) return false;
+		return true;
+	});
+}
+
 function filterHistorySessions(
 	sessions: FitnessLiveSession[],
 	filter: string,
@@ -522,6 +621,18 @@ function findBestCompletedSet(
 					left.set.weightKg * left.set.reps,
 			)[0] ?? null
 	);
+}
+
+function buildRecapDateRangeNote(fromDate: string, toDate: string) {
+	if (fromDate && toDate) return `Recap ${fromDate} – ${toDate}`;
+	if (fromDate) return `Recap od ${fromDate}`;
+	if (toDate) return `Recap do ${toDate}`;
+	return "Recap zo všetkých dokončených tréningov";
+}
+
+function buildRecapFilename(fromDate: string, toDate: string) {
+	const today = new Date().toISOString().slice(0, 10);
+	return `stingfit-recap-${fromDate || "all"}-${toDate || today}.stfrecap`;
 }
 
 function hasPostWorkoutHandoffIntent() {

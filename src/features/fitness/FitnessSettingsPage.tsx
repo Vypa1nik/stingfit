@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { type ChangeEvent, useCallback, useEffect, useState } from "react";
 
 import {
 	AlertTriangle,
@@ -22,7 +22,12 @@ import {
 	getCoachModeEnabled,
 	setCoachModeEnabled,
 } from "@/features/coach/coachModeRepository";
+import {
+	importPlanPack,
+	type ImportPlanPackResult,
+} from "@/features/coach/planPack/io";
 import { fitnessRepository } from "@/features/fitness/fitnessRepository";
+import { invalidateFitnessQueries } from "@/features/fitness/queries/fitnessQueries";
 import type {
 	FitnessImportPreview,
 	FitnessSettingsRecord,
@@ -51,6 +56,8 @@ export function FitnessSettingsPage() {
 	const [importText, setImportText] = useState("");
 	const [importPreview, setImportPreview] =
 		useState<FitnessImportPreview | null>(null);
+	const [planPackImport, setPlanPackImport] =
+		useState<ImportPlanPackResult | null>(null);
 	const [strongCsvText, setStrongCsvText] = useState("");
 	const [strongCsvPreview, setStrongCsvPreview] =
 		useState<FitnessStrongCsvPreview | null>(null);
@@ -431,6 +438,55 @@ export function FitnessSettingsPage() {
 		}
 	};
 
+	const previewPlanPackImport = async (
+		event: ChangeEvent<HTMLInputElement>,
+	) => {
+		const file = event.currentTarget.files?.[0];
+		if (!file) return;
+
+		setIsMutating(true);
+		setError(null);
+		setSuccessMessage(null);
+		setPlanPackImport(null);
+		try {
+			const imported = await importPlanPack(file);
+			setPlanPackImport(imported);
+			setSuccessMessage(sk.fitness.traineeCoach.planImportLoadedTitle);
+		} catch (cause) {
+			setError(
+				cause instanceof Error
+					? cause.message
+					: sk.fitness.traineeCoach.planImportError,
+			);
+		} finally {
+			setIsMutating(false);
+		}
+	};
+
+	const commitPlanPackImport = async () => {
+		if (!planPackImport) return;
+
+		setIsMutating(true);
+		setError(null);
+		setSuccessMessage(null);
+		try {
+			const result = await planPackImport.commit();
+			await invalidateFitnessQueries();
+			setPlanPackImport(null);
+			setSuccessMessage(
+				`${sk.fitness.traineeCoach.planImportSuccess}: ${result.planName}`,
+			);
+		} catch (cause) {
+			setError(
+				cause instanceof Error
+					? cause.message
+					: sk.fitness.traineeCoach.planImportError,
+			);
+		} finally {
+			setIsMutating(false);
+		}
+	};
+
 	const displayUnit = settings?.displayUnit ?? "kg";
 	const showGuidance = settings?.showGuidance ?? true;
 	const restSoundEnabled = settings?.restSoundEnabled ?? true;
@@ -705,6 +761,56 @@ export function FitnessSettingsPage() {
 						chceš vymazať lokálne tréningové dáta.
 					</p>
 					<div className="mt-4 space-y-6">
+						<Card
+							title={sk.fitness.traineeCoach.planImportTitle}
+							description={sk.fitness.traineeCoach.planImportDescription}
+						>
+							<div className="space-y-4">
+								<label className="block text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+									{sk.fitness.traineeCoach.planImportTitle}
+									<input
+										aria-label={sk.fitness.traineeCoach.planImportTitle}
+										className="mt-2 block w-full rounded-2xl border border-fitness-yellow/30 bg-black px-4 py-3 text-sm text-fitness-warm file:mr-4 file:rounded-md file:border-0 file:bg-fitness-yellow file:px-3 file:py-2 file:text-sm file:font-bold file:text-black"
+										type="file"
+										accept=".stfplan,application/vnd.stingfit.plan+json,application/json"
+										onChange={(event) => void previewPlanPackImport(event)}
+										disabled={isLoading || isMutating}
+									/>
+								</label>
+								{planPackImport ? (
+									<div className="rounded-2xl border border-fitness-yellow/30 bg-black px-4 py-4 text-sm text-fitness-warm">
+										<p className="font-black text-fitness-yellow">
+											{sk.fitness.traineeCoach.planImportLoadedTitle}
+										</p>
+										<p className="mt-1 text-fitness-warm/70">
+											{planPackImport.preview.planName} ·{" "}
+											{planPackImport.preview.coachName} ·{" "}
+											{sk.fitness.traineeCoach.formatPlanPackSummary(
+												planPackImport.preview.weekCount,
+												planPackImport.preview.workoutCount,
+											)}
+										</p>
+									</div>
+								) : (
+									<div className="rounded-2xl border border-dashed border-fitness-yellow/30 bg-black px-4 py-4 text-sm text-fitness-warm/70">
+										<p className="font-black text-fitness-yellow">
+											{sk.fitness.traineeCoach.planImportEmptyTitle}
+										</p>
+										<p className="mt-1">
+											{sk.fitness.traineeCoach.planImportEmptyDescription}
+										</p>
+									</div>
+								)}
+								<Button
+									className="fitness-action"
+									onClick={() => void commitPlanPackImport()}
+									disabled={isLoading || isMutating || !planPackImport}
+								>
+									{sk.fitness.traineeCoach.planImportCommitButton}
+								</Button>
+							</div>
+						</Card>
+
 						<Card
 							title="Import zo Strong CSV"
 							description="Vlož export zo Strong. Import sa pridá do histórie ako dokončené lokálne tréningy bez cloudu a bez prepísania existujúcich dát."
