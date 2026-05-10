@@ -14,7 +14,7 @@ describe("fitness navigation", () => {
 		});
 	});
 
-	test("keeps fitness routes in the application router", () => {
+	test("keeps fitness and gated coach routes in the application router", () => {
 		const routerSource = readFileSync("src/router.tsx", "utf8");
 
 		expect(routerSource).toMatch(/path:\s*["']\/training["']/);
@@ -24,6 +24,10 @@ describe("fitness navigation", () => {
 		expect(routerSource).toMatch(/path:\s*["']\/stats["']/);
 		expect(routerSource).toMatch(/path:\s*["']\/plates["']/);
 		expect(routerSource).toMatch(/path:\s*["']\/settings["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/coach\/clients["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/coach\/plans["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/coach\/templates["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/coach\/recaps["']/);
 		expect(routerSource).not.toMatch(
 			/path:\s*["']\/(notes|tasks|projects|inbox|today|archive|search|view)/,
 		);

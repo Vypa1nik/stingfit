@@ -39,6 +39,11 @@ const FitnessSettingsPage = lazy(() =>
 		default: module.FitnessSettingsPage,
 	})),
 );
+const CoachModePage = lazy(() =>
+	import("@/features/coach/CoachModePage").then((module) => ({
+		default: module.CoachModePage,
+	})),
+);
 
 function RouteLoadingState() {
 	return (
@@ -130,6 +135,38 @@ export function AppRouter() {
 				<LazyRoute>
 					<FitnessSettingsPage />
 				</LazyRoute>
+			),
+		},
+		{
+			path: "/coach/clients",
+			element: (
+				<FeatureRoute featureName="Coach Mode">
+					<CoachModePage section="clients" />
+				</FeatureRoute>
+			),
+		},
+		{
+			path: "/coach/plans",
+			element: (
+				<FeatureRoute featureName="Coach Mode">
+					<CoachModePage section="plans" />
+				</FeatureRoute>
+			),
+		},
+		{
+			path: "/coach/templates",
+			element: (
+				<FeatureRoute featureName="Coach Mode">
+					<CoachModePage section="templates" />
+				</FeatureRoute>
+			),
+		},
+		{
+			path: "/coach/recaps",
+			element: (
+				<FeatureRoute featureName="Coach Mode">
+					<CoachModePage section="recaps" />
+				</FeatureRoute>
 			),
 		},
 		{ path: "*", element: <Navigate to="/training" replace /> },

@@ -48,7 +48,7 @@ describe("Slovak i18n catalog scaffold", () => {
 		expect(sk.fitness.setGestures.duplicateAria(2)).toBe("Duplikovať sériu 2");
 	});
 
-	test("centralizes shared plate calculator, logger, history, stats, and onboarding copy", () => {
+	test("centralizes shared plate calculator, logger, history, stats, onboarding, profile, and Coach Mode copy", () => {
 		expect(sk.fitness.plates.heroTitle).toBe("Kalkulačka kotúčov pred sériou.");
 		expect(sk.fitness.plates.targetWeightLabel("kg")).toBe("Cieľová váha v kg");
 		expect(sk.fitness.plateLoad.title).toBe("Kalkulačka kotúčov");
@@ -61,9 +61,14 @@ describe("Slovak i18n catalog scaffold", () => {
 		expect(sk.fitness.stats.emptyTitle).toBe("Zatiaľ žiadne štatistiky");
 		expect(sk.fitness.onboarding.title).toBe("Vyber jednoduchý začiatok");
 		expect(sk.fitness.simpleStart.quickButton).toBe("Len rýchly tréning");
+		expect(sk.fitness.profiles.activeProfileLabel).toBe("Aktívny profil");
+		expect(sk.fitness.coachMode.settingsTitle).toBe("Som tréner");
+		expect(sk.fitness.coachMode.settingsStatus(false)).toBe(
+			"Coach Mode: vypnutý",
+		);
 	});
 
-	test("uses the catalog in install, backup, gesture, and Phase 2 surfaces", () => {
+	test("uses the catalog in install, backup, gesture, Phase 2, and Coach Mode foundation surfaces", () => {
 		expect(readText("src/features/fitness/FitnessSettingsPage.tsx")).toContain(
 			"sk.fitness.pwa.installTitle",
 		);
@@ -93,6 +98,15 @@ describe("Slovak i18n catalog scaffold", () => {
 		);
 		expect(readText("src/features/fitness/SimpleStartBuilder.tsx")).toContain(
 			"sk.fitness.simpleStart.quickButton",
+		);
+		expect(readText("src/features/profiles/ProfileSwitcher.tsx")).toContain(
+			"sk.fitness.profiles.activeProfileLabel",
+		);
+		expect(readText("src/features/coach/CoachModePage.tsx")).toContain(
+			"sk.fitness.coachMode.disabledTitle",
+		);
+		expect(readText("src/features/fitness/FitnessSettingsPage.tsx")).toContain(
+			"sk.fitness.coachMode.settingsTitle",
 		);
 	});
 });
