@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { FeatureErrorBoundary } from '@/components/ui/FeatureErrorBoundary'
 import { LiveTrainingSession } from '@/features/fitness/LiveTrainingSession'
 import { SimpleStartBuilder } from '@/features/fitness/SimpleStartBuilder'
 import { FITNESS_BACKUP_NUDGE_STORAGE_KEY, shouldShowBackupNudge } from '@/features/fitness/fitnessBackupNudge'
@@ -120,7 +121,11 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
     }
   }, [loadTrainingState])
 
-  const runMutation = async (operation: () => Promise<FitnessLiveSession | null>, message: string) => {
+  const runMutation = async (
+    operation: () => Promise<FitnessLiveSession | null>,
+    message: string,
+    options: { throwOnError?: boolean } = {},
+  ) => {
     setIsMutating(true)
     setError(null)
     setSuccessMessage(null)
@@ -134,6 +139,9 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Tréningová akcia zlyhala.')
+      if (options.throwOnError) {
+        throw cause
+      }
     } finally {
       setIsMutating(false)
     }
@@ -145,7 +153,11 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
   }
 
   const logSet = async (setId: string, input: LogFitnessSetInput) => {
-    await runMutation(() => fitnessRepository.logSet(setId, input), 'Séria zapísaná')
+    await runMutation(
+      () => fitnessRepository.logSet(setId, input),
+      'Séria zapísaná',
+      { throwOnError: true },
+    )
   }
 
   const updateSet = async (setId: string, input: LogFitnessSetInput) => {
@@ -352,25 +364,30 @@ export function FitnessDashboard({ autoStartQuick = false }: FitnessDashboardPro
       <div className="space-y-4">
         {successMessage ? <StatusMessage tone="success" message={successMessage} /> : null}
         {error ? <StatusMessage tone="error" message={error} /> : null}
-        <LiveTrainingSession
-          session={activeSession}
-          exerciseOptions={exerciseOptions}
-          displayUnit={settings.displayUnit}
-          showGuidance={settings.showGuidance}
-          restSoundEnabled={settings.restSoundEnabled}
-          restVibrationEnabled={settings.restVibrationEnabled}
-          isMutating={isMutating}
-          onLogSet={logSet}
-          onUpdateSet={updateSet}
-          onDuplicateSet={duplicateSet}
-          onSkipSet={skipSet}
-          onAddSet={addSet}
-          onRemoveSet={removeSet}
-          onSkipExercise={skipExercise}
-          onAddUnplannedExercise={addUnplannedExercise}
-          onFinish={finishWorkout}
-          onAbandon={requestAbandonWorkout}
-        />
+        <FeatureErrorBoundary
+          featureName="Živý tréning"
+          resetKey={activeSession.id}
+        >
+          <LiveTrainingSession
+            session={activeSession}
+            exerciseOptions={exerciseOptions}
+            displayUnit={settings.displayUnit}
+            showGuidance={settings.showGuidance}
+            restSoundEnabled={settings.restSoundEnabled}
+            restVibrationEnabled={settings.restVibrationEnabled}
+            isMutating={isMutating}
+            onLogSet={logSet}
+            onUpdateSet={updateSet}
+            onDuplicateSet={duplicateSet}
+            onSkipSet={skipSet}
+            onAddSet={addSet}
+            onRemoveSet={removeSet}
+            onSkipExercise={skipExercise}
+            onAddUnplannedExercise={addUnplannedExercise}
+            onFinish={finishWorkout}
+            onAbandon={requestAbandonWorkout}
+          />
+        </FeatureErrorBoundary>
         {abandonConfirmationModal}
       </div>
     )

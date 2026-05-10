@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 
 import { AlertTriangle, CheckCircle2, FastForward, ListPlus, Plus, Trash2, Trophy, Zap } from 'lucide-react'
 
@@ -11,6 +11,7 @@ import { formatFitnessSetTypeLabel, getFitnessSetTypeBadgeClass } from '@/featur
 import type { AddUnplannedExerciseInput, FinishFitnessSessionInput, FitnessExerciseRecord, FitnessLiveSession, FitnessSessionSetRecord, LogFitnessSetInput } from '@/features/fitness/fitnessTypes'
 import { formatWeight, type FitnessDisplayUnit } from '@/features/fitness/fitnessUnits'
 import { sk } from '@/i18n/sk'
+import { useUiStore } from '@/lib/uiStore'
 import { cn } from '@/lib/utils'
 
 interface LiveTrainingSessionProps {
@@ -59,9 +60,20 @@ export function LiveTrainingSession({
   const [finishEnergy, setFinishEnergy] = useState(session.energyLevel === null ? '3' : String(session.energyLevel))
   const [finishNotes, setFinishNotes] = useState(session.notes)
   const [editingSetId, setEditingSetId] = useState<string | null>(null)
-  const activeExercise = session.exercises.find((exercise) => exercise.status === 'active') ?? session.exercises.find((exercise) => exercise.status === 'pending')
+  const [optimisticLoggedSets, setOptimisticLoggedSets] = useState<Record<string, FitnessSessionSetRecord>>({})
+  const pushToast = useUiStore((state) => state.pushToast)
+
+  const visibleOptimisticLoggedSets = useMemo(
+    () => pruneResolvedOptimisticSets(optimisticLoggedSets, session),
+    [optimisticLoggedSets, session],
+  )
+  const visibleSession = useMemo(
+    () => applyOptimisticLoggedSets(session, visibleOptimisticLoggedSets),
+    [session, visibleOptimisticLoggedSets],
+  )
+  const activeExercise = visibleSession.exercises.find((exercise) => exercise.status === 'active') ?? visibleSession.exercises.find((exercise) => exercise.status === 'pending')
   const activeSupersetExercises = activeExercise?.supersetGroup
-    ? session.exercises.filter((exercise) => exercise.supersetGroup === activeExercise.supersetGroup)
+    ? visibleSession.exercises.filter((exercise) => exercise.supersetGroup === activeExercise.supersetGroup)
     : []
   const isActiveSuperset = activeSupersetExercises.length > 1
   const currentSet = activeExercise?.sets.find((set) => set.status === 'planned')
@@ -70,10 +82,10 @@ export function LiveTrainingSession({
   const lastCompletedSet = activeExercise?.sets.filter((set) => set.status === 'completed' && set.completedAt).sort((a, b) => String(a.completedAt).localeCompare(String(b.completedAt))).at(-1)
   const removableSet = activeExercise ? (activeExercise.sets.filter((set) => set.status === 'planned').at(-1) ?? activeExercise.sets.at(-1)) : undefined
   const selectedUnplannedExerciseId = unplannedExerciseId || exerciseOptions[0]?.id || ''
-  const exerciseCount = session.exercises.length
-  const plannedSetCount = session.exercises.reduce((sum, exercise) => sum + exercise.targetSets, 0)
-  const completedSetCount = session.exercises.flatMap((exercise) => exercise.sets).filter((set) => set.status === 'completed').length
-  const totalSets = session.exercises.flatMap((exercise) => exercise.sets).length
+  const exerciseCount = visibleSession.exercises.length
+  const plannedSetCount = visibleSession.exercises.reduce((sum, exercise) => sum + exercise.targetSets, 0)
+  const completedSetCount = visibleSession.exercises.flatMap((exercise) => exercise.sets).filter((set) => set.status === 'completed').length
+  const totalSets = visibleSession.exercises.flatMap((exercise) => exercise.sets).length
 
   const openFinishReview = () => {
     setFinishRpe(session.sessionRpe === null ? '8' : String(session.sessionRpe))
@@ -88,6 +100,35 @@ export function LiveTrainingSession({
       sessionRpe: optionalNumber(finishRpe),
       energyLevel: optionalNumber(finishEnergy),
     })
+  }
+
+  const submitOptimisticSetLog = async (setId: string, input: LogFitnessSetInput) => {
+    const sourceSet = session.exercises
+      .flatMap((exercise) => exercise.sets)
+      .find((set) => set.id === setId)
+    if (!sourceSet) {
+      await onLogSet(setId, input)
+      return
+    }
+
+    setOptimisticLoggedSets((current) => ({
+      ...current,
+      [setId]: createOptimisticLoggedSet(sourceSet, input),
+    }))
+
+    try {
+      await onLogSet(setId, input)
+    } catch (cause) {
+      setOptimisticLoggedSets((current) => removeOptimisticSet(current, setId))
+      pushToast({
+        tone: 'error',
+        title: 'Séria sa neuložila',
+        description:
+          cause instanceof Error
+            ? cause.message
+            : 'StingFit nedokázal uložiť sériu.',
+      })
+    }
   }
 
   const submitSetEdit = async (setId: string, input: LogFitnessSetInput) => {
@@ -206,7 +247,7 @@ export function LiveTrainingSession({
           </div>
 
           {currentSet ? (
-            <SetLogger key={currentSet.id} set={currentSet} displayUnit={displayUnit} onLog={onLogSet} disabled={isMutating} lastPerformance={activeExercise.lastPerformance ?? null} />
+            <SetLogger key={currentSet.id} set={currentSet} displayUnit={displayUnit} onLog={submitOptimisticSetLog} disabled={isMutating} lastPerformance={activeExercise.lastPerformance ?? null} />
           ) : (
             <div className="rounded-3xl border border-fitness-yellow/40 bg-black/85 p-5">
               <CheckCircle2 className="size-8 text-fitness-yellow" />
@@ -223,7 +264,7 @@ export function LiveTrainingSession({
         <section className="mt-4 grid gap-6 xl:grid-cols-[1.4fr,0.9fr]">
         <Card title="Poradie cvikov" description={showGuidance ? 'Snímka z tvojho osobného plánu. História zostane stabilná aj po neskoršej zmene plánu.' : undefined}>
           <div className="space-y-3">
-            {session.exercises.map((exercise, index) => (
+            {visibleSession.exercises.map((exercise, index) => (
               <article
                 key={exercise.id}
                 className={cn(
@@ -365,6 +406,83 @@ function SupersetTransitionCard({ group, exercises }: { group: string; exercises
       <p className="mt-1 text-xs font-semibold leading-5 text-fitness-warm/60">Striedaj: {exercises.join(' ↔ ')}</p>
     </div>
   )
+}
+
+function applyOptimisticLoggedSets(
+  session: FitnessLiveSession,
+  optimisticLoggedSets: Record<string, FitnessSessionSetRecord>,
+): FitnessLiveSession {
+  if (Object.keys(optimisticLoggedSets).length === 0) {
+    return session
+  }
+
+  return {
+    ...session,
+    exercises: session.exercises.map((exercise) => ({
+      ...exercise,
+      sets: exercise.sets.map((set) => optimisticLoggedSets[set.id] ?? set),
+    })),
+  }
+}
+
+function pruneResolvedOptimisticSets(
+  optimisticLoggedSets: Record<string, FitnessSessionSetRecord>,
+  session: FitnessLiveSession,
+) {
+  if (Object.keys(optimisticLoggedSets).length === 0) {
+    return optimisticLoggedSets
+  }
+
+  const realSets = new Map(
+    session.exercises.flatMap((exercise) =>
+      exercise.sets.map((set) => [set.id, set.status] as const),
+    ),
+  )
+  let changed = false
+  const next: Record<string, FitnessSessionSetRecord> = {}
+
+  for (const [setId, optimisticSet] of Object.entries(optimisticLoggedSets)) {
+    if (realSets.get(setId) === 'planned') {
+      next[setId] = optimisticSet
+    } else {
+      changed = true
+    }
+  }
+
+  return changed ? next : optimisticLoggedSets
+}
+
+function removeOptimisticSet(
+  optimisticLoggedSets: Record<string, FitnessSessionSetRecord>,
+  setId: string,
+) {
+  if (!optimisticLoggedSets[setId]) {
+    return optimisticLoggedSets
+  }
+
+  const next = { ...optimisticLoggedSets }
+  delete next[setId]
+  return next
+}
+
+function createOptimisticLoggedSet(
+  sourceSet: FitnessSessionSetRecord,
+  input: LogFitnessSetInput,
+): FitnessSessionSetRecord {
+  const timestamp = new Date().toISOString()
+  return {
+    ...sourceSet,
+    weightKg: input.weightKg,
+    reps: input.reps,
+    rir: input.rir ?? null,
+    setType: input.setType ?? sourceSet.setType,
+    weightEntryMode: input.weightEntryMode ?? sourceSet.weightEntryMode,
+    leftWeightKg: input.leftWeightKg ?? null,
+    rightWeightKg: input.rightWeightKg ?? null,
+    status: 'completed',
+    completedAt: timestamp,
+    updatedAt: timestamp,
+  }
 }
 
 interface CompletedSetsEditorProps {

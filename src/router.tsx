@@ -2,6 +2,8 @@ import { lazy, Suspense, type ReactNode } from 'react'
 
 import { Navigate, useRoutes } from 'react-router-dom'
 
+import { FeatureErrorBoundary } from '@/components/ui/FeatureErrorBoundary'
+
 const FitnessDashboard = lazy(() => import('@/features/fitness/FitnessDashboard').then((module) => ({ default: module.FitnessDashboard })))
 const FitnessQuickSessionPage = lazy(() => import('@/features/fitness/FitnessQuickSessionPage').then((module) => ({ default: module.FitnessQuickSessionPage })))
 const FitnessPlansPage = lazy(() => import('@/features/fitness/FitnessPlansPage').then((module) => ({ default: module.FitnessPlansPage })))
@@ -24,23 +26,31 @@ function LazyRoute({ children }: { children: ReactNode }) {
   return <Suspense fallback={<RouteLoadingState />}>{children}</Suspense>
 }
 
+function FeatureRoute({ featureName, children }: { featureName: string; children: ReactNode }) {
+  return (
+    <FeatureErrorBoundary featureName={featureName}>
+      <LazyRoute>{children}</LazyRoute>
+    </FeatureErrorBoundary>
+  )
+}
+
 export function AppRouter() {
   return useRoutes([
     { path: '/', element: <Navigate to="/training" replace /> },
     {
       path: '/training',
       element: (
-        <LazyRoute>
+        <FeatureRoute featureName="Tréning">
           <FitnessDashboard />
-        </LazyRoute>
+        </FeatureRoute>
       ),
     },
     {
       path: '/quick',
       element: (
-        <LazyRoute>
+        <FeatureRoute featureName="Rýchly tréning">
           <FitnessQuickSessionPage />
-        </LazyRoute>
+        </FeatureRoute>
       ),
     },
     {
@@ -54,17 +64,17 @@ export function AppRouter() {
     {
       path: '/history',
       element: (
-        <LazyRoute>
+        <FeatureRoute featureName="História">
           <FitnessHistoryPage />
-        </LazyRoute>
+        </FeatureRoute>
       ),
     },
     {
       path: '/stats',
       element: (
-        <LazyRoute>
+        <FeatureRoute featureName="Štatistiky">
           <FitnessStatsPage />
-        </LazyRoute>
+        </FeatureRoute>
       ),
     },
     {
