@@ -27,8 +27,10 @@ coverage
 # Agent, editor, and machine-local state
 .pi/*
 !.pi/settings.json
+.pi-lens/
 .playwright-mcp
 .superpowers
+.ruff_cache/
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
@@ -37,6 +39,7 @@ coverage
 .idea
 
 # Runtime scratch output
+.tmp-*
 .tmp-*.log
 .tmp-*.err.log
 .tmp-*.pid

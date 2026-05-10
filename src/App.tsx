@@ -32,13 +32,8 @@ function AppFrame() {
 
   const handleBackupExport = useCallback(async () => {
     try {
-      const [{ fitnessRepository }, { downloadBlob }] = await Promise.all([
-        import('@/features/fitness/fitnessRepository'),
-        import('@/lib/download'),
-      ])
-      const exported = await fitnessRepository.exportFitnessData()
-      const filename = `stingfit-fitness-export-${new Date().toISOString().slice(0, 10)}.json`
-      downloadBlob(new Blob([JSON.stringify(exported, null, 2)], { type: 'application/json' }), filename)
+      const { exportFitnessBackup } = await import('@/features/fitness/exportFitnessBackup')
+      const filename = await exportFitnessBackup()
       pushToast({
         tone: 'success',
         title: 'Tréningová záloha exportovaná',
