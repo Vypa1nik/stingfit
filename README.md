@@ -10,6 +10,18 @@ Start → Log → Finish → Learn
 
 No login, no cloud sync, no telemetry, no analytics, no subscriptions, and no paywalls.
 
+> ## Working on this repo?
+>
+> Read these four files, in this order, before writing any code:
+>
+> 1. [`AGENTS.md`](./AGENTS.md) — agent workflow protocol
+> 2. [`STINGFIT_V2_PLAN.md`](./STINGFIT_V2_PLAN.md) — **the active rebuild plan**
+> 3. [`PRODUCT.md`](./PRODUCT.md) — vision, personas, anti-goals
+> 4. [`RULES.md`](./RULES.md) — engineering and product rules
+>
+> Anything in [`docs/archive/`](./docs/archive/) is **archived** and must not
+> influence implementation choices.
+
 ## V1 status
 
 StingFit V1 is a React + Vite web app with local SQLite storage through `sql.js` persisted in IndexedDB. The verified production path is the web/PWA build. A Tauri v2 desktop scaffold is present for future packaging, but desktop installers are not the verified release path until Rust/Tauri packaging is available on the build machine.
