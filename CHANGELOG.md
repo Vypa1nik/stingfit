@@ -6,6 +6,7 @@ All notable changes to StingFit will be documented in this file.
 
 ### Added
 
+- Phase 4 PWA install funnel now has a step-by-step install guide in `docs/install.md`, a cached `/install.html` fallback, and a Settings link for iOS Safari, Android Chrome, and desktop Chrome/Edge installs.
 - V2 Phase 1 starts bundle guardrails with `tools/bundle-budget.mjs`, lazy database/sql.js startup imports, debug-channel DB boot metrics, an explicit `useDatabase` boot boundary, and tests that keep startup entrypoints from pulling the DB layer into the main bundle.
 - V2 Phase 0 now has an active source map in `docs/source-map.md`, verified dependency and scratch-hygiene audits, a README contributor pointer, and a baseline repository surface test so future refactors keep the fitness API explicit.
 - PWA install metadata, offline fallback, and install guidance in Settings.

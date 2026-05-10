@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="sk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <title>Nainštaluj StingFit</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: #000;
+        color: #f8f1d8;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(
+            circle at top,
+            rgba(255, 255, 0, 0.18),
+            transparent 28rem
+          ),
+          #000;
+      }
+      main {
+        box-sizing: border-box;
+        width: min(100%, 54rem);
+        margin: 0 auto;
+        padding: 2rem 1rem 4rem;
+      }
+      a {
+        color: #ffff00;
+      }
+      .hero,
+      section {
+        border: 1px solid rgba(255, 255, 0, 0.22);
+        border-radius: 1.5rem;
+        background: rgba(0, 0, 0, 0.82);
+        padding: 1.25rem;
+        margin-top: 1rem;
+      }
+      h1,
+      h2 {
+        color: #fff;
+        margin: 0 0 0.75rem;
+      }
+      p,
+      li {
+        line-height: 1.6;
+      }
+      .badge {
+        display: inline-flex;
+        border: 1px solid rgba(255, 255, 0, 0.35);
+        border-radius: 999px;
+        padding: 0.35rem 0.75rem;
+        color: #ffff00;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .cta {
+        display: inline-flex;
+        min-height: 2.75rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.8rem;
+        background: #ffff00;
+        color: #000;
+        font-weight: 900;
+        padding: 0 1rem;
+        text-decoration: none;
+      }
+      code {
+        color: #ffff00;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="hero">
+        <span class="badge">StingFit PWA</span>
+        <h1>Nainštaluj StingFit</h1>
+        <p>
+          StingFit funguje ako lokálna PWA aplikácia na telefóne aj desktope.
+          Bez účtu, cloudu a telemetrie. Dáta zostávajú v tomto prehliadači, kým
+          ich výslovne neexportuješ.
+        </p>
+        <p><a class="cta" href="/#/training">Otvoriť StingFit tréning</a></p>
+      </div>
+
+      <section>
+        <h2>iOS Safari</h2>
+        <ol>
+          <li>Otvor StingFit URL v Safari.</li>
+          <li>Ťukni na Share.</li>
+          <li>Vyber <strong>Add to Home Screen</strong>.</li>
+          <li>Potvrď názov StingFit a otvor aplikáciu z plochy.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Android Chrome</h2>
+        <ol>
+          <li>Otvor StingFit URL v Chrome.</li>
+          <li>Ak sa zobrazí výzva, vyber <strong>Install</strong>.</li>
+          <li>
+            Ak nie, otvor menu a vyber <strong>Install app</strong> alebo
+            <strong>Add to Home screen</strong>.
+          </li>
+          <li>Po inštalácii otvor StingFit z ikony aplikácie.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Desktop Chrome/Edge</h2>
+        <ol>
+          <li>Otvor StingFit URL v Chrome alebo Edge.</li>
+          <li>Použi install ikonu v adresnom riadku alebo menu prehliadača.</li>
+          <li>
+            Potvrď inštaláciu a pripni aplikáciu, ak ju chceš mať pri plánovaní
+            po ruke.
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Offline poznámka</h2>
+        <p>
+          Otvor aplikáciu aspoň raz online. Service worker potom drží lokálny
+          app shell,
+          <code>/#/training</code> a offline fallback pripravený pre ďalší
+          tréning.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

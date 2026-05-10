@@ -748,6 +748,19 @@ export function FitnessSettingsPage() {
 									{sk.fitness.pwa.manualInstallHint}
 								</p>
 							) : null}
+							<div className="mt-4 rounded-2xl border border-fitness-yellow/20 bg-black px-4 py-4 text-sm text-fitness-warm">
+								<p className="text-fitness-warm/70">
+									{sk.fitness.pwa.installGuideDescription}
+								</p>
+								<a
+									className={cn(
+										"mt-3 inline-flex min-h-10 items-center justify-center rounded-md border border-fitness-yellow/40 px-4 py-2 text-sm font-black text-fitness-yellow transition-colors hover:bg-fitness-yellow/10 focus:outline-none focus:ring-2 focus:ring-fitness-yellow focus:ring-offset-2 focus:ring-offset-black",
+									)}
+									href="/install.html"
+								>
+									{sk.fitness.pwa.installGuideButton}
+								</a>
+							</div>
 						</Card>
 					</section>
 				</details>

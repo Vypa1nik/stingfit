@@ -12,9 +12,12 @@ export const sk = {
 			installedButton: "StingFit je nainštalovaný",
 			installButton: "Nainštalovať StingFit",
 			manualInstallHint:
-				"Ak prehliadač nezobrazí systémový prompt, použi menu prehliadača: Pridať na plochu / Install app.",
+				"Ak prehliadač nezobrazí systémový prompt, použi menu prehliadača alebo otvor návod nižšie.",
+			installGuideDescription:
+				"Kroky pre iOS Safari, Android Chrome a Chrome/Edge na desktope.",
+			installGuideButton: "Otvoriť návod na inštaláciu",
 			installUnavailableHint:
-				"Ak tlačidlo inštalácie nie je dostupné, použi v prehliadači možnosť Pridať na plochu / Install app.",
+				"Ak tlačidlo inštalácie nie je dostupné, použi návod na inštaláciu pre svoj prehliadač.",
 			installAccepted: "StingFit sa inštaluje ako lokálna PWA aplikácia.",
 			installDismissed:
 				"Inštalácia StingFit bola zrušená. Dáta zostávajú lokálne dostupné v prehliadači.",

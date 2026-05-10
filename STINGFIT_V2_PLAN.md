@@ -456,13 +456,13 @@ laptop in under 60 seconds, and the install is signed and trustworthy.
 
 📦 **Modules**
 
-1. **PWA install funnel**
-   - Audit `public/manifest.webmanifest`, install prompt UX, screenshots,
-     iconset (existing High-Voltage Wasp identity).
-   - Add a one-pager `docs/install.md` with step-by-step install on iOS
-     Safari, Android Chrome, desktop Chrome/Edge.
-   - Add an in-app install card in Settings → Inštalácia aplikácie that
-     deep-links the OS prompt where supported and falls back to the docs page.
+1. **PWA install funnel (DONE 2026-05-10)**
+   - `public/manifest.webmanifest`, screenshots, iconset, offline fallback,
+     and service-worker cached install help are covered by PWA asset tests.
+   - `docs/install.md` documents step-by-step install on iOS Safari,
+     Android Chrome, and desktop Chrome/Edge.
+   - Settings → Inštalácia aplikácie keeps the OS install prompt where
+     supported and falls back to the local `/install.html` guide.
 2. **Tauri desktop builds**
    - Verify Rust toolchain on the build machine. If unavailable, document the
      blocker in `reports/` and proceed with PWA-only release.

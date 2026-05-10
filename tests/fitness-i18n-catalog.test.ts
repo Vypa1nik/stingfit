@@ -40,6 +40,9 @@ describe("Slovak i18n catalog scaffold", () => {
 		expect(sk.fitness.pwa.privatePromise).toContain(
 			"Bez účtu, cloudu a telemetrie",
 		);
+		expect(sk.fitness.pwa.installGuideButton).toBe(
+			"Otvoriť návod na inštaláciu",
+		);
 		expect(sk.fitness.backupNudge.title).toBe("Čas na lokálnu zálohu");
 		expect(sk.fitness.backupNudge.snoozeButton).toBe(
 			"Pripomenúť pri ďalších 30",
@@ -77,6 +80,9 @@ describe("Slovak i18n catalog scaffold", () => {
 	test("uses the catalog in the Phase 3 user-facing surfaces", () => {
 		expect(readText("src/features/fitness/FitnessSettingsPage.tsx")).toContain(
 			"sk.fitness.pwa.installTitle",
+		);
+		expect(readText("src/features/fitness/FitnessSettingsPage.tsx")).toContain(
+			"sk.fitness.pwa.installGuideButton",
 		);
 		expect(readText("src/features/fitness/FitnessDashboard.tsx")).toContain(
 			"sk.fitness.backupNudge.title",

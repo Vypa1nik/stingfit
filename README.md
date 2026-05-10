@@ -75,7 +75,7 @@ See `reports/stingfit-privacy-network-audit.md` for the automated privacy/networ
 
 The web build includes `public/manifest.webmanifest`, StingFit icons, install shortcuts, screenshot assets, and `public/offline.html`. In production, `public/sw.js` caches the app shell and same-origin runtime assets so the app can reopen for offline training after the first successful load.
 
-Install from the browser menu or Settings → `Inštalácia aplikácie`. On iOS, use Share → Add to Home Screen.
+Install from the browser menu or Settings → `Inštalácia aplikácie`. On iOS, use Share → Add to Home Screen. The step-by-step install guide lives in [`docs/install.md`](./docs/install.md), and the production app exposes the same fallback at `/install.html`.
 
 For real phone smoke testing, use the local production PWA preview helper instead of Expo Go or the Vite dev server:
 
