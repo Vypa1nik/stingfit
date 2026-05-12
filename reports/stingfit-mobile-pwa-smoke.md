@@ -1,8 +1,8 @@
 # StingFit Mobile PWA Smoke
 
-Date: 2026-05-05
-Target: production PWA preview from `npm run mobile:pwa:start`
-Status: BLOCKED for Phase 1 exit; physical iOS Safari and Android Chrome devices were not available in the agent environment.
+Date: 2026-05-12
+Target: production PWA preview from `npm run mobile:pwa:start` and live PWA at `https://vypa1nik.github.io/stingfit/`
+Status: ACCEPTED FOLLOW-UP for V2.0; physical iOS Safari and Android Chrome devices were not available in the agent environment, and the owner accepted this as a documented manual concern for the PWA-only release.
 
 ## Preview command
 
@@ -40,7 +40,7 @@ These checks were run against the local `vite preview` production server after a
 | manifest display mode is `standalone`        | Pass   |
 | LAN URL candidates respond from this machine | Pass   |
 
-## Manual phone checks still needed
+## Manual phone checks still needed after V2.0
 
 - [ ] Open the first preview URL on a phone connected to the same Wi-Fi.
 - [ ] Confirm Training loads first.
@@ -66,7 +66,7 @@ These checks were run against the local `vite preview` production server after a
 
 | Severity | Area              | Steps                                                             | Expected                        | Actual                                                       | Status |
 | -------- | ----------------- | ----------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------ | ------ |
-| Blocking | Manual phone pass | Run checklist above on real iOS Safari and Android Chrome devices | All critical gym/PWA paths pass | Physical devices are not available in this agent environment | Open   |
+| Follow-up | Manual phone pass | Run checklist above on real iOS Safari and Android Chrome devices | All critical gym/PWA paths pass | Physical devices are not available in this agent environment; owner accepted this as a documented V2.0 concern | Accepted for V2.0 |
 
 ## Notes
 

@@ -7,7 +7,7 @@ function readText(path: string) {
 }
 
 describe("StingFit Phase 4 exit audit", () => {
-	test("documents distribution readiness with release blockers instead of creating a tag", () => {
+	test("documents distribution readiness with accepted release concerns", () => {
 		const reportPath = "reports/stingfit-phase-4-exit-audit.md";
 		expect(existsSync(reportPath)).toBe(true);
 
@@ -18,7 +18,7 @@ describe("StingFit Phase 4 exit audit", () => {
 			"reports/stingfit-v2-release-readiness.md",
 		);
 
-		expect(report).toContain("Status: DONE_WITH_CONCERNS");
+		expect(report).toContain("Status: DONE_WITH_ACCEPTED_CONCERNS");
 		expect(report).toContain("Target: V2 Phase 4 — Distribution");
 		for (const moduleName of [
 			"PWA install funnel",
@@ -37,16 +37,14 @@ describe("StingFit Phase 4 exit audit", () => {
 		expect(report).toContain("Accessibility 100");
 		expect(report).toContain("https://vypa1nik.github.io/stingfit/");
 		expect(report).toContain("Deploy run `25764435187` completed successfully");
-		expect(report).toContain(
-			"Manual paired-device Coach Mode smoke remains outstanding",
-		);
+		expect(report).toContain("Accepted concerns for V2.0");
 		expect(report).toContain("tests/coach-handoff-flow.test.ts");
-		expect(report).toContain("desktop installers remain blocked");
-		expect(report).toContain("Do not create `v2.0.0`");
+		expect(report).toContain("Tauri desktop installers remain a future release track");
+		expect(report).toContain("V2.0 is approved as a PWA-only release");
 		expect(report).not.toContain("LocalFlow");
 
 		expect(plan).toContain(
-			"PHASE 4 — Distribution (DONE_WITH_CONCERNS 2026-05-10)",
+			"PHASE 4 — Distribution (DONE_WITH_ACCEPTED_CONCERNS 2026-05-12)",
 		);
 		expect(changelog).toContain("Phase 4 exit audit");
 		expect(releaseReadiness).toContain(

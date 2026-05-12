@@ -25,10 +25,10 @@ describe("StingFit V1 release documentation", () => {
 		);
 		expect(readme).toContain("reports/stingfit-tauri-desktop-builds.md");
 		expect(readme).toContain(
-			"Lighthouse verification is pending against the live URL",
+			"Lighthouse verification against the live URL passed the V2 gates",
 		);
 
-		expect(changelog).toContain("## v2.0.0 - Pending release");
+		expect(changelog).toContain("## v2.0.0 - 2026-05-12");
 		for (const phase of [
 			"Phase 0",
 			"Phase 1",
@@ -39,24 +39,25 @@ describe("StingFit V1 release documentation", () => {
 			expect(changelog).toContain(phase);
 		}
 		expect(changelog).toContain("PWA-only public release path");
-		expect(changelog).toContain(
-			"Lighthouse, paired-device smoke, and desktop installers remain pending",
-		);
+		expect(changelog).toContain("Accepted release concerns");
 		expect(changelog).toContain("live GitHub Pages deployment");
 		expect(changelog).toContain("automated coach handoff rehearsal");
 
-		expect(plan).toContain("Release docs (READY_WITH_CONCERNS 2026-05-12)");
-		expect(plan).toContain("Tag `v2.0.0` remains pending");
+		expect(plan).toContain(
+			"Release docs (APPROVED_WITH_ACCEPTED_CONCERNS 2026-05-12)",
+		);
+		expect(plan).toContain("owner approved the `v2.0.0` PWA-only release");
 
 		const readiness = readText(readinessPath);
-		expect(readiness).toContain("Status: READY_WITH_CONCERNS");
+		expect(readiness).toContain("Status: APPROVED_FOR_V2.0_PWA_RELEASE");
 		expect(readiness).toContain(
 			"Live public PWA URL: https://vypa1nik.github.io/stingfit/",
 		);
 		expect(readiness).toContain("Post-deploy smoke — 2026-05-12");
 		expect(readiness).toContain("Coach handoff rehearsal — 2026-05-12");
 		expect(readiness).toContain("No desktop download links are published");
-		expect(readiness).toContain("Do not tag `v2.0.0` until");
+		expect(readiness).toContain("Release tag approval");
+		expect(existsSync("reports/stingfit-v2.0.0-release-notes.md")).toBe(true);
 		expect(readiness).not.toContain("LocalFlow");
 	});
 
@@ -101,7 +102,7 @@ describe("StingFit V1 release documentation", () => {
 		expect(readme).toContain("reports/stingfit-privacy-network-audit.md");
 
 		const mobileSmoke = readText("reports/stingfit-mobile-pwa-smoke.md");
-		expect(mobileSmoke).toContain("Status: BLOCKED for Phase 1 exit");
+		expect(mobileSmoke).toContain("Status: ACCEPTED FOLLOW-UP for V2.0");
 		expect(mobileSmoke).toContain(
 			"Physical devices are not available in this agent environment",
 		);

@@ -26,13 +26,13 @@ No login, no cloud sync, no telemetry, no analytics, no subscriptions, and no pa
 
 ## V2 release readiness
 
-StingFit V2 keeps the React + Vite PWA with local SQLite storage through `sql.js` persisted in IndexedDB as the verified production path. Coach Mode, Plan Packs, Recap Packs, the PWA install funnel, and the GitHub Pages deployment workflow are implemented; the release remains gated by Lighthouse verification, manual paired-device smoke, and desktop packaging blockers.
+StingFit V2.0 ships as a PWA-only release with the React + Vite PWA and local SQLite storage through `sql.js` persisted in IndexedDB as the verified production path. Coach Mode, Plan Packs, Recap Packs, the PWA install funnel, and the GitHub Pages deployment workflow are implemented; the owner accepted the remaining manual smoke concerns and desktop packaging remains a future track.
 
 ## Public install path
 
 Live public PWA URL: `https://vypa1nik.github.io/stingfit/`.
 
-GitHub Pages deployment is defined in `.github/workflows/deploy-pwa.yml`. It builds with `VITE_BASE_PATH=/stingfit/` and publishes the PWA from `v2*` tags or manual workflow dispatch. Deploy run `25759756360` completed successfully, and Lighthouse verification is pending against the live URL.
+GitHub Pages deployment is defined in `.github/workflows/deploy-pwa.yml`. It builds with `VITE_BASE_PATH=/stingfit/` and publishes the PWA from `v2*` tags or manual workflow dispatch. Deploy run `25764435187` completed successfully, and Lighthouse verification against the live URL passed the V2 gates.
 
 Desktop downloads: No verified desktop installers are published yet. The Tauri v2 scaffold is present, but Windows/macOS installer links stay omitted until the native toolchain blocker in `reports/stingfit-tauri-desktop-builds.md` is resolved and `npm run tauri:build` is verified on a machine with Rust, Cargo, rustup, and the required platform build tools.
 
@@ -165,7 +165,8 @@ npm run build
 ## Release documentation
 
 - `docs/landing/index.html` — static landing one-pager for the V2 PWA release path
-- `reports/stingfit-v2-release-readiness.md` — V2 release-readiness handoff, public URL, blocked artifacts, and no-tag conditions
+- `reports/stingfit-v2-release-readiness.md` — V2 release-readiness handoff, public URL, accepted concerns, and release approval
+- `reports/stingfit-v2.0.0-release-notes.md` — approved PWA-only release notes for `v2.0.0`
 - `reports/stingfit-v1-release-checklist.md` — manual mobile/PWA QA checklist and known limitations
 - `reports/stingfit-privacy-network-audit.md` — no-telemetry/no-cloud audit
 - `public/screenshots/stingfit-training.svg` and `public/screenshots/stingfit-stats.svg` — PWA screenshot assets referenced by the manifest
@@ -173,6 +174,6 @@ npm run build
 ## Notes for future releases
 
 - The web/PWA build is the verified production path.
-- The GitHub Pages URL is live as the public install path, but the release tag and Lighthouse gate remain pending until Lighthouse passes against the live deployment.
+- The GitHub Pages URL is live as the public install path, and Lighthouse passed against the live deployment for the V2.0 PWA-only release.
 - Desktop packaging should be treated as a future release track until the Tauri build is verified on a machine with Rust tooling.
 - Internal database/storage keys remain stable to avoid accidental local data loss across upgrades.

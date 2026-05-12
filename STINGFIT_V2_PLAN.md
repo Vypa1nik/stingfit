@@ -452,7 +452,7 @@ npm run check
 
 ---
 
-### PHASE 4 — Distribution (DONE_WITH_CONCERNS 2026-05-10)
+### PHASE 4 — Distribution (DONE_WITH_ACCEPTED_CONCERNS 2026-05-12)
 
 🎯 **Goal:** anyone with the link can install StingFit on a phone and on a
 laptop in under 60 seconds, and the install is signed and trustworthy.
@@ -480,23 +480,25 @@ laptop in under 60 seconds, and the install is signed and trustworthy.
      `Vypa1nik/stingfit` and does not require Cloudflare account secrets.
    - `.github/workflows/deploy-pwa.yml` builds with `VITE_BASE_PATH=/stingfit/`,
      uploads `dist`, and publishes on `v2*` tag pushes or manual dispatch.
-   - Deploy run `25759756360` completed successfully, and the live PWA URL is
+   - Deploy run `25764435187` completed successfully, and the live PWA URL is
      `https://vypa1nik.github.io/stingfit/`.
    - Vite, the manifest, the service worker, and static install/offline pages
      are compatible with the GitHub Pages project URL.
-   - Lighthouse remains pending against the live URL.
-4. **Release docs (READY_WITH_CONCERNS 2026-05-12)**
+   - Lighthouse passed against the live URL: Performance 87, Accessibility 100,
+     Best Practices 100, SEO 100, and PWA installable manifest PASS.
+4. **Release docs (APPROVED_WITH_ACCEPTED_CONCERNS 2026-05-12)**
    - `README.md` now has the two-paragraph "What is StingFit" intro aligned
      with `PRODUCT.md`, the live GitHub Pages install URL, and explicit
      desktop-download blocker wording instead of unverified `.msi`/`.dmg` links.
-   - `CHANGELOG.md` now has a `## v2.0.0 - Pending release` section listing
-     Phases 0-4 and the remaining blockers.
+   - `CHANGELOG.md` now has a `## v2.0.0 - 2026-05-12` section listing
+     Phases 0-4 and the accepted release concerns.
    - `reports/stingfit-v2-release-readiness.md` records the PWA-only release
-     path, omitted desktop download links, live Pages deploy, pending
-     Lighthouse verification, and manual smoke blockers.
-   - Tag `v2.0.0` remains pending until Lighthouse gates pass, manual
-     paired-device smoke is accepted or completed, and the owner explicitly
-     approves the tag.
+     path, omitted desktop download links, live Pages deploy, passing
+     Lighthouse verification, and owner-accepted manual smoke concerns.
+   - The owner approved the `v2.0.0` PWA-only release on 2026-05-12 and
+     accepted the remaining manual concerns: real mobile PWA install/offline
+     smoke, paired-device Coach Mode smoke, and desktop installers as a future
+     track.
 5. **Landing one-pager (READY 2026-05-10)**
    - `docs/landing/index.html` is a static launch-first one-pager with the
      tagline, PWA install CTA, existing screenshot assets, inline Coach handoff
@@ -510,8 +512,8 @@ laptop in under 60 seconds, and the install is signed and trustworthy.
 - Lighthouse PWA Installable: pass.
 - Lighthouse Performance: ≥ 85 (mobile, mid-range).
 - Lighthouse Accessibility: ≥ 95.
-- Tag `v2.0.0` exists; the release page lists installable artefacts; the
-  PWA URL is live and installable from a phone.
+- Tag `v2.0.0` exists; the release notes list the PWA as the installable
+  artefact, desktop installers as a future track, and the PWA URL is live.
 
 🔍 **Verification**
 

@@ -1,21 +1,21 @@
 # StingFit Tauri desktop builds
 
-Status: BLOCKED
-Date: 2026-05-10
+Status: FUTURE_TRACK_FOR_V2.0
+Date: 2026-05-12
 Scope: Phase 4 Module 2 — Tauri desktop builds
 
 ## Summary
 
 The StingFit Tauri scaffold is present and aligned with the Vite/HashRouter app shell, but native desktop artifacts cannot be built in this environment. The build machine is missing Rust and the Windows native build toolchain that Tauri requires.
 
-Phase 4 should proceed as a **PWA-only release** on this machine until the missing desktop build prerequisites are installed and verified.
+V2.0 proceeds as a **PWA-only release**. The owner accepted desktop installers as a future release track until the missing desktop build prerequisites are installed and verified.
 
 ## Configuration checked
 
 - `package.json` exposes `npm run tauri`, `npm run tauri:dev`, and `npm run tauri:build`.
 - `src-tauri/tauri.conf.json` uses:
   - `productName: "StingFit"`
-  - `version: "1.0.0"`
+  - `version: "2.0.0"`
   - `identifier: "com.stingfit.app"`
   - `frontendDist: "../dist"`
   - `beforeBuildCommand: "npm run build"`
@@ -66,4 +66,4 @@ Expected prerequisites before retrying desktop artifacts:
 
 ## Decision
 
-For this Phase 4 pass, do not promise `.msi` or `.dmg` artifacts. Continue with the verified PWA install path and keep desktop installers blocked until a machine with the required native toolchain is available.
+For V2.0, do not promise `.msi` or `.dmg` artifacts. Continue with the verified PWA install path and keep desktop installers as a future track until a machine with the required native toolchain is available.

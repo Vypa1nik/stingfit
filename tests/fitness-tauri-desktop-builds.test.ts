@@ -82,7 +82,7 @@ describe("StingFit Tauri desktop build readiness", () => {
 		const changelog = readText("CHANGELOG.md");
 
 		expect(report.split("\n").slice(0, 5).join("\n")).toContain(
-			"Status: BLOCKED",
+			"Status: FUTURE_TRACK_FOR_V2.0",
 		);
 		expect(report).toContain("WebView2: 147.0.3912.98");
 		expect(report).toContain("rustc: not installed");
@@ -95,7 +95,7 @@ describe("StingFit Tauri desktop build readiness", () => {
 		expect(report).toContain("PWA-only release");
 		expect(plan).toContain("Tauri desktop builds (BLOCKED 2026-05-10)");
 		expect(changelog).toContain(
-			"Desktop installer verification remains blocked by missing Rust, Cargo, rustup, and MSVC/Windows SDK tooling",
+			"Desktop installers are not published in V2.0",
 		);
 	});
 });

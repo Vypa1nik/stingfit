@@ -1,12 +1,12 @@
 # StingFit V2 Release Readiness
 
-Status: READY_WITH_CONCERNS
-Active release handoff for Phase 4 Module 4.
+Status: APPROVED_FOR_V2.0_PWA_RELEASE
+Active release handoff for the V2.0 PWA-only release.
 Date: 2026-05-12
 
 ## Summary
 
-StingFit V2 is documented for a PWA-only public release path. The product remains local-first and private: no accounts, no cloud sync, no telemetry, no analytics, no subscription, and no paywall behavior were added for release distribution.
+StingFit V2.0 is approved for a PWA-only public release path. The product remains local-first and private: no accounts, no cloud sync, no telemetry, no analytics, no subscription, and no paywall behavior were added for release distribution.
 
 Live public PWA URL: https://vypa1nik.github.io/stingfit/
 
@@ -19,25 +19,23 @@ The GitHub Pages workflow builds the app with `VITE_BASE_PATH=/stingfit/`, uploa
 - Browser fallback guide: `/install.html` in the built PWA.
 - Desktop downloads: No desktop download links are published. No `.msi`, `.dmg`, or desktop installer artifact is listed as available.
 
-## Blocked or pending gates
+## Release approval
+
+On 2026-05-12, the owner approved the V2.0 PWA-only release and accepted the remaining manual concerns. Desktop installers stay a future release track, the automated coach handoff rehearsal is accepted as V2.0 evidence for the coach bridge, and real iOS Safari / Android Chrome PWA install-offline smoke remains a documented follow-up.
+
+## Gate status
 
 - Lighthouse PWA Installable: PASS via Lighthouse 11.7.1 compatibility audit against the live GitHub Pages URL.
 - Lighthouse Performance >= 85 mobile: PASS at 87 via Lighthouse 13.3.0 mobile audit against the live GitHub Pages URL.
 - Lighthouse Accessibility >= 95: PASS at 100 via Lighthouse 13.3.0 mobile audit against the live GitHub Pages URL.
-- Manual paired-device coach<->trainee smoke: pending or owner-accepted concern; automated repository rehearsal covers coach Plan Pack export -> fresh trainee import -> workout log -> trainee Recap Pack export -> coach read-only import in `tests/coach-handoff-flow.test.ts`.
-- Phase 1 real-device mobile PWA smoke: blocked by missing physical iOS Safari and Android Chrome devices in this environment.
-- Phase 2 screenshot audit: blocked by unavailable browser screenshot tooling in this environment.
-- Desktop installers: blocked by missing Rust, Cargo, rustup, and platform build tools as documented in `reports/stingfit-tauri-desktop-builds.md`.
+- Manual paired-device coach<->trainee smoke: ACCEPTED CONCERN for V2.0; automated repository rehearsal covers coach Plan Pack export -> fresh trainee import -> workout log -> trainee Recap Pack export -> coach read-only import in `tests/coach-handoff-flow.test.ts`.
+- Phase 1 real-device mobile PWA smoke: ACCEPTED FOLLOW-UP for V2.0; physical iOS Safari and Android Chrome devices were not available in this environment.
+- Phase 2 screenshot audit: ACCEPTED FOLLOW-UP for V2.0; automated DOM coverage exists, but screenshot tooling was unavailable in this environment.
+- Desktop installers: FUTURE TRACK; no `.msi`, `.dmg`, or desktop installer artifact is published for V2.0 because Rust, Cargo, rustup, and platform build tools are missing as documented in `reports/stingfit-tauri-desktop-builds.md`.
 
-## No-tag rule
+## Release tag approval
 
-Do not tag `v2.0.0` until all of the following are true or explicitly accepted by the owner:
-
-1. The GitHub Pages deployment is live at the expected public PWA URL. Completed 2026-05-12 via deploy run `25764435187`.
-2. Lighthouse PWA, performance, and accessibility gates are run against the live URL. Completed 2026-05-12 with the results below.
-3. The coach Plan Pack -> trainee import -> workout log -> trainee Recap Pack -> coach read-only preview smoke is completed on real devices, or the owner explicitly accepts the release concern.
-4. Desktop downloads are either verified and linked, or release notes explicitly state that V2 is PWA-only.
-5. `npm run check`, the bundle budget, and whitespace checks pass on the release candidate.
+The `v2.0.0` PWA-only release tag is approved after final verification on `origin/main`. The release notes must list only the PWA as installable and must not publish desktop installer links.
 
 ## Post-deploy smoke — 2026-05-12
 
@@ -63,6 +61,7 @@ Do not tag `v2.0.0` until all of the following are true or explicitly accepted b
 ## Release docs covered
 
 - `README.md` states the V2 product positioning, live public install URL, GitHub Pages deployment path, and desktop download blocker.
-- `CHANGELOG.md` includes `## v2.0.0 - Pending release` with Phase 0-4 coverage and blocked release verification.
-- `STINGFIT_V2_PLAN.md` marks Phase 4 Module 4 as `READY_WITH_CONCERNS` and keeps the release tag pending.
-- `reports/stingfit-phase-4-exit-audit.md` records the Phase 4 distribution exit status as `DONE_WITH_CONCERNS` and repeats the no-tag rule.
+- `CHANGELOG.md` includes `## v2.0.0 - 2026-05-12` with Phase 0-4 coverage and accepted release concerns.
+- `reports/stingfit-v2.0.0-release-notes.md` contains the approved PWA-only release notes.
+- `STINGFIT_V2_PLAN.md` marks Phase 4 as `DONE_WITH_ACCEPTED_CONCERNS`.
+- `reports/stingfit-phase-4-exit-audit.md` records the Phase 4 distribution exit status as `DONE_WITH_ACCEPTED_CONCERNS` and the owner-approved PWA-only release decision.

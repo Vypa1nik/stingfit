@@ -4,6 +4,14 @@ All notable changes to StingFit will be documented in this file.
 
 ## Unreleased
 
+No unreleased changes.
+
+## v2.0.0 - 2026-05-12
+
+StingFit V2.0 ships as a PWA-only public release. The live app is available at `https://vypa1nik.github.io/stingfit/`, GitHub Pages deploys from the release workflow, and Lighthouse passes the V2 PWA gates.
+
+The owner approved the PWA-only release and accepted the remaining manual concerns on 2026-05-12: desktop installers stay a future track, the automated coach handoff rehearsal is accepted as V2.0 release evidence, and real iOS Safari / Android Chrome install-offline smoke remains a documented follow-up.
+
 ### Added
 
 - Phase 4 PWA install funnel now has a step-by-step install guide in `docs/install.md`, a cached `/install.html` fallback, and a Settings link for iOS Safari, Android Chrome, and desktop Chrome/Edge installs.
@@ -73,9 +81,7 @@ All notable changes to StingFit will be documented in this file.
 - Desktop installer verification remains blocked by missing Rust, Cargo, rustup, and MSVC/Windows SDK tooling, so `npm run tauri:build` cannot be verified here.
 - Full string extraction to `i18n/sk.ts` remains a future cleanup track; current user-facing copy is already Slovak in the verified app surface.
 
-## v2.0.0 - Pending release
-
-This section is prepared for the V2 release handoff. It is not a shipped tag yet; the live Pages URL is available, but do not tag `v2.0.0` until Lighthouse gates and manual smoke blockers are resolved or explicitly accepted by the owner.
+### Phase summary
 
 - Phase 0 reset the active documentation, source map, dependency audit, scratch hygiene, and baseline repository surface tests.
 - Phase 1 added bundle guardrails, lazy database startup, TanStack Query read hooks, optimistic set logging, feature error boundaries, and refreshed privacy/network audit coverage.
@@ -83,7 +89,11 @@ This section is prepared for the V2 release handoff. It is not a shipped tag yet
 - Phase 3 added local profiles, gated Coach Mode, Plan Packs, Recap Packs, coach/trainee handoff UI, and privacy audit coverage for explicit file exchange.
 - Phase 4 defines the PWA-only public release path with install guidance, a live GitHub Pages deployment, `/stingfit/` base-path compatibility, blocked Tauri desktop build documentation, V2 release-readiness docs, and the static landing one-pager.
 
-Blocked release verification: Lighthouse, paired-device smoke, and desktop installers remain pending. Desktop downloads are intentionally omitted until native Tauri builds are verified.
+### Accepted release concerns
+
+- Desktop installers are not published in V2.0. No `.msi` or `.dmg` artifacts are listed until Tauri native build tooling is available and verified.
+- Real iOS Safari and Android Chrome PWA install/offline smoke remains a documented follow-up.
+- Real paired-device Coach Mode smoke remains a documented follow-up; `tests/coach-handoff-flow.test.ts` covers the full Plan Pack -> workout log -> Recap Pack handoff as automated release evidence.
 
 ## 1.0.0 - 2026-04-25
 

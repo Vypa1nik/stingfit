@@ -46,7 +46,7 @@ describe('StingFit V1 release identity', () => {
     expect(favicon).not.toContain('#7e14ff')
   })
 
-  test('reports StingFit V1 versions across release files', () => {
+  test('reports StingFit V2 versions across release files', () => {
     const packageJson = JSON.parse(readText('package.json')) as { name: string; version: string }
     const packageLock = JSON.parse(readText('package-lock.json')) as { name: string; version: string; packages: Record<string, { name?: string; version?: string }> }
     const tauriConfig = JSON.parse(readText('src-tauri/tauri.conf.json')) as {
@@ -58,15 +58,15 @@ describe('StingFit V1 release identity', () => {
     const cargoToml = readText('src-tauri/Cargo.toml')
 
     expect(APP_NAME).toBe('StingFit')
-    expect(APP_VERSION).toBe('1.0.0')
+    expect(APP_VERSION).toBe('2.0.0')
     expect(packageJson.name).toBe('stingfit')
     expect(packageLock.name).toBe('stingfit')
     expect(packageLock.packages['']?.name).toBe('stingfit')
-    expect(packageJson.version).toBe('1.0.0')
-    expect(packageLock.version).toBe('1.0.0')
-    expect(packageLock.packages['']?.version).toBe('1.0.0')
+    expect(packageJson.version).toBe('2.0.0')
+    expect(packageLock.version).toBe('2.0.0')
+    expect(packageLock.packages['']?.version).toBe('2.0.0')
     expect(tauriConfig.productName).toBe('StingFit')
-    expect(tauriConfig.version).toBe('1.0.0')
+    expect(tauriConfig.version).toBe('2.0.0')
     expect(tauriConfig.identifier).toBe('com.stingfit.app')
     expect(tauriConfig.app.windows[0]?.title).toBe('StingFit')
     expect(cargoToml).toContain('description = "StingFit desktop wrapper"')

@@ -1,7 +1,7 @@
 # StingFit Phase 3 exit audit
 
 Date: 2026-05-09
-Status: DONE_WITH_CONCERNS
+Status: DONE_WITH_ACCEPTED_CONCERNS
 Target: V2 Phase 3 — Coach Mode bridge
 
 ## Scope
@@ -54,43 +54,17 @@ Result: PASS — no whitespace errors for the Phase 3 module 7 touched files.
 
 | Phase 3 acceptance item                                                         | Status                                    | Notes                                                                                                                                                                                             |
 | ------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Coach can create/export `.stfplan` and trainee can import it on a fresh install | Automated pass; manual smoke still needed | Round-trip, fresh-database commit, Settings import UI, startable workout readiness, and one full repository handoff rehearsal are covered. Real paired-device timing under 5 minutes was not run. |
-| Trainee can build `.stfrecap`; coach can preview it without account             | Automated pass; manual smoke still needed | History export UI, `.stfrecap` schema/signature, coach read-only preview, and one full repository handoff rehearsal are covered. Real file handoff between devices was not run.                   |
+| Coach can create/export `.stfplan` and trainee can import it on a fresh install | Automated pass; owner-accepted manual concern | Round-trip, fresh-database commit, Settings import UI, startable workout readiness, and one full repository handoff rehearsal are covered. The owner accepted real paired-device timing as a V2.0 documented concern. |
+| Trainee can build `.stfrecap`; coach can preview it without account             | Automated pass; owner-accepted manual concern | History export UI, `.stfrecap` schema/signature, coach read-only preview, and one full repository handoff rehearsal are covered. Real file handoff between devices remains a post-release follow-up.                   |
 | Coach Mode invisible until explicitly enabled                                   | Pass                                      | `tests/coach-mode-permissions.test.tsx` verifies guarded coach routes while disabled.                                                                                                             |
 | `npm run check` green and new round-trip tests pass                             | Pass                                      | Full gate passed after module 7.                                                                                                                                                                  |
 
-## Open concerns before declaring a phase tag
+## Accepted concerns for V2.0
 
-1. **Manual paired-device smoke is still outstanding.** `tests/coach-handoff-flow.test.ts` now rehearses the complete repository flow — coach export `.stfplan`, fresh trainee import, workout log/finish, trainee export `.stfrecap`, coach read-only import — but the active plan still asks for a two-browser or phone+laptop timing smoke before claiming the manual gate.
-2. **Phase 1 mobile PWA smoke remains blocked.** `reports/stingfit-mobile-pwa-smoke.md` still records real iOS Safari and Android Chrome validation as unavailable.
-3. **Phase 2 screenshot audit remains a documented concern.** `reports/stingfit-empty-state-audit.md` records DOM route-walk pass, but browser screenshots were blocked by lack of browser tooling.
-4. **The working tree is intentionally not clean.** `git status --short` shows extensive modified, deleted, and untracked files from the active V2 reorganization and implementation work. A phase tag should not be created until the owner decides how to stage/commit those changes.
-5. **Desktop installer verification remains deferred.** The changelog still notes that this machine does not expose `cargo`/`rustc`, so Tauri desktop build verification belongs to Phase 4 environment setup.
+1. **Manual paired-device smoke is accepted as a V2.0 documented concern.** `tests/coach-handoff-flow.test.ts` rehearses the complete repository flow — coach export `.stfplan`, fresh trainee import, workout log/finish, trainee export `.stfrecap`, coach read-only import — and the owner accepted the remaining real-device timing smoke as a follow-up.
+2. **Phase 1 mobile PWA smoke remains a documented follow-up.** `reports/stingfit-mobile-pwa-smoke.md` records real iOS Safari and Android Chrome validation as unavailable in this environment.
+3. **Phase 2 screenshot audit remains a documented follow-up.** `reports/stingfit-empty-state-audit.md` records DOM route-walk pass, but browser screenshots were blocked by lack of screenshot tooling.
 
-## Git hygiene snapshot
+## Release handoff snapshot
 
-The current working tree contains at least these categories of uncommitted changes:
-
-- Active V2 docs and reports: `STINGFIT_V2_PLAN.md`, `PRODUCT.md`, `docs/source-map.md`, `reports/*`, `CHANGELOG.md`.
-- Reorganized/deleted legacy planning docs: old root plans and `docs/superpowers/*` paths appear deleted, while `docs/archive/` is untracked.
-- Phase 1/2/3 implementation files across `src/features/fitness/`, `src/features/profiles/`, `src/features/coach/`, `src/i18n/`, `src/lib/`, `src/router.tsx`, and app shell files.
-- New tests for baseline, bundle budget, database boot/lazy loading, Query hooks, error boundaries, UI states, profiles, Coach Mode, Plan Pack, Recap Pack, trainee handoff, and privacy audit.
-- Tooling/config changes including `package.json`, `package-lock.json`, `tsconfig.test.json`, and `tools/bundle-budget.mjs`.
-
-Recommended staging order before any tag:
-
-1. Documentation reorganization and active plan reset.
-2. Phase 0 baseline/source-map/tooling checkpoint.
-3. Phase 1 performance/stability modules.
-4. Phase 2 gym/product UX modules.
-5. Phase 3 profiles/coach bridge modules.
-6. Reports and final audit checkpoint.
-
-## Recommended next step
-
-Before Phase 4 module 1, do one of these:
-
-1. **Best path:** run the paired-device Coach Mode smoke and Phase 1 phone PWA smoke, update reports, then create a clean Phase 3 tag after staging/committing.
-2. **If hardware is unavailable:** keep Phase 3 as automated-DONE with manual-smoke concerns, do a git hygiene/staging pass, then start Phase 4 module 1 (`PWA install funnel`) without tagging.
-
-Do not start Phase 4 deployment/hosting work while the repository state is ambiguous. The systematic next implementation module is Phase 4 module 1 only after the checkpoint/staging decision is made.
+Phase 3 has automated round-trip, UI, permissions, privacy, and full handoff rehearsal coverage. It is included in the owner-approved V2.0 PWA-only release, with real paired-device timing smoke tracked as a post-release follow-up rather than a release blocker.
