@@ -7,12 +7,16 @@ import 'fake-indexeddb/auto'
 import { beforeEach } from 'vitest'
 
 const sourceWasmPath = join(process.cwd(), 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm')
-const rootDrive = parse(process.cwd()).root
-const fallbackWasmPath = join(rootDrive, 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm')
+let fallbackWasmPath = sourceWasmPath
 
-if (!existsSync(fallbackWasmPath)) {
-  mkdirSync(dirname(fallbackWasmPath), { recursive: true })
-  copyFileSync(sourceWasmPath, fallbackWasmPath)
+if (process.platform === 'win32') {
+  const rootDrive = parse(process.cwd()).root
+  fallbackWasmPath = join(rootDrive, 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm')
+
+  if (!existsSync(fallbackWasmPath)) {
+    mkdirSync(dirname(fallbackWasmPath), { recursive: true })
+    copyFileSync(sourceWasmPath, fallbackWasmPath)
+  }
 }
 
 globalThis.__STINGFIT_SQL_WASM_PATH__ = fallbackWasmPath

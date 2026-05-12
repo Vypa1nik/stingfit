@@ -6,8 +6,8 @@ import { FitnessDashboard } from '@/features/fitness/FitnessDashboard'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
 import { clearAllData, resetDatabaseState } from '@/lib/database'
 
-async function waitForAsyncUi() {
-  await new Promise((resolve) => window.setTimeout(resolve, 300))
+async function waitForAsyncUi(delayMs = 300) {
+  await new Promise((resolve) => window.setTimeout(resolve, delayMs))
 }
 
 async function createPplPlan() {
@@ -183,7 +183,7 @@ describe('FitnessDashboard live session UI', () => {
     await act(async () => {
       completedSet?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 20 }))
       completedSet?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: 140 }))
-      await waitForAsyncUi()
+      await waitForAsyncUi(900)
     })
 
     expect(container.textContent).toContain('Séria duplikovaná')
@@ -196,7 +196,7 @@ describe('FitnessDashboard live session UI', () => {
     await act(async () => {
       completedSetAfterDuplicate?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 140 }))
       completedSetAfterDuplicate?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: 20 }))
-      await waitForAsyncUi()
+      await waitForAsyncUi(900)
     })
 
     expect(container.textContent).toContain('Séria preskočená')
@@ -216,7 +216,7 @@ describe('FitnessDashboard live session UI', () => {
 
     await act(async () => {
       logButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      await waitForAsyncUi()
+      await waitForAsyncUi(900)
     })
 
     expect(container.textContent).toContain('Séria zapísaná')

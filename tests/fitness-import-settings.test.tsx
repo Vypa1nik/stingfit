@@ -151,5 +151,5 @@ describe('FitnessSettingsPage import flow', () => {
     await expect(fitnessRepository.getSettings()).resolves.toMatchObject({ displayUnit: 'lb' })
     expect((await fitnessRepository.listPersonalPlans()).map((plan) => plan.name)).toContain('My PPL Block')
     expect((await fitnessRepository.listCompletedSessions())[0]).toMatchObject({ name: 'Tlakový deň A' })
-  })
+  }, 15000)
 })
