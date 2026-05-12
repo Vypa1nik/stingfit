@@ -2,28 +2,28 @@
 
 Status: READY_WITH_CONCERNS
 Active release handoff for Phase 4 Module 4.
-Date: 2026-05-10
+Date: 2026-05-12
 
 ## Summary
 
 StingFit V2 is documented for a PWA-only public release path. The product remains local-first and private: no accounts, no cloud sync, no telemetry, no analytics, no subscription, and no paywall behavior were added for release distribution.
 
-Expected public PWA URL: https://vypa1nik.github.io/stingfit/
+Live public PWA URL: https://vypa1nik.github.io/stingfit/
 
-The GitHub Pages workflow builds the app with `VITE_BASE_PATH=/stingfit/`, uploads `dist`, and deploys from `v2*` tags or manual workflow dispatch. The PWA manifest, service worker, install page, offline fallback, and static assets are base-path safe for that project URL.
+The GitHub Pages workflow builds the app with `VITE_BASE_PATH=/stingfit/`, uploads `dist`, and deploys from `v2*` tags or manual workflow dispatch. Deploy run `25759756360` completed successfully, and the PWA manifest, service worker, install page, offline fallback, and static assets are live under the `/stingfit/` project URL.
 
 ## Installable artifacts
 
-- PWA: expected at `https://vypa1nik.github.io/stingfit/` after the deploy workflow runs from a release tag or manual dispatch.
+- PWA: live at `https://vypa1nik.github.io/stingfit/` from GitHub Pages workflow deploy run `25759756360`.
 - Local install guide: `docs/install.md`.
 - Browser fallback guide: `/install.html` in the built PWA.
 - Desktop downloads: No desktop download links are published. No `.msi`, `.dmg`, or desktop installer artifact is listed as available.
 
 ## Blocked or pending gates
 
-- Lighthouse PWA Installable: pending until the GitHub Pages URL is live.
-- Lighthouse Performance >= 85 mobile: pending until the GitHub Pages URL is live.
-- Lighthouse Accessibility >= 95: pending until the GitHub Pages URL is live.
+- Lighthouse PWA Installable: pending against the live GitHub Pages URL.
+- Lighthouse Performance >= 85 mobile: pending against the live GitHub Pages URL.
+- Lighthouse Accessibility >= 95: pending against the live GitHub Pages URL.
 - Manual paired-device coach<->trainee smoke: pending or owner-accepted concern.
 - Phase 1 real-device mobile PWA smoke: blocked by missing physical iOS Safari and Android Chrome devices in this environment.
 - Phase 2 screenshot audit: blocked by unavailable browser screenshot tooling in this environment.
@@ -33,11 +33,19 @@ The GitHub Pages workflow builds the app with `VITE_BASE_PATH=/stingfit/`, uploa
 
 Do not tag `v2.0.0` until all of the following are true or explicitly accepted by the owner:
 
-1. The GitHub Pages deployment is live at the expected public PWA URL.
+1. The GitHub Pages deployment is live at the expected public PWA URL. Completed 2026-05-12 via deploy run `25759756360`.
 2. Lighthouse PWA, performance, and accessibility gates are run against the live URL.
 3. The coach Plan Pack -> trainee import -> workout log -> trainee Recap Pack -> coach read-only preview smoke is completed on real devices, or the owner explicitly accepts the release concern.
 4. Desktop downloads are either verified and linked, or release notes explicitly state that V2 is PWA-only.
 5. `npm run check`, the bundle budget, and whitespace checks pass on the release candidate.
+
+## Post-deploy smoke — 2026-05-12
+
+- `https://vypa1nik.github.io/stingfit/` returned HTTP 200.
+- `index.html` referenced the manifest, JavaScript, and CSS assets under `/stingfit/`; fetched `/stingfit/assets/...` JS/CSS assets returned HTTP 200.
+- `/stingfit/manifest.webmanifest`, `/stingfit/sw.js`, and `/stingfit/install.html` returned HTTP 200. The manifest keeps `start_url: "./#/training"` and `scope: "./"`; the install guide links back to `./#/training`.
+- Headless Chrome/CDP smoke rendered the live app beyond the loading state for `landing` (`/stingfit/`), `training` (`/#/training`), `plans` (`/#/plans`), and `settings` (`/#/settings`).
+- No runtime/deploy blocker was found during this smoke pass.
 
 ## Release docs covered
 

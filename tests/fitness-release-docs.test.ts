@@ -47,8 +47,9 @@ describe("StingFit V1 release documentation", () => {
 		const readiness = readText(readinessPath);
 		expect(readiness).toContain("Status: READY_WITH_CONCERNS");
 		expect(readiness).toContain(
-			"Expected public PWA URL: https://vypa1nik.github.io/stingfit/",
+			"Live public PWA URL: https://vypa1nik.github.io/stingfit/",
 		);
+		expect(readiness).toContain("Post-deploy smoke — 2026-05-12");
 		expect(readiness).toContain("No desktop download links are published");
 		expect(readiness).toContain("Do not tag `v2.0.0` until");
 		expect(readiness).not.toContain("LocalFlow");
