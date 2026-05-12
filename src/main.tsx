@@ -28,7 +28,12 @@ if (typeof window !== "undefined" && window.location.hostname === "127.0.0.1") {
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
 	window.addEventListener("load", () => {
-		void navigator.serviceWorker.register("/sw.js");
+		const appBaseUrl = new URL(
+			import.meta.env.BASE_URL,
+			window.location.origin,
+		);
+		const serviceWorkerUrl = new URL("sw.js", appBaseUrl).toString();
+		void navigator.serviceWorker.register(serviceWorkerUrl);
 	});
 }
 

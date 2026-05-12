@@ -57,7 +57,9 @@ function toKb(bytes) {
 
 function normalizeAssetPath(src) {
 	const cleanSrc = src.split("?")[0]?.split("#")[0] ?? src;
-	return cleanSrc.replace(/^\//, "");
+	const localPath = cleanSrc.replace(/^\//, "");
+	const assetPrefixIndex = localPath.lastIndexOf("assets/");
+	return assetPrefixIndex >= 0 ? localPath.slice(assetPrefixIndex) : localPath;
 }
 
 function findMainEntryPath(indexHtml) {

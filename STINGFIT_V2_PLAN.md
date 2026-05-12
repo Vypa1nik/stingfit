@@ -128,7 +128,10 @@ What we are deliberately **not** doing in V2:
 
 V2 ships in **five sequential phases**. Each phase is a tag (`v2-phase-N`)
 and a CHANGELOG entry. Acceptance criteria for each phase are non-negotiable;
-if they are not green, the phase is not done.
+if they are not green, the phase is not done. A phase may be recorded as
+`DONE_WITH_CONCERNS` only when the remaining blockers are external, documented,
+and explicitly owner-accepted; that status does not satisfy the final V2
+release gate.
 
 ### Phase legend
 
@@ -449,7 +452,7 @@ npm run check
 
 ---
 
-### PHASE 4 — Distribution (≈ 1 week)
+### PHASE 4 — Distribution (DONE_WITH_CONCERNS 2026-05-10)
 
 🎯 **Goal:** anyone with the link can install StingFit on a phone and on a
 laptop in under 60 seconds, and the install is signed and trustworthy.
@@ -472,20 +475,35 @@ laptop in under 60 seconds, and the install is signed and trustworthy.
      available.
    - App version, icons, window title, `frontendDist`, and HashRouter
      compatibility are covered by `tests/fitness-tauri-desktop-builds.test.ts`.
-3. **Public hosting**
-   - Choose static host: GitHub Pages or Cloudflare Pages.
-   - Add a deploy workflow under `.github/workflows/deploy-pwa.yml` that
-     builds and publishes on tag push.
-   - Confirm the deployed URL passes the Lighthouse PWA "Installable" check.
-4. **Release docs**
-   - Update `README.md` with install URL, desktop download links, and a
-     2-paragraph "What is StingFit" intro that aligns with `PRODUCT.md`.
-   - Update `CHANGELOG.md` with a `## v2.0.0` section listing all phases.
-   - Tag `v2.0.0`.
-5. **Landing one-pager (optional but recommended)**
-   - One static HTML in `docs/landing/` with: tagline, three screenshots,
-     install buttons (PWA, .msi, .dmg), short FAQ (privacy / accounts /
-     pricing / can a coach use it).
+3. **Public hosting (READY 2026-05-10)**
+   - GitHub Pages is the selected static host because the repo already targets
+     `Vypa1nik/stingfit` and does not require Cloudflare account secrets.
+   - `.github/workflows/deploy-pwa.yml` builds with `VITE_BASE_PATH=/stingfit/`,
+     uploads `dist`, and publishes on `v2*` tag pushes or manual dispatch.
+   - Vite, the manifest, the service worker, and static install/offline pages
+     are compatible with the GitHub Pages project URL
+     `https://vypa1nik.github.io/stingfit/`.
+   - Lighthouse remains pending until the Pages workflow deploys from a tag and
+     the live URL is available.
+4. **Release docs (READY_WITH_CONCERNS 2026-05-10)**
+   - `README.md` now has the two-paragraph "What is StingFit" intro aligned
+     with `PRODUCT.md`, the expected GitHub Pages install URL, and explicit
+     desktop-download blocker wording instead of unverified `.msi`/`.dmg` links.
+   - `CHANGELOG.md` now has a `## v2.0.0 - Pending release` section listing
+     Phases 0-4 and the remaining blockers.
+   - `reports/stingfit-v2-release-readiness.md` records the PWA-only release
+     path, omitted desktop download links, pending Lighthouse verification, and
+     manual smoke blockers.
+   - Tag `v2.0.0` remains pending until the Pages deployment is live,
+     Lighthouse gates pass, manual paired-device smoke is accepted or completed,
+     and the owner explicitly approves the tag.
+5. **Landing one-pager (READY 2026-05-10)**
+   - `docs/landing/index.html` is a static launch-first one-pager with the
+     tagline, PWA install CTA, existing screenshot assets, inline Coach handoff
+     mockup, and short FAQ for privacy, accounts, pricing, and coach usage.
+   - PWA install links point to `https://vypa1nik.github.io/stingfit/`.
+   - `.msi` and `.dmg` actions are shown as disabled `Desktop pending` states,
+     not as verified download links.
 
 ✅ **Acceptance**
 
@@ -534,6 +552,10 @@ npm run tauri:build      # if Rust toolchain available
 - Do **not** introduce a new framework, router, state library, or DB.
 
 ## 7. Definition of Done for V2
+
+This section is the final V2 closing gate, not the current Phase 4 status. The
+`v2.0.0` tag waits until each item below is green or explicitly owner-accepted
+in the release notes.
 
 - All 5 phases tagged (`v2-phase-0` … `v2-phase-4`) and the meta-tag `v2.0.0`.
 - `npm run check` green on `main`.

@@ -8,7 +8,7 @@ This guide shows how to install StingFit as a private, local-first PWA on a phon
 
 ## Before you install
 
-1. Open the production StingFit URL in the target browser.
+1. Open the production StingFit URL in the target browser. The GitHub Pages project URL is expected to be `https://vypa1nik.github.io/stingfit/` after the deploy workflow runs from a release tag.
 2. Wait for the app shell to load once while online.
 3. Open Settings -> Inštalácia aplikácie if you want the in-app install prompt.
 4. If the prompt is not available, use the browser-specific steps below.

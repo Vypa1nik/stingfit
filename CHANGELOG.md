@@ -8,6 +8,10 @@ All notable changes to StingFit will be documented in this file.
 
 - Phase 4 PWA install funnel now has a step-by-step install guide in `docs/install.md`, a cached `/install.html` fallback, and a Settings link for iOS Safari, Android Chrome, and desktop Chrome/Edge installs.
 - Tauri desktop build readiness is documented in `reports/stingfit-tauri-desktop-builds.md`, including the current native toolchain blocker and verified PWA-only fallback.
+- GitHub Pages deployment workflow now builds the PWA with the `/stingfit/` base path and keeps the manifest, service worker, install page, and offline fallback compatible with the project URL.
+- V2 release-readiness docs now describe StingFit's coach<->trainee bridge, the expected GitHub Pages install URL, omitted desktop downloads, and the remaining no-tag blockers.
+- A static landing one-pager in `docs/landing/index.html` now presents the PWA install path, coach handoff story, screenshots, privacy FAQ, and desktop pending state.
+- Phase 4 exit audit in `reports/stingfit-phase-4-exit-audit.md` now documents distribution readiness, pending live/Lighthouse/manual smoke gates, and the no-tag rule for `v2.0.0`.
 - V2 Phase 1 starts bundle guardrails with `tools/bundle-budget.mjs`, lazy database/sql.js startup imports, debug-channel DB boot metrics, an explicit `useDatabase` boot boundary, and tests that keep startup entrypoints from pulling the DB layer into the main bundle.
 - V2 Phase 0 now has an active source map in `docs/source-map.md`, verified dependency and scratch-hygiene audits, a README contributor pointer, and a baseline repository surface test so future refactors keep the fitness API explicit.
 - PWA install metadata, offline fallback, and install guidance in Settings.
@@ -31,6 +35,7 @@ All notable changes to StingFit will be documented in this file.
 
 ### Changed
 
+- PWA service worker navigation caching now keeps install/offline pages from overwriting the app shell and serves the cached install guide directly while offline.
 - V2 Phase 1 now routes Training, History, and Stats read state through TanStack Query hooks while keeping writes as repository calls with query invalidation.
 - Live set logging now marks a submitted set as saved immediately, rolls it back on write failure, and surfaces a non-blocking error toast.
 - Training, live workout, History, and Stats now have feature-level crash fallbacks so one broken screen does not take down the StingFit shell.
@@ -66,6 +71,18 @@ All notable changes to StingFit will be documented in this file.
 - Phase 1 mobile PWA smoke remains blocked until a real iOS Safari device and a real Android Chrome device are available for `npm run mobile:pwa:start` verification.
 - Desktop installer verification remains blocked by missing Rust, Cargo, rustup, and MSVC/Windows SDK tooling, so `npm run tauri:build` cannot be verified here.
 - Full string extraction to `i18n/sk.ts` remains a future cleanup track; current user-facing copy is already Slovak in the verified app surface.
+
+## v2.0.0 - Pending release
+
+This section is prepared for the V2 release handoff. It is not a shipped tag yet; do not tag `v2.0.0` until the live Pages URL, Lighthouse gates, and manual smoke blockers are resolved or explicitly accepted by the owner.
+
+- Phase 0 reset the active documentation, source map, dependency audit, scratch hygiene, and baseline repository surface tests.
+- Phase 1 added bundle guardrails, lazy database startup, TanStack Query read hooks, optimistic set logging, feature error boundaries, and refreshed privacy/network audit coverage.
+- Phase 2 improved gym ergonomics, rest alerts, stats/recovery signals, plate loading, empty states, staged i18n groundwork, and simplified onboarding/training/history/settings flows.
+- Phase 3 added local profiles, gated Coach Mode, Plan Packs, Recap Packs, coach/trainee handoff UI, and privacy audit coverage for explicit file exchange.
+- Phase 4 defines the PWA-only public release path with install guidance, a GitHub Pages workflow, `/stingfit/` base-path compatibility, blocked Tauri desktop build documentation, V2 release-readiness docs, and the static landing one-pager.
+
+Blocked release verification: Lighthouse, paired-device smoke, and desktop installers remain pending. Desktop downloads are intentionally omitted until native Tauri builds are verified.
 
 ## 1.0.0 - 2026-04-25
 

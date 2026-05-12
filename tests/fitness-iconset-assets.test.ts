@@ -19,13 +19,13 @@ describe('StingFit iconset assets', () => {
     expect(icon).toContain('#FFFF00')
     expect(icon).toContain('#000000')
     expect(favicon).toBe(icon)
-    expect(html).toContain('href="/stingfit-icon.svg"')
+    expect(html).toContain('href="%BASE_URL%stingfit-icon.svg"')
     expect(manifest.icons).toEqual(expect.arrayContaining([
-      expect.objectContaining({ src: '/stingfit-icon.svg', type: 'image/svg+xml', purpose: 'any maskable' }),
-      expect.objectContaining({ src: '/icon-192.png', purpose: 'any maskable' }),
-      expect.objectContaining({ src: '/icon-512.png', purpose: 'any maskable' }),
+      expect.objectContaining({ src: 'stingfit-icon.svg', type: 'image/svg+xml', purpose: 'any maskable' }),
+      expect.objectContaining({ src: 'icon-192.png', purpose: 'any maskable' }),
+      expect.objectContaining({ src: 'icon-512.png', purpose: 'any maskable' }),
     ]))
-    expect(serviceWorker).toContain('/stingfit-icon.svg')
+    expect(serviceWorker).toContain('toScopeUrl("stingfit-icon.svg")')
   })
 
   test('does not ship unused legacy social icon sprites in public assets', () => {

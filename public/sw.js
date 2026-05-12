@@ -1,18 +1,29 @@
-const CACHE_VERSION = "stingfit-v2-install";
-const OFFLINE_FALLBACK = "/offline.html";
+const CACHE_VERSION = "stingfit-v2-github-pages";
+
+function toScopeUrl(path) {
+	return new URL(path, self.registration.scope).toString();
+}
+
+const APP_ROOT = toScopeUrl("");
+const APP_INDEX = toScopeUrl("index.html");
+const OFFLINE_FALLBACK = toScopeUrl("offline.html");
 const APP_SHELL = [
-	"/",
-	"/index.html",
+	APP_ROOT,
+	APP_INDEX,
 	OFFLINE_FALLBACK,
-	"/install.html",
-	"/manifest.webmanifest",
-	"/favicon.svg",
-	"/stingfit-icon.svg",
-	"/icon-192.png",
-	"/icon-512.png",
-	"/screenshots/stingfit-training.svg",
-	"/screenshots/stingfit-stats.svg",
+	toScopeUrl("install.html"),
+	toScopeUrl("manifest.webmanifest"),
+	toScopeUrl("favicon.svg"),
+	toScopeUrl("stingfit-icon.svg"),
+	toScopeUrl("icon-192.png"),
+	toScopeUrl("icon-512.png"),
+	toScopeUrl("screenshots/stingfit-training.svg"),
+	toScopeUrl("screenshots/stingfit-stats.svg"),
 ];
+
+function isAppIndexNavigation(url) {
+	return url.href === APP_ROOT || url.href === APP_INDEX;
+}
 
 self.addEventListener("install", (event) => {
 	event.waitUntil(
@@ -49,18 +60,26 @@ self.addEventListener("fetch", (event) => {
 		event.respondWith(
 			fetch(event.request)
 				.then((response) => {
-					const clone = response.clone();
-					caches
-						.open(CACHE_VERSION)
-						.then((cache) => cache.put("/index.html", clone));
+					if (response.ok && isSameOrigin) {
+						const clone = response.clone();
+						caches
+							.open(CACHE_VERSION)
+							.then((cache) =>
+								cache.put(
+									isAppIndexNavigation(requestUrl) ? APP_INDEX : event.request,
+									clone,
+								),
+							);
+					}
 					return response;
 				})
 				.catch(async () => {
 					const cache = await caches.open(CACHE_VERSION);
 					return (
-						cache.match("/index.html") ||
+						cache.match(event.request) ||
+						cache.match(APP_INDEX) ||
 						cache.match(OFFLINE_FALLBACK) ||
-						cache.match("/")
+						cache.match(APP_ROOT)
 					);
 				}),
 		);

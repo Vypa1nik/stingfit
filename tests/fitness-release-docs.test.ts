@@ -7,6 +7,53 @@ function readText(path: string) {
 }
 
 describe("StingFit V1 release documentation", () => {
+	test("documents V2 release readiness without claiming blocked artifacts are shipped", () => {
+		const changelog = readText("CHANGELOG.md");
+		const readme = readText("README.md");
+		const plan = readText("STINGFIT_V2_PLAN.md");
+		const readinessPath = "reports/stingfit-v2-release-readiness.md";
+
+		expect(existsSync(readinessPath)).toBe(true);
+		expect(readme).toContain("StingFit is the calm, fast bridge");
+		expect(readme).toContain("Plan Packs");
+		expect(readme).toContain("Recap Packs");
+		expect(readme).toContain("https://vypa1nik.github.io/stingfit/");
+		expect(readme).toContain("GitHub Pages");
+		expect(readme).toContain("Desktop downloads");
+		expect(readme).toContain(
+			"No verified desktop installers are published yet",
+		);
+		expect(readme).toContain("reports/stingfit-tauri-desktop-builds.md");
+		expect(readme).toContain("Lighthouse verification is pending");
+
+		expect(changelog).toContain("## v2.0.0 - Pending release");
+		for (const phase of [
+			"Phase 0",
+			"Phase 1",
+			"Phase 2",
+			"Phase 3",
+			"Phase 4",
+		]) {
+			expect(changelog).toContain(phase);
+		}
+		expect(changelog).toContain("PWA-only public release path");
+		expect(changelog).toContain(
+			"Lighthouse, paired-device smoke, and desktop installers remain pending",
+		);
+
+		expect(plan).toContain("Release docs (READY_WITH_CONCERNS 2026-05-10)");
+		expect(plan).toContain("Tag `v2.0.0` remains pending");
+
+		const readiness = readText(readinessPath);
+		expect(readiness).toContain("Status: READY_WITH_CONCERNS");
+		expect(readiness).toContain(
+			"Expected public PWA URL: https://vypa1nik.github.io/stingfit/",
+		);
+		expect(readiness).toContain("No desktop download links are published");
+		expect(readiness).toContain("Do not tag `v2.0.0` until");
+		expect(readiness).not.toContain("LocalFlow");
+	});
+
 	test("documents the V1 release and manual QA checklist", () => {
 		const changelog = readText("CHANGELOG.md");
 		const checklistPath = "reports/stingfit-v1-release-checklist.md";

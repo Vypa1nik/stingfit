@@ -32,7 +32,7 @@ describe('StingFit V1 release identity', () => {
     expect(manifest.name).toBe('StingFit')
     expect(manifest.short_name).toBe('StingFit')
     expect(manifest.description).toContain('local-first fitness')
-    expect(manifest.start_url).toBe('/#/training')
+    expect(manifest.start_url).toBe('./#/training')
     expect(manifest.background_color).toBe('#000000')
     expect(manifest.theme_color).toBe('#FFFF00')
   })

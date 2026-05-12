@@ -8,13 +8,13 @@ import { auditBundleBudget } from "../tools/bundle-budget.mjs";
 
 const tempRoots = [];
 
-function createViteDist(entrySource) {
+function createViteDist(entrySource, scriptSrc = "/assets/index-test.js") {
 	const root = mkdtempSync(path.join(tmpdir(), "stingfit-bundle-budget-"));
 	tempRoots.push(root);
 	mkdirSync(path.join(root, "assets"), { recursive: true });
 	writeFileSync(
 		path.join(root, "index.html"),
-		'<!doctype html><script type="module" crossorigin src="/assets/index-test.js"></script>',
+		`<!doctype html><script type="module" crossorigin src="${scriptSrc}"></script>`,
 	);
 	writeFileSync(path.join(root, "assets", "index-test.js"), entrySource);
 	return root;
@@ -29,6 +29,18 @@ afterEach(() => {
 describe("bundle budget tooling", () => {
 	test("passes when the Vite main entry chunk is below the gzipped budget", async () => {
 		const distDir = createViteDist('console.log("small StingFit shell")');
+
+		const result = await auditBundleBudget({ distDir, mainBudgetKb: 5 });
+
+		expect(result.mainEntry.file).toBe("assets/index-test.js");
+		expect(result.mainEntry.gzipKb).toBeLessThan(5);
+	});
+
+	test("handles Vite builds served from a GitHub Pages project base path", async () => {
+		const distDir = createViteDist(
+			'console.log("small StingFit shell")',
+			"/stingfit/assets/index-test.js",
+		);
 
 		const result = await auditBundleBudget({ distDir, mainBudgetKb: 5 });
 
