@@ -52,12 +52,12 @@ Result: PASS — no whitespace errors for the Phase 3 module 7 touched files.
 
 ## Acceptance status
 
-| Phase 3 acceptance item                                                         | Status                                    | Notes                                                                                                                                                      |
-| ------------------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 3 acceptance item                                                         | Status                                    | Notes                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Coach can create/export `.stfplan` and trainee can import it on a fresh install | Automated pass; manual smoke still needed | Round-trip, fresh-database commit, Settings import UI, startable workout readiness, and one full repository handoff rehearsal are covered. Real paired-device timing under 5 minutes was not run. |
 | Trainee can build `.stfrecap`; coach can preview it without account             | Automated pass; manual smoke still needed | History export UI, `.stfrecap` schema/signature, coach read-only preview, and one full repository handoff rehearsal are covered. Real file handoff between devices was not run.                   |
-| Coach Mode invisible until explicitly enabled                                   | Pass                                      | `tests/coach-mode-permissions.test.tsx` verifies guarded coach routes while disabled.                                                                      |
-| `npm run check` green and new round-trip tests pass                             | Pass                                      | Full gate passed after module 7.                                                                                                                           |
+| Coach Mode invisible until explicitly enabled                                   | Pass                                      | `tests/coach-mode-permissions.test.tsx` verifies guarded coach routes while disabled.                                                                                                             |
+| `npm run check` green and new round-trip tests pass                             | Pass                                      | Full gate passed after module 7.                                                                                                                                                                  |
 
 ## Open concerns before declaring a phase tag
 

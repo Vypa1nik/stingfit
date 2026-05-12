@@ -10,21 +10,21 @@ StingFit V2 is documented for a PWA-only public release path. The product remain
 
 Live public PWA URL: https://vypa1nik.github.io/stingfit/
 
-The GitHub Pages workflow builds the app with `VITE_BASE_PATH=/stingfit/`, uploads `dist`, and deploys from `v2*` tags or manual workflow dispatch. Deploy run `25759756360` completed successfully, and the PWA manifest, service worker, install page, offline fallback, and static assets are live under the `/stingfit/` project URL.
+The GitHub Pages workflow builds the app with `VITE_BASE_PATH=/stingfit/`, uploads `dist`, and deploys from `v2*` tags or manual workflow dispatch. Manual deploy run `25764435187` completed successfully from commit `a307026`, and the PWA manifest, service worker, install page, offline fallback, and static assets are live under the `/stingfit/` project URL.
 
 ## Installable artifacts
 
-- PWA: live at `https://vypa1nik.github.io/stingfit/` from GitHub Pages workflow deploy run `25759756360`.
+- PWA: live at `https://vypa1nik.github.io/stingfit/` from GitHub Pages workflow deploy run `25764435187`.
 - Local install guide: `docs/install.md`.
 - Browser fallback guide: `/install.html` in the built PWA.
 - Desktop downloads: No desktop download links are published. No `.msi`, `.dmg`, or desktop installer artifact is listed as available.
 
 ## Blocked or pending gates
 
-- Lighthouse PWA Installable: pending against the live GitHub Pages URL; Lighthouse CLI is not available in this agent environment.
-- Lighthouse Performance >= 85 mobile: pending against the live GitHub Pages URL; Lighthouse CLI is not available in this agent environment.
-- Lighthouse Accessibility >= 95: pending against the live GitHub Pages URL; Lighthouse CLI is not available in this agent environment.
-- Manual paired-device coach<->trainee smoke: pending or owner-accepted concern; automated repository rehearsal now covers coach Plan Pack export -> fresh trainee import -> workout log -> trainee Recap Pack export -> coach read-only import in `tests/coach-handoff-flow.test.ts`.
+- Lighthouse PWA Installable: PASS via Lighthouse 11.7.1 compatibility audit against the live GitHub Pages URL.
+- Lighthouse Performance >= 85 mobile: PASS at 87 via Lighthouse 13.3.0 mobile audit against the live GitHub Pages URL.
+- Lighthouse Accessibility >= 95: PASS at 100 via Lighthouse 13.3.0 mobile audit against the live GitHub Pages URL.
+- Manual paired-device coach<->trainee smoke: pending or owner-accepted concern; automated repository rehearsal covers coach Plan Pack export -> fresh trainee import -> workout log -> trainee Recap Pack export -> coach read-only import in `tests/coach-handoff-flow.test.ts`.
 - Phase 1 real-device mobile PWA smoke: blocked by missing physical iOS Safari and Android Chrome devices in this environment.
 - Phase 2 screenshot audit: blocked by unavailable browser screenshot tooling in this environment.
 - Desktop installers: blocked by missing Rust, Cargo, rustup, and platform build tools as documented in `reports/stingfit-tauri-desktop-builds.md`.
@@ -33,30 +33,31 @@ The GitHub Pages workflow builds the app with `VITE_BASE_PATH=/stingfit/`, uploa
 
 Do not tag `v2.0.0` until all of the following are true or explicitly accepted by the owner:
 
-1. The GitHub Pages deployment is live at the expected public PWA URL. Completed 2026-05-12 via deploy run `25759756360`.
-2. Lighthouse PWA, performance, and accessibility gates are run against the live URL.
+1. The GitHub Pages deployment is live at the expected public PWA URL. Completed 2026-05-12 via deploy run `25764435187`.
+2. Lighthouse PWA, performance, and accessibility gates are run against the live URL. Completed 2026-05-12 with the results below.
 3. The coach Plan Pack -> trainee import -> workout log -> trainee Recap Pack -> coach read-only preview smoke is completed on real devices, or the owner explicitly accepts the release concern.
 4. Desktop downloads are either verified and linked, or release notes explicitly state that V2 is PWA-only.
 5. `npm run check`, the bundle budget, and whitespace checks pass on the release candidate.
 
 ## Post-deploy smoke — 2026-05-12
 
-- `https://vypa1nik.github.io/stingfit/` returned HTTP 200.
+- `https://vypa1nik.github.io/stingfit/` returned HTTP 200 after deploy run `25764435187`.
+- Manual deploy run `25764435187` completed successfully from commit `a307026`; build and deploy jobs were both green.
 - `index.html` referenced the manifest, JavaScript, and CSS assets under `/stingfit/`; fetched `/stingfit/assets/...` JS/CSS assets returned HTTP 200.
 - `/stingfit/manifest.webmanifest`, `/stingfit/sw.js`, and `/stingfit/install.html` returned HTTP 200. The manifest keeps `start_url: "./#/training"` and `scope: "./"`; the install guide links back to `./#/training`.
-- Headless Chrome/CDP smoke rendered the live app beyond the loading state for `landing` (`/stingfit/`), `training` (`/#/training`), `plans` (`/#/plans`), and `settings` (`/#/settings`).
+- Playwright browser smoke opened the live URL, confirmed the page title `StingFit`, and rendered `/#/training` with Slovak onboarding/training content.
 - No runtime/deploy blocker was found during this smoke pass.
 
-## Lighthouse gate attempt — 2026-05-12
+## Lighthouse gates — 2026-05-12
 
-- `Get-Command lighthouse` returned no installed Lighthouse CLI.
-- `npx --yes lighthouse --version` failed with exit 1: `'lighthouse' is not recognized as an internal or external command, operable program or batch file.`
-- No Lighthouse score is claimed from this environment. Run Lighthouse on a release machine against `https://vypa1nik.github.io/stingfit/` before creating `v2.0.0` unless the owner explicitly accepts this release concern.
+- Lighthouse 13.3.0 mobile audit against `https://vypa1nik.github.io/stingfit/`: Performance 87, Accessibility 100, Best Practices 100, SEO 100.
+- Lighthouse 11.7.1 compatibility audit against the same live URL: PWA 100, installable manifest audit PASS, Performance 87, Accessibility 100, Best Practices 100, SEO 100.
+- Lighthouse CLI wrote valid JSON reports but returned exit 1 after report generation because Chrome launcher could not remove a temporary Windows profile directory (`EPERM`). The parsed reports had no runtime audit errors.
 
 ## Coach handoff rehearsal — 2026-05-12
 
 - `tests/coach-handoff-flow.test.ts` covers the V2 thesis as one local automated flow: coach exports `.stfplan`, a fresh trainee profile imports and commits it, the trainee starts/logs/finishes the first workout, exports `.stfrecap`, and a fresh coach profile imports that recap read-only.
-- Result: PASS — 1 test passed in 2.02 s.
+- Result: PASS - targeted test passed, and the full local suite passed with 112 files / 281 tests.
 - This reduces release risk but does not replace the real paired-device timing smoke required by the no-tag rule.
 
 ## Release docs covered

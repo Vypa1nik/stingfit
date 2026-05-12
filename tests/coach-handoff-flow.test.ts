@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { exportPlanPack, importPlanPack } from "@/features/coach/planPack/io";
-import { exportRecapPack, importRecapPack } from "@/features/coach/recapPack/io";
+import {
+	exportRecapPack,
+	importRecapPack,
+} from "@/features/coach/recapPack/io";
 import { fitnessRepository } from "@/features/fitness/fitnessRepository";
 import {
 	createProfile,
@@ -22,10 +25,13 @@ async function createCoachPlanPack() {
 		throw new Error("PPL starter missing");
 	}
 
-	const plan = await fitnessRepository.createPersonalPlanFromStarter(starter.id, {
-		name: "Client Hypertrophy Block",
-		goal: "Build muscle with a coach plan",
-	});
+	const plan = await fitnessRepository.createPersonalPlanFromStarter(
+		starter.id,
+		{
+			name: "Client Hypertrophy Block",
+			goal: "Build muscle with a coach plan",
+		},
+	);
 
 	return exportPlanPack(plan.id);
 }
@@ -45,7 +51,10 @@ describe("Coach handoff flow", () => {
 
 		await resetDatabaseState();
 		await clearAllData();
-		const trainee = await createProfile({ name: "Marek Client", kind: "client" });
+		const trainee = await createProfile({
+			name: "Marek Client",
+			kind: "client",
+		});
 		await setActiveProfile(trainee.id);
 
 		const importedPlan = await importPlanPack(planPack);
@@ -114,13 +123,13 @@ describe("Coach handoff flow", () => {
 			name: "Tlakový deň A",
 			status: "completed",
 		});
-		expect(importedRecap.payload.sessions[0]?.exercises[0]?.sets[0]).toMatchObject(
-			{
-				status: "completed",
-				weightKg: 100,
-				reps: 8,
-				rir: 1,
-			},
-		);
+		expect(
+			importedRecap.payload.sessions[0]?.exercises[0]?.sets[0],
+		).toMatchObject({
+			status: "completed",
+			weightKg: 100,
+			reps: 8,
+			rir: 1,
+		});
 	});
 });

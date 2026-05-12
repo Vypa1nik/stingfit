@@ -32,10 +32,14 @@ describe("StingFit Phase 4 exit audit", () => {
 		expect(report).toContain("npm run check");
 		expect(report).toMatch(/\d+ test files \/ \d+ tests passed/);
 		expect(report).toContain("node ./tools/bundle-budget.mjs");
-		expect(report).toContain("Lighthouse gates remain pending");
+		expect(report).toContain("Lighthouse PWA Installable");
+		expect(report).toContain("Performance 87");
+		expect(report).toContain("Accessibility 100");
 		expect(report).toContain("https://vypa1nik.github.io/stingfit/");
-		expect(report).toContain("Deploy run `25759756360` completed successfully");
-		expect(report).toContain("Lighthouse CLI is not available");
+		expect(report).toContain("Deploy run `25764435187` completed successfully");
+		expect(report).toContain(
+			"Manual paired-device Coach Mode smoke remains outstanding",
+		);
 		expect(report).toContain("tests/coach-handoff-flow.test.ts");
 		expect(report).toContain("desktop installers remain blocked");
 		expect(report).toContain("Do not create `v2.0.0`");
