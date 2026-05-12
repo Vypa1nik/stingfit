@@ -30,6 +30,7 @@ describe("StingFit GitHub Pages public hosting", () => {
 		expect(workflow).toContain("pages: write");
 		expect(workflow).toContain("id-token: write");
 		expect(workflow).toContain("actions/configure-pages@v5");
+		expect(workflow).toContain("enablement: true");
 		expect(workflow).toContain("actions/upload-pages-artifact@v3");
 		expect(workflow).toContain("actions/deploy-pages@v4");
 		expect(workflow).toContain("npm ci");
