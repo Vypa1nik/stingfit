@@ -101,16 +101,15 @@ describe("StingFit GitHub Pages public hosting", () => {
 		}
 	});
 
-	test("documents GitHub Pages as the selected public host with pending Lighthouse verification", () => {
+	test("documents GitHub Pages as the live public host with pending Lighthouse verification", () => {
 		const plan = readText("STINGFIT_V2_PLAN.md");
 		const changelog = readText("CHANGELOG.md");
 		const installDocs = readText("docs/install.md");
 
-		expect(plan).toContain("Public hosting (READY 2026-05-10)");
+		expect(plan).toContain("Public hosting (LIVE 2026-05-12)");
+		expect(plan).toContain("Deploy run `25759756360` completed successfully");
 		expect(plan).toContain("GitHub Pages project URL");
-		expect(plan).toContain(
-			"Lighthouse remains pending until the Pages workflow deploys from a tag",
-		);
+		expect(plan).toContain("Lighthouse remains pending against the live URL");
 		expect(changelog).toContain(
 			"GitHub Pages deployment workflow now builds the PWA with the `/stingfit/` base path",
 		);

@@ -16,8 +16,8 @@ No `docs/archive/` material was used for this audit.
 | -------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | PWA install funnel   | Done                | `docs/install.md`, `public/install.html`, manifest/offline/service-worker assets, Settings install guidance, and PWA asset tests cover the install path.                               |
 | Tauri desktop builds | Blocked             | `reports/stingfit-tauri-desktop-builds.md` documents missing Rust, Cargo, rustup, and Visual Studio Build Tools with MSVC/Windows SDK components.                                      |
-| Public hosting       | Ready               | `.github/workflows/deploy-pwa.yml` builds with `VITE_BASE_PATH=/stingfit/`, uploads `dist`, and deploys to GitHub Pages from `v2*` tags or manual dispatch.                            |
-| Release docs         | Ready with concerns | `README.md`, `CHANGELOG.md`, `STINGFIT_V2_PLAN.md`, and `reports/stingfit-v2-release-readiness.md` describe the PWA-only release path, omitted desktop downloads, and no-tag blockers. |
+| Public hosting       | Live                | Deploy run `25759756360` completed successfully. `https://vypa1nik.github.io/stingfit/` serves the PWA with `/stingfit/` assets from GitHub Pages.                              |
+| Release docs         | Ready with concerns | `README.md`, `CHANGELOG.md`, `STINGFIT_V2_PLAN.md`, and `reports/stingfit-v2-release-readiness.md` describe the live PWA-only release path, omitted desktop downloads, and no-tag blockers. |
 | Landing one-pager    | Ready               | `docs/landing/index.html` presents the PWA install CTA, coach handoff story, screenshots, privacy FAQ, and disabled desktop pending actions.                                           |
 
 ## Automated verification completed
@@ -49,34 +49,35 @@ git diff --cached --check
 
 Result: PASS — no whitespace errors in unstaged or staged diffs.
 
+Post-deploy smoke on 2026-05-12 confirmed `https://vypa1nik.github.io/stingfit/` returned HTTP 200, loaded JS/CSS assets from `/stingfit/assets/`, served `manifest.webmanifest`, `sw.js`, and `install.html`, and rendered landing, Training, Plans, and Settings beyond the loading state in headless Chrome/CDP.
+
+GitHub CI run `25761064831` is green for the pushed post-deploy smoke commit: lint, test, and build completed successfully.
+
 ## Acceptance status
 
-| Phase 4 acceptance item                                                  | Status                    | Notes                                                                                                                                                                                          |
-| ------------------------------------------------------------------------ | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Anyone with the link can install StingFit on a phone in under 60 seconds | Ready for live validation | PWA install docs, manifest, service worker, GitHub Pages workflow, and `/stingfit/` base path are implemented. The live URL has not been deployed and tested from a phone in this environment. |
-| Install is signed and trustworthy                                        | Partial                   | HTTPS is expected via GitHub Pages. Native desktop signing is not verified because desktop installers remain blocked.                                                                          |
-| Lighthouse PWA Installable                                               | Pending                   | Lighthouse gates remain pending until the GitHub Pages deployment is live.                                                                                                                     |
-| Lighthouse Performance >= 85 mobile                                      | Pending                   | Lighthouse gates remain pending until the GitHub Pages deployment is live.                                                                                                                     |
-| Lighthouse Accessibility >= 95                                           | Pending                   | Lighthouse gates remain pending until the GitHub Pages deployment is live.                                                                                                                     |
-| Release page lists installable artifacts                                 | Partial                   | The landing page lists the PWA install path and deliberately marks `.msi`/`.dmg` as `Desktop pending` instead of linking unverified downloads.                                                 |
-| `v2.0.0` tag exists                                                      | Not done                  | Do not create `v2.0.0` until the owner approves the remaining concerns and the live URL is validated.                                                                                          |
+| Phase 4 acceptance item                                                  | Status                              | Notes                                                                                                                                                                  |
+| ------------------------------------------------------------------------ | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Anyone with the link can install StingFit on a phone in under 60 seconds | Live; real-phone install pending    | The GitHub Pages PWA is live at `https://vypa1nik.github.io/stingfit/`, and headless Chrome smoke reached landing, Training, Plans, and Settings beyond the loading state. Real iOS Safari and Android Chrome install smoke still requires physical devices. |
+| Install is signed and trustworthy                                        | Partial                             | HTTPS is live via GitHub Pages. Native desktop signing is not verified because desktop installers remain blocked.                                                      |
+| Lighthouse PWA Installable                                               | Pending                             | The live URL is available, but Lighthouse CLI is not available in this agent environment; no Lighthouse score is claimed.                                               |
+| Lighthouse Performance >= 85 mobile                                      | Pending                             | The live URL is available, but Lighthouse CLI is not available in this agent environment; no Lighthouse score is claimed.                                               |
+| Lighthouse Accessibility >= 95                                           | Pending                             | The live URL is available, but Lighthouse CLI is not available in this agent environment; no Lighthouse score is claimed.                                               |
+| Release page lists installable artifacts                                 | Partial                             | The landing page lists the PWA install path and deliberately marks `.msi`/`.dmg` as `Desktop pending` instead of linking unverified downloads.                         |
+| `v2.0.0` tag exists                                                      | Not done                            | Do not create `v2.0.0` until the owner approves or resolves the remaining concerns.                                                                                     |
 
 ## Open concerns before a release tag
 
-1. **GitHub Pages deployment has not been observed live.** The workflow and base-path build are implemented, but the public URL still needs a real deployment and phone install smoke.
-2. **Lighthouse gates remain pending.** PWA Installable, mobile Performance >= 85, and Accessibility >= 95 cannot be claimed until Lighthouse runs against the live Pages URL.
-3. **Manual paired-device Coach Mode smoke remains outstanding.** Phase 3 automated tests cover `.stfplan` and `.stfrecap`; real coach device -> trainee device -> coach preview timing has not been completed in this environment.
-4. **Phase 1 real-device PWA smoke remains blocked.** `reports/stingfit-mobile-pwa-smoke.md` documents missing physical iOS Safari and Android Chrome devices.
-5. **Phase 2 screenshot audit remains a documented concern.** `reports/stingfit-empty-state-audit.md` records the blocked screenshot capture environment.
-6. **Tauri desktop installers remain blocked.** `reports/stingfit-tauri-desktop-builds.md` documents missing native build tooling. No desktop download links should be published until this is resolved.
-7. **The working tree contains intentional uncommitted Phase 4 work.** No phase tag or release tag should be created from this state until the owner explicitly asks for staging/commit/tag work.
+1. **Lighthouse gates remain pending.** PWA Installable, mobile Performance >= 85, and Accessibility >= 95 cannot be claimed until Lighthouse runs against the live Pages URL. In this agent environment, `Get-Command lighthouse` found no installed CLI, and `npx --yes lighthouse --version` failed with exit 1: `'lighthouse' is not recognized as an internal or external command, operable program or batch file.`
+2. **Manual paired-device Coach Mode smoke remains outstanding.** Phase 3 automated tests cover `.stfplan` and `.stfrecap`; real coach device -> trainee device -> coach preview timing has not been completed in this environment.
+3. **Phase 1 real-device PWA smoke remains blocked.** `reports/stingfit-mobile-pwa-smoke.md` documents missing physical iOS Safari and Android Chrome devices.
+4. **Phase 2 screenshot audit remains a documented concern.** `reports/stingfit-empty-state-audit.md` records the blocked screenshot capture environment.
+5. **Tauri desktop installers remain blocked.** `reports/stingfit-tauri-desktop-builds.md` documents missing native build tooling. No desktop download links should be published until this is resolved.
 
 ## Recommended next step
 
-1. Stage and commit Phase 4 Modules 3-5 plus this exit audit as a coherent distribution checkpoint if the owner wants git hygiene now.
-2. Trigger the GitHub Pages workflow from a controlled tag or manual dispatch only after commit review.
-3. Run Lighthouse and real phone PWA install smoke against `https://vypa1nik.github.io/stingfit/`.
-4. Either resolve desktop installers or explicitly release V2 as PWA-only.
-5. Only then ask the owner whether to create `v2.0.0`.
+1. Run Lighthouse and real phone PWA install smoke against `https://vypa1nik.github.io/stingfit/` on a release machine with the required browser tooling and physical devices.
+2. Complete or owner-accept the paired-device coach Plan Pack -> trainee import -> workout log -> Recap Pack -> coach preview smoke.
+3. Either resolve desktop installers or explicitly release V2 as PWA-only.
+4. Only then ask the owner whether to create `v2.0.0`.
 
 Do not create `v2.0.0` from this audit alone.

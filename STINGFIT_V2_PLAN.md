@@ -475,28 +475,28 @@ laptop in under 60 seconds, and the install is signed and trustworthy.
      available.
    - App version, icons, window title, `frontendDist`, and HashRouter
      compatibility are covered by `tests/fitness-tauri-desktop-builds.test.ts`.
-3. **Public hosting (READY 2026-05-10)**
+3. **Public hosting (LIVE 2026-05-12)**
    - GitHub Pages is the selected static host because the repo already targets
      `Vypa1nik/stingfit` and does not require Cloudflare account secrets.
    - `.github/workflows/deploy-pwa.yml` builds with `VITE_BASE_PATH=/stingfit/`,
      uploads `dist`, and publishes on `v2*` tag pushes or manual dispatch.
-   - Vite, the manifest, the service worker, and static install/offline pages
-     are compatible with the GitHub Pages project URL
+   - Deploy run `25759756360` completed successfully, and the live PWA URL is
      `https://vypa1nik.github.io/stingfit/`.
-   - Lighthouse remains pending until the Pages workflow deploys from a tag and
-     the live URL is available.
-4. **Release docs (READY_WITH_CONCERNS 2026-05-10)**
+   - Vite, the manifest, the service worker, and static install/offline pages
+     are compatible with the GitHub Pages project URL.
+   - Lighthouse remains pending against the live URL.
+4. **Release docs (READY_WITH_CONCERNS 2026-05-12)**
    - `README.md` now has the two-paragraph "What is StingFit" intro aligned
-     with `PRODUCT.md`, the expected GitHub Pages install URL, and explicit
+     with `PRODUCT.md`, the live GitHub Pages install URL, and explicit
      desktop-download blocker wording instead of unverified `.msi`/`.dmg` links.
    - `CHANGELOG.md` now has a `## v2.0.0 - Pending release` section listing
      Phases 0-4 and the remaining blockers.
    - `reports/stingfit-v2-release-readiness.md` records the PWA-only release
-     path, omitted desktop download links, pending Lighthouse verification, and
-     manual smoke blockers.
-   - Tag `v2.0.0` remains pending until the Pages deployment is live,
-     Lighthouse gates pass, manual paired-device smoke is accepted or completed,
-     and the owner explicitly approves the tag.
+     path, omitted desktop download links, live Pages deploy, pending
+     Lighthouse verification, and manual smoke blockers.
+   - Tag `v2.0.0` remains pending until Lighthouse gates pass, manual
+     paired-device smoke is accepted or completed, and the owner explicitly
+     approves the tag.
 5. **Landing one-pager (READY 2026-05-10)**
    - `docs/landing/index.html` is a static launch-first one-pager with the
      tagline, PWA install CTA, existing screenshot assets, inline Coach handoff
