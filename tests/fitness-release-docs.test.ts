@@ -24,7 +24,9 @@ describe("StingFit V1 release documentation", () => {
 			"No verified desktop installers are published yet",
 		);
 		expect(readme).toContain("reports/stingfit-tauri-desktop-builds.md");
-		expect(readme).toContain("Lighthouse verification is pending against the live URL");
+		expect(readme).toContain(
+			"Lighthouse verification is pending against the live URL",
+		);
 
 		expect(changelog).toContain("## v2.0.0 - Pending release");
 		for (const phase of [
@@ -41,6 +43,7 @@ describe("StingFit V1 release documentation", () => {
 			"Lighthouse, paired-device smoke, and desktop installers remain pending",
 		);
 		expect(changelog).toContain("live GitHub Pages deployment");
+		expect(changelog).toContain("automated coach handoff rehearsal");
 
 		expect(plan).toContain("Release docs (READY_WITH_CONCERNS 2026-05-12)");
 		expect(plan).toContain("Tag `v2.0.0` remains pending");
@@ -51,6 +54,7 @@ describe("StingFit V1 release documentation", () => {
 			"Live public PWA URL: https://vypa1nik.github.io/stingfit/",
 		);
 		expect(readiness).toContain("Post-deploy smoke — 2026-05-12");
+		expect(readiness).toContain("Coach handoff rehearsal — 2026-05-12");
 		expect(readiness).toContain("No desktop download links are published");
 		expect(readiness).toContain("Do not tag `v2.0.0` until");
 		expect(readiness).not.toContain("LocalFlow");

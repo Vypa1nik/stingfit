@@ -32,6 +32,7 @@ All notable changes to StingFit will be documented in this file.
 - Coach Mode routes now have local UI for clients, Plan Pack export, future templates, and read-only Recap Pack preview.
 - Trainee handoff UI now imports coach `.stfplan` files from Settings and exports date-range `.stfrecap` files from History.
 - The privacy/network audit now covers Phase 3 Coach Mode file handoffs and confirms Plan Pack/Recap Pack payloads contain no device, IP, telemetry, account, cloud-sync, or server routing metadata.
+- Release verification now includes an automated coach handoff rehearsal for `.stfplan` export, fresh trainee import, workout logging, `.stfrecap` export, and coach read-only recap import.
 
 ### Changed
 

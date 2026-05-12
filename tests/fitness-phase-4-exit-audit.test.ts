@@ -36,6 +36,7 @@ describe("StingFit Phase 4 exit audit", () => {
 		expect(report).toContain("https://vypa1nik.github.io/stingfit/");
 		expect(report).toContain("Deploy run `25759756360` completed successfully");
 		expect(report).toContain("Lighthouse CLI is not available");
+		expect(report).toContain("tests/coach-handoff-flow.test.ts");
 		expect(report).toContain("desktop installers remain blocked");
 		expect(report).toContain("Do not create `v2.0.0`");
 		expect(report).not.toContain("LocalFlow");

@@ -24,7 +24,7 @@ The GitHub Pages workflow builds the app with `VITE_BASE_PATH=/stingfit/`, uploa
 - Lighthouse PWA Installable: pending against the live GitHub Pages URL; Lighthouse CLI is not available in this agent environment.
 - Lighthouse Performance >= 85 mobile: pending against the live GitHub Pages URL; Lighthouse CLI is not available in this agent environment.
 - Lighthouse Accessibility >= 95: pending against the live GitHub Pages URL; Lighthouse CLI is not available in this agent environment.
-- Manual paired-device coach<->trainee smoke: pending or owner-accepted concern.
+- Manual paired-device coach<->trainee smoke: pending or owner-accepted concern; automated repository rehearsal now covers coach Plan Pack export -> fresh trainee import -> workout log -> trainee Recap Pack export -> coach read-only import in `tests/coach-handoff-flow.test.ts`.
 - Phase 1 real-device mobile PWA smoke: blocked by missing physical iOS Safari and Android Chrome devices in this environment.
 - Phase 2 screenshot audit: blocked by unavailable browser screenshot tooling in this environment.
 - Desktop installers: blocked by missing Rust, Cargo, rustup, and platform build tools as documented in `reports/stingfit-tauri-desktop-builds.md`.
@@ -52,6 +52,12 @@ Do not tag `v2.0.0` until all of the following are true or explicitly accepted b
 - `Get-Command lighthouse` returned no installed Lighthouse CLI.
 - `npx --yes lighthouse --version` failed with exit 1: `'lighthouse' is not recognized as an internal or external command, operable program or batch file.`
 - No Lighthouse score is claimed from this environment. Run Lighthouse on a release machine against `https://vypa1nik.github.io/stingfit/` before creating `v2.0.0` unless the owner explicitly accepts this release concern.
+
+## Coach handoff rehearsal — 2026-05-12
+
+- `tests/coach-handoff-flow.test.ts` covers the V2 thesis as one local automated flow: coach exports `.stfplan`, a fresh trainee profile imports and commits it, the trainee starts/logs/finishes the first workout, exports `.stfrecap`, and a fresh coach profile imports that recap read-only.
+- Result: PASS — 1 test passed in 2.02 s.
+- This reduces release risk but does not replace the real paired-device timing smoke required by the no-tag rule.
 
 ## Release docs covered
 

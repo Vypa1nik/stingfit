@@ -54,19 +54,14 @@ Result: PASS — no whitespace errors for the Phase 3 module 7 touched files.
 
 | Phase 3 acceptance item                                                         | Status                                    | Notes                                                                                                                                                      |
 | ------------------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Coach can create/export `.stfplan` and trainee can import it on a fresh install | Automated pass; manual smoke still needed | Round-trip, fresh-database commit, Settings import UI, and startable workout readiness are covered. Real paired-device timing under 5 minutes was not run. |
-| Trainee can build `.stfrecap`; coach can preview it without account             | Automated pass; manual smoke still needed | History export UI, `.stfrecap` schema/signature, and coach read-only preview are covered. Real file handoff between devices was not run.                   |
+| Coach can create/export `.stfplan` and trainee can import it on a fresh install | Automated pass; manual smoke still needed | Round-trip, fresh-database commit, Settings import UI, startable workout readiness, and one full repository handoff rehearsal are covered. Real paired-device timing under 5 minutes was not run. |
+| Trainee can build `.stfrecap`; coach can preview it without account             | Automated pass; manual smoke still needed | History export UI, `.stfrecap` schema/signature, coach read-only preview, and one full repository handoff rehearsal are covered. Real file handoff between devices was not run.                   |
 | Coach Mode invisible until explicitly enabled                                   | Pass                                      | `tests/coach-mode-permissions.test.tsx` verifies guarded coach routes while disabled.                                                                      |
 | `npm run check` green and new round-trip tests pass                             | Pass                                      | Full gate passed after module 7.                                                                                                                           |
 
 ## Open concerns before declaring a phase tag
 
-1. **Manual paired-device smoke is still outstanding.** The active plan asks for a two-browser or phone+laptop handoff smoke. This environment has not run:
-   - coach export `.stfplan` on one browser/device,
-   - trainee import `.stfplan` on a fresh install/profile,
-   - trainee start/log first workout in under 5 minutes,
-   - trainee export `.stfrecap`,
-   - coach read-only preview of that `.stfrecap`.
+1. **Manual paired-device smoke is still outstanding.** `tests/coach-handoff-flow.test.ts` now rehearses the complete repository flow — coach export `.stfplan`, fresh trainee import, workout log/finish, trainee export `.stfrecap`, coach read-only import — but the active plan still asks for a two-browser or phone+laptop timing smoke before claiming the manual gate.
 2. **Phase 1 mobile PWA smoke remains blocked.** `reports/stingfit-mobile-pwa-smoke.md` still records real iOS Safari and Android Chrome validation as unavailable.
 3. **Phase 2 screenshot audit remains a documented concern.** `reports/stingfit-empty-state-audit.md` records DOM route-walk pass, but browser screenshots were blocked by lack of browser tooling.
 4. **The working tree is intentionally not clean.** `git status --short` shows extensive modified, deleted, and untracked files from the active V2 reorganization and implementation work. A phase tag should not be created until the owner decides how to stage/commit those changes.
