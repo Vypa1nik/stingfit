@@ -49,6 +49,8 @@ npm run cap:android:sync
 npm run cap:android:apk
 ```
 
+After the Android platform exists, `npm run cap:android:apk` runs the root-base web build, syncs Capacitor, and builds `android/app/build/outputs/apk/debug/app-debug.apk` with a writable Windows Gradle temp directory.
+
 For iOS handoff packaging from Windows:
 
 ```powershell

@@ -7,6 +7,7 @@ All notable changes to StingFit will be documented in this file.
 ### Added
 
 - V2.1 Mobile App Track now has a Capacitor bootstrap for Android APK and iOS handoff planning, with root-base mobile builds and documented local-first verification gates.
+- Capacitor Android platform generation is now checked in, with a Windows-safe debug APK build wrapper that avoids restricted `C:\Windows` temp writes and produces `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 ### Changed
 

@@ -38,7 +38,7 @@
     "cap:android:add": "cap add android",
     "cap:android:sync": "npm run mobile:build && cap sync android",
     "cap:android:open": "cap open android",
-    "cap:android:apk": "cd android && gradlew assembleDebug",
+    "cap:android:apk": "powershell -ExecutionPolicy Bypass -File ./tools/build-android-debug-apk.ps1",
     "cap:ios:add": "cap add ios",
     "cap:ios:sync": "npm run mobile:build && cap sync ios",
     "cap:ios:open": "cap open ios",

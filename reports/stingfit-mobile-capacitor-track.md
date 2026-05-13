@@ -1,7 +1,7 @@
 # StingFit V2.1 Mobile App Track — Capacitor Bootstrap
 
-Status: BOOTSTRAP_VERIFIED  
-Date: 2026-05-12  
+Status: ANDROID_DEBUG_APK_VERIFIED
+Date: 2026-05-13
 Owner decision: Capacitor, Android APK first, iOS handoff ZIP for MacBook build.
 
 ## Decision
@@ -23,7 +23,9 @@ This track does not add accounts, cloud sync, telemetry, analytics, subscription
 - `capacitor.config.ts` — Capacitor app identity and `webDir`.
 - `package.json` / `package-lock.json` — `@capacitor/core`, `@capacitor/android`, `@capacitor/ios`, and `@capacitor/cli`.
 - `tools/build-capacitor-web.mjs` — portable mobile web build that forces `VITE_BASE_PATH=/`.
+- `tools/build-android-debug-apk.ps1` — Windows-safe Android debug APK build wrapper that sets `JAVA_HOME`, `ANDROID_HOME`, and a writable Gradle temp directory.
 - `tools/package-ios-handoff.ps1` — creates a source ZIP for MacBook iOS build handoff.
+- `android/` — generated Capacitor Android platform project; generated web assets and APK outputs stay ignored.
 
 ## Android debug APK path
 
@@ -36,20 +38,29 @@ Prerequisites on Windows:
 - JDK 21 from Android Studio JBR or another compatible JDK
 - `ANDROID_HOME`, `JAVA_HOME`, and `PATH` configured when CLI builds need them
 
-First Android module commands:
+Android project generation and sync commands:
 
 ```powershell
 npm run mobile:build
 npm run cap:android:add
 npm run cap:android:sync
+```
+
+Debug APK build command:
+
+```powershell
 npm run cap:android:apk
 ```
 
-Expected debug artifact after the Android platform exists:
+The Windows APK wrapper deliberately sets `TEMP`, `TMP`, `GRADLE_OPTS`, and `_JAVA_OPTIONS` to `%LOCALAPPDATA%\Temp`. Without that, this harness made Android Gradle Plugin `compressDebugAssets` try to write `C:\Windows\*.tmp` and fail with `AccessDeniedException`.
+
+Verified debug artifact:
 
 ```text
 android/app/build/outputs/apk/debug/app-debug.apk
 ```
+
+Latest verified size: `4,819,024` bytes.
 
 ## iOS handoff path
 
@@ -70,6 +81,14 @@ npm run cap:ios:open
 ```
 
 Xcode then owns Team, signing, simulator/device builds, Archive, and TestFlight/App Store upload.
+
+## Android debug APK verification
+
+- `cap add android`: passed.
+- `cap sync android`: passed.
+- `gradlew assembleDebug`: passed after forcing Java/Gradle temp files to `%LOCALAPPDATA%\Temp`.
+- Debug APK exists at `android/app/build/outputs/apk/debug/app-debug.apk`.
+- This is a build artifact only; real Android device smoke is still required before calling the native package user-ready.
 
 ## Known risks to validate early
 
