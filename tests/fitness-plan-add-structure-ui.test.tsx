@@ -68,7 +68,7 @@ describe('FitnessPlansPage add day/workout/exercise editor flow', () => {
       }
     })
 
-    const addDayButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Pridať tréningový deň do týždňa 1'))
+    const addDayButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Pridať deň do týždňa 1'))
     expect(addDayButton).toBeDefined()
 
     await act(async () => {

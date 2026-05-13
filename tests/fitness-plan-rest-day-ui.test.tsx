@@ -54,7 +54,7 @@ describe('FitnessPlansPage rest day controls', () => {
     await resetDatabaseState()
   })
 
-  test('marks an empty training day as rest and can reverse it back to training', async () => {
+  test('marks an empty training day as rest through day type chips and can reverse it back to training', async () => {
     await act(async () => {
       root.render(<FitnessPlansPage />)
     })
@@ -63,32 +63,41 @@ describe('FitnessPlansPage rest day controls', () => {
     })
 
     expect(container.textContent).toContain('Týždeň 1 · Recovery Day nemá žiadny tréning.')
-    expect(container.textContent).toContain('Označiť Recovery Day ako voľno')
 
-    const markRestButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Označiť Recovery Day ako voľno'))
-    expect(markRestButton).toBeDefined()
+    const recoveryChip = container.querySelector<HTMLButtonElement>('button[aria-label="Ut, Recovery Day, otvoriť detail"]')
+    expect(recoveryChip).toBeTruthy()
 
     await act(async () => {
-      markRestButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      recoveryChip?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Recovery Day označený ako voľno')
+    expect(container.textContent).toContain('Označiť Recovery Day ako voľno')
+
+    const restTypeButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.trim() === 'Voľno')
+    expect(restTypeButton).toBeDefined()
+
+    await act(async () => {
+      restTypeButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Voľno nastavený pre Ut')
     expect(container.textContent).toContain('Pripravené na tréning')
     expect(container.textContent).toContain('Spustiteľné tréningy: 1')
-    expect(container.textContent).toContain('Označiť Recovery Day ako tréning')
+    expect(container.textContent).toContain('Označiť Voľno ako tréning')
     expect(container.textContent).not.toContain('Týždeň 1 · Recovery Day nemá žiadny tréning.')
 
-    const markTrainingButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Označiť Recovery Day ako tréning'))
-    expect(markTrainingButton).toBeDefined()
+    const trainingTypeButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.trim() === 'Tlak')
+    expect(trainingTypeButton).toBeDefined()
 
     await act(async () => {
-      markTrainingButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      trainingTypeButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Recovery Day označený ako tréning')
-    expect(container.textContent).toContain('Týždeň 1 · Recovery Day nemá žiadny tréning.')
-    expect(container.textContent).toContain('Označiť Recovery Day ako voľno')
+    expect(container.textContent).toContain('Tlak nastavený pre Ut')
+    expect(container.textContent).toContain('Týždeň 1 · Tlak nemá žiadny tréning.')
+    expect(container.textContent).toContain('Označiť Tlak ako voľno')
   })
 })

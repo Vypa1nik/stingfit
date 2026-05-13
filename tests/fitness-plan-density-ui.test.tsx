@@ -69,26 +69,20 @@ describe('FitnessPlansPage density controls', () => {
     expect(container.textContent).toContain('Chýba tréning')
     expect(container.textContent).toContain('Uložiť ciele pre Tlak na lavičke')
 
-    const collapseDayButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Zbaliť Push Day'))
-    expect(collapseDayButton).toBeDefined()
+    expect(container.textContent).toContain('Týždeň v skratke')
+    expect(container.textContent).toContain('Po')
+    expect(container.textContent).toContain('Ut')
+
+    const recoveryChip = container.querySelector<HTMLButtonElement>('button[aria-label="Ut, Recovery Day, otvoriť detail"]')
+    expect(recoveryChip).toBeTruthy()
 
     await act(async () => {
-      collapseDayButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      recoveryChip?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Rozbaliť Push Day')
+    expect(container.textContent).toContain('Uložiť Recovery Day')
     expect(container.textContent).not.toContain('Uložiť ciele pre Tlak na lavičke')
-
-    const expandDayButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Rozbaliť Push Day'))
-    expect(expandDayButton).toBeDefined()
-
-    await act(async () => {
-      expandDayButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      await waitForAsyncUi()
-    })
-
-    expect(container.textContent).toContain('Uložiť ciele pre Tlak na lavičke')
 
     const collapseWeekButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Zbaliť týždeň 1'))
     expect(collapseWeekButton).toBeDefined()

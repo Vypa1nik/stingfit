@@ -33,6 +33,19 @@ const weekDays = [
   { day: 'Ne', workout: 'Ťah B', active: false },
 ]
 
+const weekDaySlots = ['Po', 'Ut', 'St', 'Št', 'Pi', 'So', 'Ne'] as const
+
+const planDayTypeOptions = [
+  { id: 'push', label: 'Tlak', rest: false },
+  { id: 'pull', label: 'Ťah', rest: false },
+  { id: 'legs', label: 'Nohy', rest: false },
+  { id: 'full-body', label: 'Full body', rest: false },
+  { id: 'rest', label: 'Voľno', rest: true },
+  { id: 'custom', label: 'Vlastný', rest: false },
+] as const
+
+type PlanDayTypeId = typeof planDayTypeOptions[number]['id']
+
 interface PlanExerciseDraft {
   targetSets: string
   minReps: string
@@ -45,6 +58,7 @@ interface PlanExerciseDraft {
 interface AddDayDraft {
   dayNumber: string
   label: string
+  dayType: PlanDayTypeId
 }
 
 interface AddWorkoutDraft {
@@ -321,6 +335,7 @@ export function FitnessPlansPage() {
       [weekId]: {
         dayNumber: current[weekId]?.dayNumber ?? '',
         label: current[weekId]?.label ?? '',
+        dayType: current[weekId]?.dayType ?? 'push',
         [key]: value,
       },
     }))
@@ -434,7 +449,8 @@ export function FitnessPlansPage() {
     const fallbackDayNumber = getNextAvailableDayNumber(week)
     const draft = dayDrafts[week.id]
     const dayNumber = Number(draft?.dayNumber || fallbackDayNumber)
-    const label = (draft?.label ?? '').trim() || `Deň ${dayNumber}`
+    const dayType = getPlanDayTypeOption(draft?.dayType ?? 'push')
+    const label = (draft?.label ?? '').trim() || (dayType.id === 'custom' ? `Deň ${dayNumber}` : dayType.label)
 
     setIsMutating(true)
     setError(null)
@@ -443,7 +459,7 @@ export function FitnessPlansPage() {
       await fitnessRepository.addPlanDay(week.id, {
         dayIndex: dayNumber - 1,
         label,
-        isRestDay: false,
+        isRestDay: dayType.rest,
       })
       setSuccessMessage('Tréningový deň pridaný')
       await loadPlans(selectedPlanId)
@@ -711,6 +727,29 @@ export function FitnessPlansPage() {
     }
   }
 
+  const setPlanDayType = async (day: FitnessPlanDayRecord, dayType: PlanDayTypeId) => {
+    const option = getPlanDayTypeOption(dayType)
+    const nextLabel = option.id === 'custom' ? 'Vlastný' : option.label
+
+    setIsMutating(true)
+    setError(null)
+    setSuccessMessage(null)
+    try {
+      if (day.label !== nextLabel) {
+        await fitnessRepository.updatePlanDay(day.id, { label: nextLabel })
+      }
+      if (day.isRestDay !== option.rest) {
+        await fitnessRepository.setPlanDayRest(day.id, option.rest)
+      }
+      setSuccessMessage(`${nextLabel} nastavený pre ${getWeekdayLabel(day.dayIndex)}`)
+      await loadPlans(selectedPlanId)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : `Nepodarilo sa nastaviť typ dňa ${day.label}.`)
+    } finally {
+      setIsMutating(false)
+    }
+  }
+
   const confirmPendingPlanAction = async () => {
     if (!pendingConfirmation) {
       return
@@ -943,6 +982,7 @@ export function FitnessPlansPage() {
             onCustomExerciseDraftChange={updateCustomExerciseDraft}
             onRemoveDay={removePlanDay}
             onToggleDayRest={toggleDayRest}
+            onSetDayType={setPlanDayType}
             onRemoveWorkout={removePlanWorkout}
             onRemoveExercise={removePlanExercise}
             onDraftChange={updateExerciseDraft}
@@ -1310,6 +1350,7 @@ function PlanEditor({
   onCustomExerciseDraftChange,
   onRemoveDay,
   onToggleDayRest,
+  onSetDayType,
   onRemoveWorkout,
   onRemoveExercise,
   onDraftChange,
@@ -1344,16 +1385,22 @@ function PlanEditor({
   onCustomExerciseDraftChange: (workoutId: string, key: keyof CustomExerciseDraft, value: string) => void
   onRemoveDay: (day: FitnessPlanDayRecord) => Promise<void>
   onToggleDayRest: (day: FitnessPlanDayRecord) => Promise<void>
+  onSetDayType: (day: FitnessPlanDayRecord, dayType: PlanDayTypeId) => Promise<void>
   onRemoveWorkout: (workout: FitnessPlanWorkoutRecord) => Promise<void>
   onRemoveExercise: (exercise: FitnessPlanExerciseRecord) => Promise<void>
   onDraftChange: (exerciseId: string, key: keyof PlanExerciseDraft, value: string) => void
   onSaveTargets: (exercise: FitnessPlanExerciseRecord) => Promise<void>
 }) {
   const [collapsedWeekIds, setCollapsedWeekIds] = useState<Set<string>>(() => new Set())
-  const [collapsedDayIds, setCollapsedDayIds] = useState<Set<string>>(() => new Set())
+  const [activeDayIndexByWeekId, setActiveDayIndexByWeekId] = useState<Record<string, number>>({})
 
   const toggleWeekCollapse = (weekId: string) => setCollapsedWeekIds((current) => toggleIdInSet(current, weekId))
-  const toggleDayCollapse = (dayId: string) => setCollapsedDayIds((current) => toggleIdInSet(current, dayId))
+  const selectWeekDay = (week: FitnessPlanWeekRecord, dayIndex: number) => {
+    setActiveDayIndexByWeekId((current) => ({ ...current, [week.id]: dayIndex }))
+    if (!week.days.some((day) => day.dayIndex === dayIndex)) {
+      onDayDraftChange(week.id, 'dayNumber', String(dayIndex + 1))
+    }
+  }
 
   return (
     <Card title="Editor plánu" description={structure ? `${structure.plan.name}: uprav lokálnu snímku plánu pred tréningom.` : 'Vyber alebo vytvor osobný plán a uprav týždne, dni a ciele cvikov.'}>
@@ -1390,6 +1437,9 @@ function PlanEditor({
           {structure.weeks.map((week) => {
             const weekSummary = summarizePlanWeek(week)
             const isWeekCollapsed = collapsedWeekIds.has(week.id)
+            const activeDayIndex = activeDayIndexByWeekId[week.id] ?? week.days[0]?.dayIndex ?? 0
+            const activeDay = week.days.find((day) => day.dayIndex === activeDayIndex)
+            const activeDayStatus = activeDay ? getPlanDayStatus(activeDay) : null
 
             return (
               <section key={week.id} className="rounded-3xl border border-fitness-yellow/20 bg-black/80 p-4 text-fitness-warm">
@@ -1418,144 +1468,65 @@ function PlanEditor({
 
                 {!isWeekCollapsed ? (
                   <>
+                    <WeekDayChips
+                      week={week}
+                      activeDayIndex={activeDayIndex}
+                      isMutating={isMutating}
+                      onSelectDay={selectWeekDay}
+                    />
+
                     <div className="mt-4">
-                      <AddDayForm
-                        week={week}
-                        draft={dayDrafts[week.id]}
-                        isMutating={isMutating}
-                        onDraftChange={onDayDraftChange}
-                        onAddDay={onAddDay}
-                      />
-                    </div>
-
-                    <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                      {week.days.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-fitness-yellow/30 bg-fitness-yellow/10 px-4 py-4 text-sm text-fitness-warm/70">
-                          Tento týždeň zatiaľ nemá dni. Pridaj tréningový deň vyššie a začni skladať plán.
+                      {activeDay && activeDayStatus ? (
+                        <ActivePlanDayEditor
+                          day={activeDay}
+                          dayStatus={activeDayStatus}
+                          exerciseOptions={exerciseOptions}
+                          drafts={drafts}
+                          workoutDrafts={workoutDrafts}
+                          dayEditDrafts={dayEditDrafts}
+                          workoutEditDrafts={workoutEditDrafts}
+                          addExerciseDrafts={addExerciseDrafts}
+                          customExerciseDrafts={customExerciseDrafts}
+                          isMutating={isMutating}
+                          onAddWorkout={onAddWorkout}
+                          onWorkoutDraftChange={onWorkoutDraftChange}
+                          onDayEditDraftChange={onDayEditDraftChange}
+                          onWorkoutEditDraftChange={onWorkoutEditDraftChange}
+                          onSaveDayDetails={onSaveDayDetails}
+                          onSaveWorkoutDetails={onSaveWorkoutDetails}
+                          onMoveWorkout={onMoveWorkout}
+                          onMoveExercise={onMoveExercise}
+                          onAddExercise={onAddExercise}
+                          onAddExerciseDraftChange={onAddExerciseDraftChange}
+                          onCreateCustomExercise={onCreateCustomExercise}
+                          onCustomExerciseDraftChange={onCustomExerciseDraftChange}
+                          onRemoveDay={onRemoveDay}
+                          onToggleDayRest={onToggleDayRest}
+                          onSetDayType={onSetDayType}
+                          onRemoveWorkout={onRemoveWorkout}
+                          onRemoveExercise={onRemoveExercise}
+                          onDraftChange={onDraftChange}
+                          onSaveTargets={onSaveTargets}
+                        />
+                      ) : (
+                        <div className="rounded-2xl border border-dashed border-fitness-yellow/30 bg-fitness-yellow/10 p-4">
+                          <p className="text-sm font-semibold text-fitness-warm/75">
+                            {week.days.length === 0
+                              ? 'Tento týždeň zatiaľ nemá dni. Pridaj tréningový deň nižšie a začni skladať plán.'
+                              : `${getWeekdayLabel(activeDayIndex)} je prázdny slot. Vyber typ dňa a pridaj ho do týždňa.`}
+                          </p>
+                          <div className="mt-4">
+                            <AddDayForm
+                              week={week}
+                              draft={dayDrafts[week.id]}
+                              selectedDayIndex={activeDayIndex}
+                              isMutating={isMutating}
+                              onDraftChange={onDayDraftChange}
+                              onAddDay={onAddDay}
+                            />
+                          </div>
                         </div>
-                      ) : null}
-
-                      {week.days.map((day) => {
-                        const dayStatus = getPlanDayStatus(day)
-                        const isDayCollapsed = collapsedDayIds.has(day.id)
-
-                        return (
-                          <article key={day.id} className="rounded-2xl border border-fitness-yellow/20 bg-fitness-surface p-4">
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                              <div>
-                                <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Deň {day.dayIndex + 1}</p>
-                                <h4 className="mt-1 text-lg font-black text-fitness-yellow">{day.label}</h4>
-                              </div>
-                              <div className="flex flex-wrap items-center gap-2">
-                                <DayStatusBadge tone={dayStatus.tone}>{dayStatus.label}</DayStatusBadge>
-                                <Button
-                                  variant="secondary"
-                                  leadingIcon={isDayCollapsed ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
-                                  aria-expanded={!isDayCollapsed}
-                                  onClick={() => toggleDayCollapse(day.id)}
-                                  disabled={isMutating}
-                                >
-                                  {isDayCollapsed ? `Rozbaliť ${day.label}` : `Zbaliť ${day.label}`}
-                                </Button>
-                                <Button variant="secondary" leadingIcon={day.isRestDay ? <Dumbbell className="size-4" /> : <CalendarDays className="size-4" />} onClick={() => void onToggleDayRest(day)} disabled={isMutating}>
-                                  {day.isRestDay ? `Označiť ${day.label} ako tréning` : `Označiť ${day.label} ako voľno`}
-                                </Button>
-                                <Button variant="danger" leadingIcon={<Trash2 className="size-4" />} onClick={() => void onRemoveDay(day)} disabled={isMutating}>
-                                  Odstrániť deň {day.label}
-                                </Button>
-                              </div>
-                            </div>
-
-                            {!isDayCollapsed ? (
-                              <>
-                                <DayDetailsEditor
-                                  day={day}
-                                  draft={dayEditDrafts[day.id]}
-                                  isMutating={isMutating}
-                                  onDraftChange={onDayEditDraftChange}
-                                  onSaveDayDetails={onSaveDayDetails}
-                                />
-
-                                <div className="mt-4 space-y-3">
-                                  {day.isRestDay ? (
-                                    <p className="rounded-2xl border border-fitness-yellow/25 bg-fitness-yellow/10 px-4 py-3 text-sm font-semibold text-fitness-yellow">
-                                      Voľný deň: uložené tréningy zostanú v pláne, ale v Tréningu sú skryté, kým deň neoznačíš ako tréning.
-                                    </p>
-                                  ) : null}
-                                  {!day.isRestDay ? (
-                                    <AddWorkoutForm
-                                      day={day}
-                                      draft={workoutDrafts[day.id]}
-                                      isMutating={isMutating}
-                                      onDraftChange={onWorkoutDraftChange}
-                                      onAddWorkout={onAddWorkout}
-                                    />
-                                  ) : null}
-                                  {day.workouts.length === 0 ? (
-                                    <p className="text-sm text-fitness-warm/60">V tento deň nie sú žiadne tréningy.</p>
-                                  ) : null}
-                                  {day.workouts.map((workout, workoutIndex) => (
-                                    <div key={workout.id} className="rounded-2xl border border-fitness-yellow/20 bg-black p-4">
-                                      <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <h5 className="text-sm font-black text-fitness-yellow">{workout.name}</h5>
-                                        <div className="flex flex-wrap gap-2">
-                                          <Button variant="secondary" size="sm" leadingIcon={<ChevronUp className="size-4" />} onClick={() => void onMoveWorkout(workout, 'up')} disabled={isMutating || workoutIndex === 0}>
-                                            Posunúť {workout.name} hore
-                                          </Button>
-                                          <Button variant="secondary" size="sm" leadingIcon={<ChevronDown className="size-4" />} onClick={() => void onMoveWorkout(workout, 'down')} disabled={isMutating || workoutIndex === day.workouts.length - 1}>
-                                            Posunúť {workout.name} dole
-                                          </Button>
-                                          <Button variant="danger" leadingIcon={<Trash2 className="size-4" />} onClick={() => void onRemoveWorkout(workout)} disabled={isMutating}>
-                                            Odstrániť tréning {workout.name}
-                                          </Button>
-                                        </div>
-                                      </div>
-                                      <WorkoutDetailsEditor
-                                        workout={workout}
-                                        draft={workoutEditDrafts[workout.id]}
-                                        isMutating={isMutating}
-                                        onDraftChange={onWorkoutEditDraftChange}
-                                        onSaveWorkoutDetails={onSaveWorkoutDetails}
-                                      />
-                                      <div className="mt-3 space-y-3">
-                                        <AddExerciseForm
-                                          workout={workout}
-                                          exerciseOptions={exerciseOptions}
-                                          draft={addExerciseDrafts[workout.id]}
-                                          customDraft={customExerciseDrafts[workout.id]}
-                                          isMutating={isMutating}
-                                          onDraftChange={onAddExerciseDraftChange}
-                                          onCustomDraftChange={onCustomExerciseDraftChange}
-                                          onCreateCustomExercise={onCreateCustomExercise}
-                                          onAddExercise={onAddExercise}
-                                        />
-                                        {workout.exercises.map((exercise, exerciseIndex) => (
-                                          <PlanExerciseEditor
-                                            key={exercise.id}
-                                            exercise={exercise}
-                                            draft={drafts[exercise.id]}
-                                            isMutating={isMutating}
-                                            canMoveUp={exerciseIndex > 0}
-                                            canMoveDown={exerciseIndex < workout.exercises.length - 1}
-                                            onDraftChange={onDraftChange}
-                                            onSaveTargets={onSaveTargets}
-                                            onMoveExercise={onMoveExercise}
-                                            onRemoveExercise={onRemoveExercise}
-                                          />
-                                        ))}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </>
-                            ) : (
-                              <p className="mt-4 rounded-2xl border border-fitness-yellow/20 bg-black/60 px-4 py-3 text-sm text-fitness-warm/65">
-                                Detaily {day.label} sú zbalené. Stav: {dayStatus.label}.
-                              </p>
-                            )}
-                          </article>
-                        )
-                      })}
+                      )}
                     </div>
                   </>
                 ) : null}
@@ -1565,6 +1536,246 @@ function PlanEditor({
         </div>
       ) : null}
     </Card>
+  )
+}
+
+function WeekDayChips({
+  week,
+  activeDayIndex,
+  isMutating,
+  onSelectDay,
+}: {
+  week: FitnessPlanWeekRecord
+  activeDayIndex: number
+  isMutating: boolean
+  onSelectDay: (week: FitnessPlanWeekRecord, dayIndex: number) => void
+}) {
+  return (
+    <div className="mt-4 rounded-2xl border border-fitness-yellow/20 bg-fitness-surface p-3">
+      <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Týždeň v skratke</p>
+      <div className="mt-3 grid grid-cols-7 gap-2">
+        {weekDaySlots.map((weekday, dayIndex) => {
+          const day = week.days.find((item) => item.dayIndex === dayIndex)
+          const dayStatus = day ? getPlanDayStatus(day) : null
+          const isActive = activeDayIndex === dayIndex
+          const chipClassName = isActive
+            ? 'rounded-2xl border border-fitness-yellow bg-fitness-yellow px-2 py-3 text-center text-black shadow-[0_0_24px_rgba(255,255,0,0.18)]'
+            : 'rounded-2xl border border-fitness-yellow/25 bg-black px-2 py-3 text-center text-fitness-yellow hover:border-fitness-yellow hover:bg-fitness-yellow/10'
+
+          return (
+            <button
+              key={weekday}
+              type="button"
+              className={chipClassName}
+              aria-pressed={isActive}
+              aria-label={`${weekday}, ${getPlanDayChipLabel(day)}, otvoriť detail`}
+              onClick={() => onSelectDay(week, dayIndex)}
+              disabled={isMutating}
+            >
+              <span className="block text-xs font-black uppercase">{weekday}</span>
+              <span className="mt-2 block truncate text-[11px] font-black">{getPlanDayChipLabel(day)}</span>
+              {dayStatus ? <span className="mt-1 block truncate text-[10px] font-semibold opacity-75">{dayStatus.label}</span> : null}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function ActivePlanDayEditor({
+  day,
+  dayStatus,
+  exerciseOptions,
+  drafts,
+  workoutDrafts,
+  dayEditDrafts,
+  workoutEditDrafts,
+  addExerciseDrafts,
+  customExerciseDrafts,
+  isMutating,
+  onAddWorkout,
+  onWorkoutDraftChange,
+  onDayEditDraftChange,
+  onWorkoutEditDraftChange,
+  onSaveDayDetails,
+  onSaveWorkoutDetails,
+  onMoveWorkout,
+  onMoveExercise,
+  onAddExercise,
+  onAddExerciseDraftChange,
+  onCreateCustomExercise,
+  onCustomExerciseDraftChange,
+  onRemoveDay,
+  onToggleDayRest,
+  onSetDayType,
+  onRemoveWorkout,
+  onRemoveExercise,
+  onDraftChange,
+  onSaveTargets,
+}: {
+  day: FitnessPlanDayRecord
+  dayStatus: ReturnType<typeof getPlanDayStatus>
+  exerciseOptions: FitnessExerciseRecord[]
+  drafts: Record<string, PlanExerciseDraft>
+  workoutDrafts: Record<string, AddWorkoutDraft>
+  dayEditDrafts: Record<string, DayEditDraft>
+  workoutEditDrafts: Record<string, WorkoutEditDraft>
+  addExerciseDrafts: Record<string, AddExerciseDraft>
+  customExerciseDrafts: Record<string, CustomExerciseDraft>
+  isMutating: boolean
+  onAddWorkout: (day: FitnessPlanDayRecord) => Promise<void>
+  onWorkoutDraftChange: (dayId: string, value: string) => void
+  onDayEditDraftChange: (dayId: string, key: keyof DayEditDraft, value: string) => void
+  onWorkoutEditDraftChange: (workoutId: string, key: keyof WorkoutEditDraft, value: string) => void
+  onSaveDayDetails: (day: FitnessPlanDayRecord) => Promise<void>
+  onSaveWorkoutDetails: (workout: FitnessPlanWorkoutRecord) => Promise<void>
+  onMoveWorkout: (workout: FitnessPlanWorkoutRecord, direction: FitnessPlanMoveDirection) => Promise<void>
+  onMoveExercise: (exercise: FitnessPlanExerciseRecord, direction: FitnessPlanMoveDirection) => Promise<void>
+  onAddExercise: (workout: FitnessPlanWorkoutRecord) => Promise<void>
+  onAddExerciseDraftChange: (workoutId: string, key: keyof AddExerciseDraft, value: string) => void
+  onCreateCustomExercise: (workout: FitnessPlanWorkoutRecord) => Promise<void>
+  onCustomExerciseDraftChange: (workoutId: string, key: keyof CustomExerciseDraft, value: string) => void
+  onRemoveDay: (day: FitnessPlanDayRecord) => Promise<void>
+  onToggleDayRest: (day: FitnessPlanDayRecord) => Promise<void>
+  onSetDayType: (day: FitnessPlanDayRecord, dayType: PlanDayTypeId) => Promise<void>
+  onRemoveWorkout: (workout: FitnessPlanWorkoutRecord) => Promise<void>
+  onRemoveExercise: (exercise: FitnessPlanExerciseRecord) => Promise<void>
+  onDraftChange: (exerciseId: string, key: keyof PlanExerciseDraft, value: string) => void
+  onSaveTargets: (exercise: FitnessPlanExerciseRecord) => Promise<void>
+}) {
+  return (
+    <article className="rounded-2xl border border-fitness-yellow/20 bg-fitness-surface p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">{getWeekdayLabel(day.dayIndex)} · Deň {day.dayIndex + 1}</p>
+          <h4 className="mt-1 text-lg font-black text-fitness-yellow">{day.label}</h4>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <DayStatusBadge tone={dayStatus.tone}>{dayStatus.label}</DayStatusBadge>
+          <Button variant="secondary" leadingIcon={day.isRestDay ? <Dumbbell className="size-4" /> : <CalendarDays className="size-4" />} onClick={() => void onToggleDayRest(day)} disabled={isMutating}>
+            {day.isRestDay ? `Označiť ${day.label} ako tréning` : `Označiť ${day.label} ako voľno`}
+          </Button>
+          <Button variant="danger" leadingIcon={<Trash2 className="size-4" />} onClick={() => void onRemoveDay(day)} disabled={isMutating}>
+            Odstrániť deň {day.label}
+          </Button>
+        </div>
+      </div>
+
+      <DayTypeSelector day={day} isMutating={isMutating} onSetDayType={onSetDayType} />
+
+      <DayDetailsEditor
+        day={day}
+        draft={dayEditDrafts[day.id]}
+        isMutating={isMutating}
+        onDraftChange={onDayEditDraftChange}
+        onSaveDayDetails={onSaveDayDetails}
+      />
+
+      <div className="mt-4 space-y-3">
+        {day.isRestDay ? (
+          <p className="rounded-2xl border border-fitness-yellow/25 bg-fitness-yellow/10 px-4 py-3 text-sm font-semibold text-fitness-yellow">
+            Voľný deň: uložené tréningy zostanú v pláne, ale v Tréningu sú skryté, kým deň neoznačíš ako tréning.
+          </p>
+        ) : null}
+        {!day.isRestDay ? (
+          <AddWorkoutForm
+            day={day}
+            draft={workoutDrafts[day.id]}
+            isMutating={isMutating}
+            onDraftChange={onWorkoutDraftChange}
+            onAddWorkout={onAddWorkout}
+          />
+        ) : null}
+        {day.workouts.length === 0 ? (
+          <p className="text-sm text-fitness-warm/60">V tento deň nie sú žiadne tréningy.</p>
+        ) : null}
+        {day.workouts.map((workout, workoutIndex) => (
+          <div key={workout.id} className="rounded-2xl border border-fitness-yellow/20 bg-black p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h5 className="text-sm font-black text-fitness-yellow">{workout.name}</h5>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" size="sm" leadingIcon={<ChevronUp className="size-4" />} onClick={() => void onMoveWorkout(workout, 'up')} disabled={isMutating || workoutIndex === 0}>
+                  Posunúť {workout.name} hore
+                </Button>
+                <Button variant="secondary" size="sm" leadingIcon={<ChevronDown className="size-4" />} onClick={() => void onMoveWorkout(workout, 'down')} disabled={isMutating || workoutIndex === day.workouts.length - 1}>
+                  Posunúť {workout.name} dole
+                </Button>
+                <Button variant="danger" leadingIcon={<Trash2 className="size-4" />} onClick={() => void onRemoveWorkout(workout)} disabled={isMutating}>
+                  Odstrániť tréning {workout.name}
+                </Button>
+              </div>
+            </div>
+            <WorkoutDetailsEditor
+              workout={workout}
+              draft={workoutEditDrafts[workout.id]}
+              isMutating={isMutating}
+              onDraftChange={onWorkoutEditDraftChange}
+              onSaveWorkoutDetails={onSaveWorkoutDetails}
+            />
+            <div className="mt-3 space-y-3">
+              <AddExerciseForm
+                workout={workout}
+                exerciseOptions={exerciseOptions}
+                draft={addExerciseDrafts[workout.id]}
+                customDraft={customExerciseDrafts[workout.id]}
+                isMutating={isMutating}
+                onDraftChange={onAddExerciseDraftChange}
+                onCustomDraftChange={onCustomExerciseDraftChange}
+                onCreateCustomExercise={onCreateCustomExercise}
+                onAddExercise={onAddExercise}
+              />
+              {workout.exercises.map((exercise, exerciseIndex) => (
+                <PlanExerciseEditor
+                  key={exercise.id}
+                  exercise={exercise}
+                  draft={drafts[exercise.id]}
+                  isMutating={isMutating}
+                  canMoveUp={exerciseIndex > 0}
+                  canMoveDown={exerciseIndex < workout.exercises.length - 1}
+                  onDraftChange={onDraftChange}
+                  onSaveTargets={onSaveTargets}
+                  onMoveExercise={onMoveExercise}
+                  onRemoveExercise={onRemoveExercise}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </article>
+  )
+}
+
+function DayTypeSelector({
+  day,
+  isMutating,
+  onSetDayType,
+}: {
+  day: FitnessPlanDayRecord
+  isMutating: boolean
+  onSetDayType: (day: FitnessPlanDayRecord, dayType: PlanDayTypeId) => Promise<void>
+}) {
+  const activeType = getPlanDayTypeId(day)
+
+  return (
+    <div className="mt-4 rounded-2xl border border-fitness-yellow/20 bg-black/60 p-3">
+      <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Typ dňa</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {planDayTypeOptions.map((option) => (
+          <Button
+            key={option.id}
+            variant={activeType === option.id ? 'primary' : 'secondary'}
+            size="sm"
+            aria-pressed={activeType === option.id}
+            onClick={() => void onSetDayType(day, option.id)}
+            disabled={isMutating}
+          >
+            {option.label}
+          </Button>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -1727,26 +1938,54 @@ function WorkoutDetailsEditor({
 function AddDayForm({
   week,
   draft,
+  selectedDayIndex,
   isMutating,
   onDraftChange,
   onAddDay,
 }: {
   week: FitnessPlanWeekRecord
   draft: AddDayDraft | undefined
+  selectedDayIndex?: number
   isMutating: boolean
   onDraftChange: (weekId: string, key: keyof AddDayDraft, value: string) => void
   onAddDay: (week: FitnessPlanWeekRecord) => Promise<void>
 }) {
-  const fallbackDayNumber = getNextAvailableDayNumber(week)
+  const fallbackDayNumber = selectedDayIndex === undefined ? getNextAvailableDayNumber(week) : selectedDayIndex + 1
+  const currentDayType = getPlanDayTypeOption(draft?.dayType ?? 'push')
+  const dayNumber = draft?.dayNumber ?? String(fallbackDayNumber)
+  const label = draft?.label ?? ''
+
+  const selectNewDayType = (dayType: PlanDayTypeId) => {
+    const option = getPlanDayTypeOption(dayType)
+    onDraftChange(week.id, 'dayType', option.id)
+    if (option.id !== 'custom') {
+      onDraftChange(week.id, 'label', option.label)
+    }
+  }
 
   return (
     <div className="rounded-2xl border border-fitness-yellow/20 bg-fitness-yellow/10 p-4">
-      <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Pridať tréningový deň</p>
+      <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Pridať deň do týždňa</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {planDayTypeOptions.map((option) => (
+          <Button
+            key={option.id}
+            variant={currentDayType.id === option.id ? 'primary' : 'secondary'}
+            size="sm"
+            aria-pressed={currentDayType.id === option.id}
+            aria-label={`Typ nového dňa ${option.label} pre týždeň ${week.weekNumber}`}
+            onClick={() => selectNewDayType(option.id)}
+            disabled={isMutating}
+          >
+            {option.label}
+          </Button>
+        ))}
+      </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-[0.35fr,1fr,auto]">
         <TargetInput
           label="Deň"
           ariaLabel={`Číslo dňa pre týždeň ${week.weekNumber}`}
-          value={draft?.dayNumber ?? String(fallbackDayNumber)}
+          value={dayNumber}
           onChange={(value) => onDraftChange(week.id, 'dayNumber', value)}
         />
         <label className="block text-[10px] font-black uppercase tracking-[0.16em] text-fitness-yellow/70">
@@ -1754,13 +1993,13 @@ function AddDayForm({
           <input
             aria-label={`Názov dňa pre týždeň ${week.weekNumber}`}
             className="mt-2 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-3 py-3 text-sm font-black text-fitness-yellow outline-none focus:border-fitness-yellow"
-            value={draft?.label ?? ''}
+            value={label}
             onInput={(event) => onDraftChange(week.id, 'label', event.currentTarget.value)}
-            placeholder="Hrudník"
+            placeholder={currentDayType.id === 'custom' ? 'Hrudník' : currentDayType.label}
           />
         </label>
         <Button className="fitness-action self-end" leadingIcon={<Plus className="size-4" />} onClick={() => void onAddDay(week)} disabled={isMutating}>
-          Pridať tréningový deň do týždňa {week.weekNumber}
+          Pridať deň do týždňa {week.weekNumber}
         </Button>
       </div>
     </div>
@@ -2112,6 +2351,35 @@ function defaultCustomExerciseDraft(): CustomExerciseDraft {
 
 function formatExerciseMuscleGroup(exercise: FitnessExerciseRecord) {
   return exercise.muscleGroup ? formatMuscleGroupLabel(exercise.muscleGroup) : 'svalová skupina automaticky'
+}
+
+function getPlanDayTypeOption(dayType: PlanDayTypeId) {
+  return planDayTypeOptions.find((option) => option.id === dayType) ?? planDayTypeOptions[0]
+}
+
+function getPlanDayTypeId(day: FitnessPlanDayRecord): PlanDayTypeId {
+  if (day.isRestDay) {
+    return 'rest'
+  }
+
+  const matchedType = planDayTypeOptions.find((option) => !option.rest && option.id !== 'custom' && option.label === day.label)
+  return matchedType?.id ?? 'custom'
+}
+
+function getWeekdayLabel(dayIndex: number) {
+  return weekDaySlots[dayIndex] ?? `Deň ${dayIndex + 1}`
+}
+
+function getPlanDayChipLabel(day: FitnessPlanDayRecord | undefined) {
+  if (!day) {
+    return 'Pridať'
+  }
+
+  if (day.isRestDay) {
+    return 'Voľno'
+  }
+
+  return day.label || 'Vlastný'
 }
 
 function getNextAvailableDayNumber(week: FitnessPlanWeekRecord) {
