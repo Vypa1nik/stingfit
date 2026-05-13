@@ -56,6 +56,59 @@ const pushPullLegsWeekPreset = [
 
 type PlanDayTypeId = typeof planDayTypeOptions[number]['id']
 
+interface PlanDayTemplateExercise {
+  exerciseId: string
+  targetSets: number
+  minReps: number
+  maxReps: number
+  targetRir: number
+  restSeconds: number
+}
+
+interface PlanDayTemplate {
+  label: string
+  workoutName: string
+  exercises: readonly PlanDayTemplateExercise[]
+}
+
+const planDayTemplates: Partial<Record<PlanDayTypeId, PlanDayTemplate>> = {
+  push: {
+    label: 'Tlak',
+    workoutName: 'Tlakový tréning',
+    exercises: [
+      { exerciseId: 'exercise-bench-press', targetSets: 3, minReps: 6, maxReps: 8, targetRir: 1, restSeconds: 150 },
+      { exerciseId: 'exercise-incline-db-press', targetSets: 3, minReps: 8, maxReps: 10, targetRir: 2, restSeconds: 120 },
+      { exerciseId: 'exercise-lateral-raise', targetSets: 3, minReps: 12, maxReps: 15, targetRir: 1, restSeconds: 75 },
+      { exerciseId: 'exercise-rope-pushdown', targetSets: 3, minReps: 10, maxReps: 12, targetRir: 1, restSeconds: 90 },
+    ],
+  },
+  pull: {
+    label: 'Ťah',
+    workoutName: 'Ťahový tréning',
+    exercises: [
+      { exerciseId: 'exercise-deadlift', targetSets: 3, minReps: 3, maxReps: 5, targetRir: 1, restSeconds: 180 },
+      { exerciseId: 'exercise-barbell-row', targetSets: 4, minReps: 6, maxReps: 10, targetRir: 1, restSeconds: 120 },
+    ],
+  },
+  legs: {
+    label: 'Nohy',
+    workoutName: 'Nohy',
+    exercises: [
+      { exerciseId: 'exercise-squat', targetSets: 4, minReps: 5, maxReps: 8, targetRir: 1, restSeconds: 180 },
+      { exerciseId: 'exercise-romanian-deadlift', targetSets: 3, minReps: 8, maxReps: 10, targetRir: 2, restSeconds: 150 },
+    ],
+  },
+  'full-body': {
+    label: 'Full body',
+    workoutName: 'Full body tréning',
+    exercises: [
+      { exerciseId: 'exercise-bench-press', targetSets: 3, minReps: 6, maxReps: 8, targetRir: 1, restSeconds: 150 },
+      { exerciseId: 'exercise-barbell-row', targetSets: 3, minReps: 8, maxReps: 10, targetRir: 1, restSeconds: 120 },
+      { exerciseId: 'exercise-squat', targetSets: 3, minReps: 5, maxReps: 8, targetRir: 1, restSeconds: 180 },
+    ],
+  },
+}
+
 interface PlanExerciseDraft {
   targetSets: string
   minReps: string
@@ -790,6 +843,39 @@ export function FitnessPlansPage() {
     }
   }
 
+  const applyDayTemplate = async (day: FitnessPlanDayRecord) => {
+    const template = getPlanDayTemplate(day)
+    setIsMutating(true)
+    setError(null)
+    setSuccessMessage(null)
+    try {
+      if (!template || day.isRestDay) {
+        throw new Error(`${day.label} nemá tréningovú šablónu.`)
+      }
+      if (day.workouts.length > 0) {
+        throw new Error(`${day.label} už má tréning. Šablóna sa nepridala, aby nevznikli duplicity.`)
+      }
+
+      const availableExerciseIds = new Set(exerciseOptions.map((exercise) => exercise.id))
+      const missingExercise = template.exercises.find((exercise) => !availableExerciseIds.has(exercise.exerciseId))
+      if (missingExercise) {
+        throw new Error(`Šablóna ${template.label} potrebuje chýbajúci cvik ${missingExercise.exerciseId}. Obnov štartovacie dáta alebo pridaj cviky ručne.`)
+      }
+
+      const workout = await fitnessRepository.addPlanWorkout(day.id, { name: template.workoutName })
+      for (const exercise of template.exercises) {
+        await fitnessRepository.addPlanExercise(workout.id, exercise)
+      }
+      setSuccessMessage(`${day.label} vyplnený šablónou ${template.label}.`)
+      await loadPlans(selectedPlanId)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : `Nepodarilo sa vyplniť ${day.label} šablónou.`)
+      await loadPlans(selectedPlanId)
+    } finally {
+      setIsMutating(false)
+    }
+  }
+
   const confirmPendingPlanAction = async () => {
     if (!pendingConfirmation) {
       return
@@ -1007,6 +1093,7 @@ export function FitnessPlansPage() {
             showGuidance={showGuidance}
             onDuplicateWeek={duplicateWeek}
             onApplyWeekPreset={applyWeekPreset}
+            onApplyDayTemplate={applyDayTemplate}
             onAddDay={addTrainingDay}
             onDayDraftChange={updateDayDraft}
             onAddWorkout={addWorkout}
@@ -1376,6 +1463,7 @@ function PlanEditor({
   showGuidance,
   onDuplicateWeek,
   onApplyWeekPreset,
+  onApplyDayTemplate,
   onAddDay,
   onDayDraftChange,
   onAddWorkout,
@@ -1412,6 +1500,7 @@ function PlanEditor({
   showGuidance: boolean
   onDuplicateWeek: (weekId: string, weekNumber: number) => Promise<void>
   onApplyWeekPreset: (week: FitnessPlanWeekRecord) => Promise<void>
+  onApplyDayTemplate: (day: FitnessPlanDayRecord) => Promise<void>
   onAddDay: (week: FitnessPlanWeekRecord) => Promise<void>
   onDayDraftChange: (weekId: string, key: keyof AddDayDraft, value: string) => void
   onAddWorkout: (day: FitnessPlanDayRecord) => Promise<void>
@@ -1549,6 +1638,7 @@ function PlanEditor({
                           onRemoveDay={onRemoveDay}
                           onToggleDayRest={onToggleDayRest}
                           onSetDayType={onSetDayType}
+                          onApplyDayTemplate={onApplyDayTemplate}
                           onRemoveWorkout={onRemoveWorkout}
                           onRemoveExercise={onRemoveExercise}
                           onDraftChange={onDraftChange}
@@ -1655,6 +1745,7 @@ function ActivePlanDayEditor({
   onRemoveDay,
   onToggleDayRest,
   onSetDayType,
+  onApplyDayTemplate,
   onRemoveWorkout,
   onRemoveExercise,
   onDraftChange,
@@ -1685,11 +1776,14 @@ function ActivePlanDayEditor({
   onRemoveDay: (day: FitnessPlanDayRecord) => Promise<void>
   onToggleDayRest: (day: FitnessPlanDayRecord) => Promise<void>
   onSetDayType: (day: FitnessPlanDayRecord, dayType: PlanDayTypeId) => Promise<void>
+  onApplyDayTemplate: (day: FitnessPlanDayRecord) => Promise<void>
   onRemoveWorkout: (workout: FitnessPlanWorkoutRecord) => Promise<void>
   onRemoveExercise: (exercise: FitnessPlanExerciseRecord) => Promise<void>
   onDraftChange: (exerciseId: string, key: keyof PlanExerciseDraft, value: string) => void
   onSaveTargets: (exercise: FitnessPlanExerciseRecord) => Promise<void>
 }) {
+  const dayTemplate = getPlanDayTemplate(day)
+
   return (
     <article className="rounded-2xl border border-fitness-yellow/20 bg-fitness-surface p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1723,6 +1817,19 @@ function ActivePlanDayEditor({
           <p className="rounded-2xl border border-fitness-yellow/25 bg-fitness-yellow/10 px-4 py-3 text-sm font-semibold text-fitness-yellow">
             Voľný deň: uložené tréningy zostanú v pláne, ale v Tréningu sú skryté, kým deň neoznačíš ako tréning.
           </p>
+        ) : null}
+        {!day.isRestDay && day.workouts.length === 0 && dayTemplate ? (
+          <div className="rounded-2xl border border-fitness-yellow/25 bg-fitness-yellow/10 px-4 py-3 text-fitness-warm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Rýchla šablóna</p>
+                <p className="mt-1 text-sm text-fitness-warm/70">Pridá tréning a štartovacie cviky pre {dayTemplate.label}.</p>
+              </div>
+              <Button variant="secondary" leadingIcon={<Zap className="size-4" />} onClick={() => void onApplyDayTemplate(day)} disabled={isMutating}>
+                Vyplniť {dayTemplate.label} šablónou
+              </Button>
+            </div>
+          </div>
         ) : null}
         {!day.isRestDay ? (
           <AddWorkoutForm
@@ -2410,6 +2517,10 @@ function getPlanDayTypeId(day: FitnessPlanDayRecord): PlanDayTypeId {
 
   const matchedType = planDayTypeOptions.find((option) => !option.rest && option.id !== 'custom' && option.label === day.label)
   return matchedType?.id ?? 'custom'
+}
+
+function getPlanDayTemplate(day: FitnessPlanDayRecord) {
+  return planDayTemplates[getPlanDayTypeId(day)]
 }
 
 function getWeekdayLabel(dayIndex: number) {
