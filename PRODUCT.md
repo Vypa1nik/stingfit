@@ -95,9 +95,13 @@ These are deliberately excluded from V2 and need an explicit user decision to ev
 - **Web/PWA is the canonical install path.** One URL, install button, done.
 - **Tauri desktop** ships as a co-equal binary for Windows and macOS once the
   build is verified. It exists because some coaches want a real app icon.
-- **iOS/Android native** is explicitly **out of scope for V2.** PWA on iOS
-  Safari and Android Chrome is the supported mobile path. Re-evaluate after V2 ships.
-- **No app store dependency** until web/PWA + desktop are proven with users.
+- **iOS/Android native** is explicitly **out of scope for V2.0.** PWA on iOS
+  Safari and Android Chrome is the shipped mobile path for the `v2.0.0` release.
+- **V2.1 Mobile App Track** may package the existing local-first app with
+  Capacitor after explicit owner approval. Android debug APK comes first; iOS
+  builds require a MacBook, Xcode, signing, and separate verification.
+- **No app store dependency** for the core product. Store distribution is an
+  optional V2.1 packaging track after the PWA path is proven.
 
 ## 8. Success signals for V2 (qualitative, not vanity metrics)
 

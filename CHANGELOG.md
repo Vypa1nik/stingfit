@@ -4,6 +4,10 @@ All notable changes to StingFit will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- V2.1 Mobile App Track now has a Capacitor bootstrap for Android APK and iOS handoff planning, with root-base mobile builds and documented local-first verification gates.
+
 ### Changed
 
 - Custom plan editing now uses compact weekday chips (`Po`-`Ne`) so only one training day expands at a time, with quick day-type presets for `Tlak`, `Ťah`, `Nohy`, `Full body`, `Voľno`, and `Vlastný`.

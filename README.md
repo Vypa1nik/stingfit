@@ -36,6 +36,27 @@ GitHub Pages deployment is defined in `.github/workflows/deploy-pwa.yml`. It bui
 
 Desktop downloads: No verified desktop installers are published yet. The Tauri v2 scaffold is present, but Windows/macOS installer links stay omitted until the native toolchain blocker in `reports/stingfit-tauri-desktop-builds.md` is resolved and `npm run tauri:build` is verified on a machine with Rust, Cargo, rustup, and the required platform build tools.
 
+## V2.1 Mobile App Track
+
+After the PWA-only `v2.0.0` release, StingFit opens a separate V2.1 mobile packaging track with Capacitor. Android debug APK is the first native target; iOS builds are prepared as a handoff package and completed on a MacBook with Xcode/signing. The PWA remains the canonical public install path until native packages pass their own device smoke checks.
+
+Capacitor uses the existing React/Vite app with `webDir: dist`, `appId: com.stingfit.app`, and `appName: StingFit`. Native wrappers must keep the same local-first privacy contract: no accounts, cloud sync, telemetry, analytics, subscriptions, payments, or paywalls.
+
+```bash
+npm run mobile:build
+npm run cap:android:add
+npm run cap:android:sync
+npm run cap:android:apk
+```
+
+For iOS handoff packaging from Windows:
+
+```powershell
+npm run mobile:ios:handoff
+```
+
+See `reports/stingfit-mobile-capacitor-track.md` and `reports/stingfit-ios-capacitor-handoff.md` for the Android/iOS build plan and verification checklist.
+
 ## What works in V2
 
 - Fitness-first shell with Training, Quick, Plans, History, Stats, and Settings

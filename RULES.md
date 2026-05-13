@@ -91,7 +91,7 @@ in chat plus a written `PRODUCT.md` change to ever revisit:
 - Any cloud-shaped sync engine.
 - Wearables sync (Apple Health, Garmin, Whoop, Fitbit, Polar).
 - Nutrition, sleep, or habit tracking.
-- Native iOS / Android binaries (Expo, Capacitor, React Native).
+- Native iOS / Android binaries, except the explicitly approved V2.1 Capacitor Mobile App Track. Expo, React Native, and Tauri Mobile remain out of scope unless separately approved in `PRODUCT.md`.
 - Real-time collaborative editing.
 - Public profiles, follows, leaderboards, social feeds.
 - A marketplace for paid plans.

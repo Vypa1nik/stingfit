@@ -5,7 +5,7 @@
 > and the live source tree. Anything in `docs/archive/` is historical context
 > only and must NOT influence implementation choices.**
 
-_Last revised: 2026-05-02_
+_Last revised: 2026-05-12_
 _Owner: Kristián_
 _Codename: V2 — "Coach Bridge"_
 
@@ -74,7 +74,7 @@ V2 is the version of StingFit where:
 V2 is **not**:
 
 - A SaaS. There is no server-side component shipped in V2.
-- A native iOS/Android binary. PWA covers mobile.
+- A native iOS/Android binary in V2.0. PWA covers the shipped V2.0 mobile path; the separately approved V2.1 Mobile App Track may package the same local-first app with Capacitor.
 - A wearables hub. No Apple Health, Garmin, Whoop, etc.
 - A nutrition or sleep tracker.
 - An AI coach. (Optional local insights are fine; chatbots in the gym are not.)
@@ -117,10 +117,32 @@ New runtime concepts introduced in V2:
 
 What we are deliberately **not** doing in V2:
 
-- No Tauri Mobile, no Capacitor, no Expo, no React Native.
+- No Tauri Mobile, no Expo, no React Native in V2.0.
+- No Capacitor in V2.0; Capacitor is reopened only for the explicitly approved V2.1 Mobile App Track after the PWA release.
 - No service-side anything (no Cloudflare Workers, no Supabase, no Firebase).
 - No P2P sync engine. (Reserved for V2.1 as opt-in BYO storage. See `PRODUCT.md` §9.)
 - No multi-trainer "agency" mode. One coach per install in V2.
+
+### 3.1 V2.1 Mobile App Track — approved after V2.0
+
+Owner decision on 2026-05-12: after the approved PWA-only `v2.0.0` release,
+StingFit opens a separate V2.1 mobile packaging track using Capacitor. This
+track does not change the V2.0 release definition and does not relax the
+local-first/privacy rules.
+
+Scope for V2.1 Mobile App Track:
+
+- Android debug APK first, built from the existing React/Vite app through
+  Capacitor.
+- iOS handoff package for a MacBook build through Xcode; final signing,
+  device install, TestFlight, and App Store work happen on macOS.
+- The web/PWA build remains the canonical public install path until native
+  packages are independently verified.
+- No accounts, cloud sync, telemetry, analytics, subscriptions, payments, or
+  paywalls.
+- No native-only product behavior in the first pass; native wrappers must prove
+  the existing local fitness loop, Plan Pack import, Recap Pack export, backup,
+  and IndexedDB/sql.js persistence.
 
 ---
 

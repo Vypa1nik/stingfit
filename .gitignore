@@ -45,6 +45,7 @@ coverage
 .tmp-*.pid
 .tmp-*.txt
 output
+.stingfit-mobile-handoff/
 public/*preview-qr.png
 public/*preview-qr.svg
 

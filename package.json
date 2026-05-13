@@ -13,13 +13,14 @@
   },
   "homepage": "https://github.com/Vypa1nik/stingfit",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "type": "module",
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc -b",
     "build": "tsc -b && vite build",
+    "mobile:build": "node ./tools/build-capacitor-web.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "mobile:pwa:start": "powershell -ExecutionPolicy Bypass -File ./tools/start-mobile-pwa-preview.ps1",
@@ -33,11 +34,23 @@
     "test:run": "vitest run",
     "check": "npm run lint && npm run test:run && npm run build",
     "agent:health": "powershell -ExecutionPolicy Bypass -File ..\\tools\\Test-AgentWorkspace.ps1 -Project localflow",
+    "cap:sync": "npm run mobile:build && cap sync",
+    "cap:android:add": "cap add android",
+    "cap:android:sync": "npm run mobile:build && cap sync android",
+    "cap:android:open": "cap open android",
+    "cap:android:apk": "cd android && gradlew assembleDebug",
+    "cap:ios:add": "cap add ios",
+    "cap:ios:sync": "npm run mobile:build && cap sync ios",
+    "cap:ios:open": "cap open ios",
+    "mobile:ios:handoff": "powershell -ExecutionPolicy Bypass -File ./tools/package-ios-handoff.ps1",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/core": "^8.3.4",
+    "@capacitor/ios": "^8.3.4",
     "@tanstack/react-query": "^5.96.2",
     "@tauri-apps/api": "^2.10.1",
     "clsx": "^2.1.1",
@@ -53,6 +66,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.3.4",
     "@eslint/js": "^9.39.4",
     "@tailwindcss/vite": "^4.2.2",
     "@tauri-apps/cli": "^2.10.1",
