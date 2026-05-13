@@ -1,6 +1,6 @@
 # StingFit V2.1 Mobile App Track — Capacitor Bootstrap
 
-Status: ANDROID_DEBUG_APK_VERIFIED
+Status: ANDROID_EMULATOR_SMOKE_VERIFIED
 Date: 2026-05-13
 Owner decision: Capacitor, Android APK first, iOS handoff ZIP for MacBook build.
 
@@ -88,15 +88,31 @@ Xcode then owns Team, signing, simulator/device builds, Archive, and TestFlight/
 - `cap sync android`: passed.
 - `gradlew assembleDebug`: passed after forcing Java/Gradle temp files to `%LOCALAPPDATA%\Temp`.
 - Debug APK exists at `android/app/build/outputs/apk/debug/app-debug.apk`.
-- This is a build artifact only; real Android device smoke is still required before calling the native package user-ready.
+
+## Android emulator smoke
+
+Verified on `Medium_Phone_API_36.1` with `adb` `1.0.41` / platform-tools `37.0.0-14910828`.
+
+- Emulator booted and reported `sys.boot_completed=1`.
+- `adb install -r` of `app-debug.apk` returned `Success`.
+- Fresh app data reset with `pm clear com.stingfit.app` returned `Success`.
+- Launch command returned `Status: ok`, `LaunchState: COLD`, `Activity: com.stingfit.app/.MainActivity`.
+- App process stayed alive after launch (`pidof com.stingfit.app` returned a PID).
+- UI hierarchy contained the `com.stingfit.app` WebView. The emulator's final `uiautomator` dump did not expose WebView text, but earlier dumps exposed the StingFit onboarding labels and mobile tabs.
+- After tapping the first simple-start plan card, app logcat showed local Capacitor requests for:
+  - `https://localhost/assets/sql-wasm-browser-B2TFZs48.js`
+  - `https://localhost/assets/sql-wasm-UFUCzYNW.wasm`
+- Sampled app logcat contained no fatal AndroidRuntime, WebView, Capacitor, or `sql.js` WASM load errors.
+
+This verifies APK install, cold launch, WebView boot, and `sql.js` WASM asset loading on an Android emulator. Real physical Android device smoke is still required before calling the native package user-ready.
 
 ## Known risks to validate early
 
-1. `sql.js` WASM asset loading inside Android/iOS WebView.
-2. IndexedDB durability after app kill/relaunch and app update.
-3. Backup export/import, Plan Pack import, and Recap Pack export inside native wrappers.
-4. PWA install UI in Settings is browser-specific and may need native runtime gating after first APK smoke.
-5. Store/TestFlight signing is intentionally out of scope for the bootstrap.
+1. IndexedDB durability after app kill/relaunch and app update.
+2. Backup export/import, Plan Pack import, and Recap Pack export inside native wrappers.
+3. PWA install UI in Settings is browser-specific and may need native runtime gating after first APK smoke.
+4. Store/TestFlight signing is intentionally out of scope for the bootstrap.
+5. Real Android phone smoke remains pending even though the emulator smoke is green.
 
 ## Acceptance for bootstrap
 
