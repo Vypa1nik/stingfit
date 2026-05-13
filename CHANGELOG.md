@@ -7,6 +7,7 @@ All notable changes to StingFit will be documented in this file.
 ### Changed
 
 - Custom plan editing now uses compact weekday chips (`Po`-`Ne`) so only one training day expands at a time, with quick day-type presets for `Tlak`, `Ťah`, `Nohy`, `Full body`, `Voľno`, and `Vlastný`.
+- Personal plan weeks can now apply a one-tap `Tlak / Ťah / Nohy` preset that fills or updates all seven day slots without changing the database schema.
 
 ## v2.0.0 - 2026-05-12
 

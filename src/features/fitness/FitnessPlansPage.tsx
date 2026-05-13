@@ -44,6 +44,16 @@ const planDayTypeOptions = [
   { id: 'custom', label: 'Vlastný', rest: false },
 ] as const
 
+const pushPullLegsWeekPreset = [
+  { dayIndex: 0, label: 'Tlak', isRestDay: false },
+  { dayIndex: 1, label: 'Ťah', isRestDay: false },
+  { dayIndex: 2, label: 'Voľno', isRestDay: true },
+  { dayIndex: 3, label: 'Nohy', isRestDay: false },
+  { dayIndex: 4, label: 'Tlak', isRestDay: false },
+  { dayIndex: 5, label: 'Voľno', isRestDay: true },
+  { dayIndex: 6, label: 'Ťah', isRestDay: false },
+] as const
+
 type PlanDayTypeId = typeof planDayTypeOptions[number]['id']
 
 interface PlanExerciseDraft {
@@ -750,6 +760,36 @@ export function FitnessPlansPage() {
     }
   }
 
+  const applyWeekPreset = async (week: FitnessPlanWeekRecord) => {
+    const existingDaysByIndex = new Map(week.days.map((day) => [day.dayIndex, day]))
+
+    setIsMutating(true)
+    setError(null)
+    setSuccessMessage(null)
+    try {
+      for (const presetDay of pushPullLegsWeekPreset) {
+        const existingDay = existingDaysByIndex.get(presetDay.dayIndex)
+        if (existingDay) {
+          if (existingDay.label !== presetDay.label) {
+            await fitnessRepository.updatePlanDay(existingDay.id, { label: presetDay.label })
+          }
+          if (existingDay.isRestDay !== presetDay.isRestDay) {
+            await fitnessRepository.setPlanDayRest(existingDay.id, presetDay.isRestDay)
+          }
+        } else {
+          await fitnessRepository.addPlanDay(week.id, presetDay)
+        }
+      }
+      setSuccessMessage(`Týždeň ${week.weekNumber} vyplnený rozdelením Tlak / Ťah / Nohy.`)
+      await loadPlans(selectedPlanId)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : `Nepodarilo sa použiť týždenné rozdelenie pre týždeň ${week.weekNumber}.`)
+      await loadPlans(selectedPlanId)
+    } finally {
+      setIsMutating(false)
+    }
+  }
+
   const confirmPendingPlanAction = async () => {
     if (!pendingConfirmation) {
       return
@@ -966,6 +1006,7 @@ export function FitnessPlansPage() {
             isMutating={isMutating}
             showGuidance={showGuidance}
             onDuplicateWeek={duplicateWeek}
+            onApplyWeekPreset={applyWeekPreset}
             onAddDay={addTrainingDay}
             onDayDraftChange={updateDayDraft}
             onAddWorkout={addWorkout}
@@ -1334,6 +1375,7 @@ function PlanEditor({
   isMutating,
   showGuidance,
   onDuplicateWeek,
+  onApplyWeekPreset,
   onAddDay,
   onDayDraftChange,
   onAddWorkout,
@@ -1369,6 +1411,7 @@ function PlanEditor({
   isMutating: boolean
   showGuidance: boolean
   onDuplicateWeek: (weekId: string, weekNumber: number) => Promise<void>
+  onApplyWeekPreset: (week: FitnessPlanWeekRecord) => Promise<void>
   onAddDay: (week: FitnessPlanWeekRecord) => Promise<void>
   onDayDraftChange: (weekId: string, key: keyof AddDayDraft, value: string) => void
   onAddWorkout: (day: FitnessPlanDayRecord) => Promise<void>
@@ -1457,6 +1500,9 @@ function PlanEditor({
                       disabled={isMutating}
                     >
                       {isWeekCollapsed ? `Rozbaliť týždeň ${week.weekNumber}` : `Zbaliť týždeň ${week.weekNumber}`}
+                    </Button>
+                    <Button variant="secondary" leadingIcon={<Zap className="size-4" />} onClick={() => void onApplyWeekPreset(week)} disabled={isMutating}>
+                      Použiť Tlak / Ťah / Nohy týždeň {week.weekNumber}
                     </Button>
                     <Button variant="secondary" leadingIcon={<CopyPlus className="size-4" />} onClick={() => void onDuplicateWeek(week.id, week.weekNumber)} disabled={isMutating}>
                       Duplikovať týždeň {week.weekNumber}
@@ -1825,8 +1871,8 @@ function PlanReadinessCard({ structure }: { structure: FitnessPlanStructure }) {
       {report.blockers.length > 0 ? (
         <div className="mt-4 space-y-2">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-200/80">Opraviť pred štartom</p>
-          {report.blockers.map((issue) => (
-            <div key={issue.message} className="rounded-2xl border border-rose-400/30 bg-black/70 px-4 py-3 text-sm font-semibold text-rose-100">
+          {report.blockers.map((issue, index) => (
+            <div key={`${issue.message}-${index}`} className="rounded-2xl border border-rose-400/30 bg-black/70 px-4 py-3 text-sm font-semibold text-rose-100">
               {issue.message}
             </div>
           ))}
@@ -1836,8 +1882,8 @@ function PlanReadinessCard({ structure }: { structure: FitnessPlanStructure }) {
       {report.warnings.length > 0 ? (
         <div className="mt-4 space-y-2">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">Upozornenia</p>
-          {report.warnings.map((issue) => (
-            <div key={issue.message} className="rounded-2xl border border-fitness-yellow/30 bg-black/70 px-4 py-3 text-sm font-semibold text-fitness-yellow">
+          {report.warnings.map((issue, index) => (
+            <div key={`${issue.message}-${index}`} className="rounded-2xl border border-fitness-yellow/30 bg-black/70 px-4 py-3 text-sm font-semibold text-fitness-yellow">
               {issue.message}
             </div>
           ))}
