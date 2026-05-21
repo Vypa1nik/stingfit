@@ -2,8 +2,8 @@
   "name": "StingFit",
   "short_name": "StingFit",
   "description": "Private, local-first fitness training plans, fast workout logging, history, and progression signals.",
-  "id": "./#/training",
-  "start_url": "./#/training",
+  "id": "./#/train",
+  "start_url": "./#/train",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -15,21 +15,21 @@
       "name": "Tréning",
       "short_name": "Tréning",
       "description": "Otvori živý tréning alebo najbližší pripravený workout.",
-      "url": "./#/training",
+      "url": "./#/train",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Rýchly tréning",
       "short_name": "Rýchly",
       "description": "Spusti rýchly tréning bez plánu.",
-      "url": "./#/quick",
+      "url": "./#/train/quick",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "História",
       "short_name": "História",
       "description": "Skontroluj dokončené lokálne tréningy.",
-      "url": "./#/history",
+      "url": "./#/progress/history",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ],

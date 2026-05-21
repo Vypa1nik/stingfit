@@ -167,7 +167,7 @@ if (-not (Wait-ForPreviewPort -PortToCheck $Port -TimeoutSeconds 45)) {
 }
 
 $lanIps = @(Get-LanIpv4Candidates)
-$previewUrls = @($lanIps | ForEach-Object { "http://$_`:$Port/#/training" })
+$previewUrls = @($lanIps | ForEach-Object { "http://$_`:$Port/#/train" })
 $previewUrl = $previewUrls[0]
 Set-Content -LiteralPath $previewUrlFile -Value $previewUrls -Encoding ascii
 
