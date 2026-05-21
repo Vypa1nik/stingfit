@@ -8,6 +8,8 @@ All notable changes to StingFit will be documented in this file.
 
 - Live training crash fallback copy now uses Slovak training wording instead of
   the English "session" label.
+- Android Chrome public PWA route smoke is documented with the remaining
+  installed-PWA, stateful gym-flow, and iOS Safari follow-ups.
 
 ## 3.0.0 - 2026-05-17
 

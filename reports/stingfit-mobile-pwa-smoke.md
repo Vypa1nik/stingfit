@@ -2,7 +2,7 @@
 
 Date: 2026-05-17
 Target: V3 production PWA preview from `npm run mobile:pwa:start` and public PWA at `https://vypa1nik.github.io/stingfit/`
-Status: V3 route matrix updated; automated asset/build coverage passed in `npm run check`, while physical iOS Safari and Android Chrome smoke remains a manual device follow-up.
+Status: V3 route matrix updated; automated asset/build coverage passed in `npm run check`; Android Chrome ADB/CDP public PWA route smoke passed on 2026-05-21, while full installed-PWA/stateful gym flows and iOS Safari remain manual follow-ups.
 
 ## Preview command
 
@@ -69,11 +69,34 @@ These checks define the V3 production-preview smoke contract. The route and asse
 - [ ] Reopen installed app and confirm it lands on Train.
 - [ ] Disconnect network after first load and confirm the app shell/offline fallback is available.
 
+## Android Chrome ADB/CDP smoke - 2026-05-21
+
+Device: `CPH2449` / `OP594DL1`, Android `16`, Chrome `148.0.7778.167`.
+Public target: `https://vypa1nik.github.io/stingfit/`.
+Method: ADB opened the public URL in `com.android.chrome`, forwarded Chrome DevTools through `tcp:9222`, and checked the loaded PWA via CDP without resetting or wiping local app data.
+
+Passed checks:
+
+- Public app opened and resolved to `https://vypa1nik.github.io/stingfit/#/train`.
+- Service worker controlled the page and the manifest was loaded from `/stingfit/manifest.webmanifest`.
+- Canonical mobile routes rendered without CDP runtime exceptions or console errors: `/#/train`, `/#/train/quick`, `/#/progress/lifts`, `/#/progress/prs`, `/#/progress/body`, `/#/progress/journal`, `/#/progress/history`, and `/#/tools/plates`.
+- Legacy V2 routes redirected with the deprecation banner: `/#/stats` -> `/#/progress/lifts`, `/#/history` -> `/#/progress/history`, and `/#/plates` -> `/#/tools/plates`.
+- Mobile `Viac` opened a bottom-sheet dialog containing Rýchly tréning, Kalkulačka kotúčov, História, Coach Mode, and Nastavenia.
+- CDP offline reload simulation on `/#/train` kept the app shell available while service-worker controlled.
+
+Not covered in this automated phone pass:
+
+- Installed Add-to-Home-Screen lifecycle.
+- Gesture flows for duplicate/skip/edit sets.
+- Export/import/reset flows.
+- Full workout mutation flow with plan creation, set logging, finish check-in, and restore.
+- iOS Safari behavior.
+
 ## Issue log
 
-| Severity  | Area              | Steps                                                             | Expected                        | Actual                                                       | Status                |
-| --------- | ----------------- | ----------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------ | --------------------- |
-| Follow-up | Manual phone pass | Run checklist above on real iOS Safari and Android Chrome devices | All critical gym/PWA paths pass | Physical devices are not available in this agent environment | Open manual follow-up |
+| Severity  | Area              | Steps                                                             | Expected                        | Actual                                                                                                  | Status                |
+| --------- | ----------------- | ----------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------- |
+| Follow-up | Manual phone pass | Run checklist above on real iOS Safari and Android Chrome devices | All critical gym/PWA paths pass | Android Chrome ADB/CDP route smoke passed; installed PWA, stateful gym flows, and iOS Safari remain open | Open manual follow-up |
 
 ## Notes
 
