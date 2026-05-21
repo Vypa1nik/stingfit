@@ -1,37 +1,86 @@
 # StingFit Source Map
 
 _Status: Active_
-_Last verified: 2026-05-05_
+_Last verified: 2026-05-17_
 
-This map reflects the live `src/` tree for StingFit V2 Phase 3. It is based on `find src -type f` and describes the top-level source folders agents should use before editing.
+This map reflects the live `src/` tree for the StingFit V3 cycle. Use it after
+reading `AGENTS.md`, `AGENT_START_HERE.md`, and `STINGFIT_V3_PLAN.md`.
 
-## Top-level source folders
+## Top-Level Source Folders
 
-- `src/assets/` — Static image assets bundled by Vite. The current files are starter React/Vite images plus `hero.png`; product screenshots and install assets live under `public/`, not here.
-- `src/components/` — Shared React UI outside a single feature. `layout/` contains the shell/navigation surfaces, and `ui/` contains reusable primitives such as buttons, cards, modals, command palette, toast host, app/feature error boundaries, and typed confirmation.
-- `src/features/` — Product feature modules. The current live modules are `fitness/` for the shipped training loop, `onboarding/` for first-run setup, `profiles/` for Phase 3 local profile state, and `coach/` for the gated Coach Mode shell.
-- `src/hooks/` — Shared React hooks for database readiness, keyboard shortcuts, onboarding state, SPA navigation, and theme preference.
-- `src/i18n/` — Copy catalogs used by the current app surface. `sk.ts` is the active Slovak catalog; `en.ts` is a placeholder stub with the same key shape for future English localization.
-- `src/lib/` — App infrastructure and side-effect helpers: SQLite boot/persistence, migrations, downloads, shortcuts, UI store, constants, and small utilities.
-- `src/styles/` — Global Tailwind/theme styles. `globals.css` wires Tailwind and base styles; `themes.css` carries the High-Voltage Wasp visual identity variables.
-- `src/types/` — Shared TypeScript declarations that are not owned by one feature, including common route/nav types and the `sql.js` runtime declaration.
+- `src/assets/` - static image assets bundled by Vite. Product screenshots and
+  install assets live under `public/`.
+- `src/components/` - shared React UI outside a single feature. `layout/`
+  contains the app shell and V3 navigation surfaces. `ui/` contains reusable
+  primitives such as buttons, cards, modals, command palette, toast host,
+  app/feature error boundaries, and typed confirmation.
+- `src/features/` - product feature modules: `fitness/`, `progress/`,
+  `coach/`, `onboarding/`, and `profiles/`.
+- `src/hooks/` - shared React hooks for database readiness, keyboard
+  shortcuts, onboarding state, SPA navigation, and theme preference.
+- `src/i18n/` - copy catalogs. `sk.ts` is the active Slovak catalog; `en.ts`
+  is a placeholder catalog with the same key shape.
+- `src/lib/` - app infrastructure and side-effect helpers: SQLite
+  boot/persistence, migrations, downloads, shortcuts, UI store, constants, and
+  utilities.
+- `src/styles/` - global Tailwind/theme styles.
+- `src/types/` - shared TypeScript declarations that are not owned by one
+  feature.
 
-## Root source files
+## Root Source Files
 
-- `src/App.tsx` wires the app shell and router outlet.
+- `src/App.tsx` wires the app shell, command palette, shortcuts cheatsheet, and
+  V3 command actions.
 - `src/main.tsx` is the React/Vite browser entrypoint.
-- `src/router.tsx` defines the HashRouter route tree used by the PWA and Tauri-compatible shell, including `/training`, `/quick`, `/plans`, `/history`, `/stats`, `/plates`, `/settings`, and the guarded `/coach/*` routes.
+- `src/router.tsx` defines the HashRouter route tree. V3 routes are `/train`,
+  `/train/quick`, `/progress/*`, `/plans`, `/plans/coach/*`, `/tools/plates`,
+  and `/settings`. V2 URLs redirect for the deprecation window.
 
-## Feature modules
+## Layout Module
 
-- `src/features/fitness/` — The full V1/V2 product surface: dashboards, training, quick sessions, live logging, plan builder/editor, history, stats, standalone plate calculator, settings, TanStack Query read hooks under `queries/`, repository/persistence logic, seed data, Strong CSV import, coach Plan Pack import from Settings, trainee Recap Pack export from History, backup nudges, units, rest alerts, shared plate-load UI, and recommendation/progression helpers.
-- `src/features/onboarding/` — First-run onboarding surface. It now opens directly on the simple-start builder or Quick Workout path, with local privacy and theme choices kept as secondary context.
-- `src/features/profiles/` — Phase 3 local profile model, repository helpers, and top-bar profile switcher. The switcher remains hidden while only the default solo profile exists.
-- `src/features/coach/` — Phase 3 Coach Mode shell. `coachModeRepository.ts` owns the local `coach_mode_enabled` setting. `CoachModePage.tsx` guards `/coach/clients`, `/coach/plans`, `/coach/templates`, and `/coach/recaps`, then renders local client lists, Plan Pack export actions, template empty states, and read-only Recap Pack previews once Coach Mode is enabled. `planPack/` defines `.stfplan` schema plus local export/import helpers, and `recapPack/` defines `.stfrecap` schema plus read-only preview helpers. The Phase 3 privacy audit for these explicit file handoffs lives in `reports/stingfit-privacy-network-audit.md`.
+- `AppShell.tsx` - shell composition.
+- `TopBar.tsx` - top bar and profile/context affordances.
+- `NavigationSidebar.tsx` - desktop grouped navigation for Train, Progress,
+  Plans, Tools, and Settings.
+- `MobileBottomNav.tsx` - five-tile mobile nav.
+- `MoreSheet.tsx` - secondary mobile destinations such as tools, Coach Mode,
+  history, and settings.
 
-## Legacy feature directory check
+## Feature Modules
 
-Verified absent during Phase 0 source tree audit:
+- `src/features/fitness/` - shipped training loop, quick sessions, live
+  logging, personal plan builder/editor, history, legacy stats logic, settings,
+  plate calculator, import/export, backup nudges, units, rest alerts,
+  repository/persistence logic, seed data, Strong CSV import, and
+  recommendation/progression helpers.
+- `src/features/progress/` - V3 Progress surface. Contains `ProgressHubPage`,
+  `ProgressLiftsTab`, `ProgressPRsTab`, `ProgressBodyTab`,
+  `ProgressJournalTab`, `MiniLineChart`, `progressRepository`, and
+  `progressTypes`.
+- `src/features/coach/` - gated local Coach Mode. Owns Plan Pack (`.stfplan`)
+  and Recap Pack (`.stfrecap`) explicit file handoffs.
+- `src/features/onboarding/` - first-run onboarding and simple-start builder.
+- `src/features/profiles/` - local profile model, repository helpers, and
+  top-bar profile switcher.
+
+## Database And Migrations
+
+- `src/lib/database.ts` owns SQLite boot/persistence.
+- `src/lib/migrations.ts` currently includes `v001` through `v004`.
+- `v004` adds `fitness_body_measurements` and `fitness_journal_entries`.
+
+## Active Tests To Check First
+
+- `tests/fitness-shell.test.ts`
+- `tests/fitness-navigation.test.ts`
+- `tests/fitness-migrations.test.ts`
+- `tests/fitness-progress.test.ts`
+- Add focused progress repository tests before marking V3 body/journal work
+  complete.
+
+## Legacy Directory Check
+
+The old LocalFlow productivity-era modules are not part of the live app:
 
 - `src/features/notes/`
 - `src/features/tasks/`

@@ -1,140 +1,127 @@
-# StingFit — Rules
+# StingFit - Rules
 
 > Reading order for an agent or new contributor:
-> 1. [`AGENTS.md`](./AGENTS.md) — workflow protocol
-> 2. [`STINGFIT_V2_PLAN.md`](./STINGFIT_V2_PLAN.md) — active plan
-> 3. [`PRODUCT.md`](./PRODUCT.md) — vision, personas, anti-goals
-> 4. **This file** — engineering and product rules
+> 1. [`AGENTS.md`](./AGENTS.md) - workflow protocol.
+> 2. [`AGENT_START_HERE.md`](./AGENT_START_HERE.md) - current clean handoff.
+> 3. [`STINGFIT_V3_PLAN.md`](./STINGFIT_V3_PLAN.md) - active plan.
+> 4. [`PRODUCT.md`](./PRODUCT.md) - vision, personas, anti-goals.
+> 5. **This file** - binding engineering and product rules.
 >
-> Anything in `docs/archive/` is ARCHIVED and must not influence implementation.
+> `STINGFIT_V2_PLAN.md` and everything under `docs/archive/` are historical
+> context only. They must not drive new implementation.
 
 ---
 
-## 1. Three-layer architecture for any change
+## 1. Authority Order
 
-1. **Rules (this file)** — what is allowed, what is not, naming and patterns.
-2. **Orchestration ([`STINGFIT_V2_PLAN.md`](./STINGFIT_V2_PLAN.md))** — phase
-   and module order, dependencies between modules, acceptance gates.
-3. **Execution** — the actual code, tests, and build, written one module at
-   a time per the [`AGENTS.md`](./AGENTS.md) protocol.
+1. **Product contract** - `PRODUCT.md` and this file decide what is allowed.
+2. **Active plan** - `STINGFIT_V3_PLAN.md` decides module order and acceptance
+   scope.
+3. **Execution** - code, tests, migrations, and docs are written one module at
+   a time per `AGENTS.md`.
 
-If a rule and a plan disagree: rules win on engineering, plan wins on order.
-If product wins on either: stop and ask the user.
+If a rule and the V3 plan disagree, stop and ask the user to reconcile the
+conflict. Do not silently pick a side.
 
----
+## 2. Engineering Rules
 
-## 2. Engineering rules (binding)
+- Never generate or rewrite the whole app in one pass.
+- Work module by module, using the existing local patterns first.
+- Put new UI up first with local/dummy data, then wire stores and database.
+- Use TypeScript strict mode. No `any`. No `@ts-ignore` without a comment that
+  names the reason.
+- Every CRUD path needs loading, success, error, and empty states.
+- Every schema change ships with a migration in `src/lib/migrations.ts` and a
+  regression test in `tests/`.
+- Never silently swallow persistence, import, export, or migration failures.
+- Prefer the simpler implementation. Do not pre-optimize.
+- If the same bug loops 3+ times, stop and surface two alternatives to the
+  user before pushing further.
+- Do not add a new dependency without explicit user approval.
+- No emojis in product copy. No hex colors in TSX; use Tailwind tokens and
+  existing theme variables.
+- Accessibility is a release blocker: focus rings, aria labels, keyboard paths,
+  useful empty/error states, and readable contrast are required.
 
-- **Never** generate the whole app in one step. Work module by module.
-- **Always** put UI up first with dummy data, then store, then DB wiring.
-- **Always** verify with `npm run check` after each module.
-- **Always** use TypeScript strict mode. No `any`. No `@ts-ignore` without
-  a comment that names the reason.
-- **Every** CRUD path must implement loading, success, error, and empty
-  states. None of those four is optional.
-- **Every** schema change ships with a migration in `src/lib/migrations.ts`
-  and a regression test in `tests/`.
-- **Never** silently swallow persistence, import, export, or migration
-  failures. Surface them — toast at minimum, error boundary if the failure
-  breaks the screen.
-- **Prefer** the simpler implementation. Do not pre-optimize.
-- **If a fix loops 3+ times**, stop, revert to the last green commit, and
-  surface two alternatives to the user.
-- **Do not add a new dependency** without explicit user approval. The V2
-  plan pre-approves **zero** new heavy deps. If you think you need one,
-  stop and ask.
-- **No emojis in product copy.** No hex colors in TSX (use Tailwind tokens
-  and the existing theme variables).
-- **Accessibility is a release blocker.** Focus rings, aria-labels,
-  keyboard paths, color contrast — all required, all gated by Lighthouse a11y
-  >= 95 in V2 Phase 4.
+## 3. Product Rules
 
-## 3. Product rules (binding — these protect the product itself)
-
-These are stronger than engineering rules. An agent cannot relax them.
+These are stronger than engineering preferences. An agent cannot relax them.
 The user can change them only by editing `PRODUCT.md` and this file together.
 
-### 3.1 Local-first and private
+### 3.1 Local-First And Private
 
-- **No cloud sync, no account system, no login, no telemetry, no analytics
-  SDK, no payment flow, no subscription, no paywall, no ads.**
-- All training data lives on the device, in the browser's IndexedDB-backed
-  SQLite, full stop.
-- A user must be able to use StingFit for a year, fully offline, and lose
-  nothing.
+- No cloud sync, account system, login, telemetry, analytics SDK, payment flow,
+  subscription, paywall, marketplace, ads, or social graph.
+- Training data lives on the device in IndexedDB-backed SQLite.
+- A user must be able to train offline for a long period and keep their data.
 
-### 3.2 Sharing is always explicit
+### 3.2 Sharing Is Explicit
 
-- Data leaves the device only via a user-initiated export.
-- The supported share formats in V2 are **Plan Pack (`.stfplan`)** and
-  **Recap Pack (`.stfrecap`)**, both portable JSON files.
-- No background upload. No "auto-share." No notification asking "send to
-  cloud?". If you find yourself wanting one of those, stop.
+- Data leaves the device only through user-initiated export/import.
+- Supported coach<->trainee handoff formats are Plan Pack (`.stfplan`) and
+  Recap Pack (`.stfrecap`).
+- No background upload. No auto-share. No cloud-shaped sync prompts.
 
-### 3.3 The coach<->trainee bridge is the V2 thesis
+### 3.3 Coach Mode Stays Local
 
-- **Coach Mode** is a perspective inside the same app, not a separate
-  product. One install, two perspectives.
-- A coach must be able to hand a Plan Pack to a trainee on a fresh install
-  in under 60 seconds, with neither of them creating any account.
-- A trainee must be able to send a Recap Pack back to the coach with no
-  account either.
-- See `PRODUCT.md` section 3 for the full personas and `STINGFIT_V2_PLAN.md`
-  Phase 3 for the implementation plan.
+- Coach Mode is a perspective inside the same app, not a separate cloud
+  product.
+- A coach can hand a Plan Pack to a trainee without either person creating an
+  account.
+- A trainee can send a Recap Pack back without an account.
+- Coach Mode must not mutate trainee data without explicit trainee action.
 
-### 3.4 Anti-goals
+### 3.4 Anti-Goals
 
-The following are **out of scope** for V2 and require explicit user sign-off
-in chat plus a written `PRODUCT.md` change to ever revisit:
+The following are out of scope unless the user explicitly approves them in chat
+and updates `PRODUCT.md`:
 
 - AI chatbot in the gym.
-- Any cloud-shaped sync engine.
-- Wearables sync (Apple Health, Garmin, Whoop, Fitbit, Polar).
-- Nutrition, sleep, or habit tracking.
-- Native iOS / Android binaries, except the explicitly approved V2.1 Capacitor Mobile App Track. Expo, React Native, and Tauri Mobile remain out of scope unless separately approved in `PRODUCT.md`.
+- Any cloud sync engine.
+- Wearables sync.
+- Nutrition, sleep, or habit tracking beyond the narrow V3 journal fields.
+- Native iOS / Android binaries beyond the approved Capacitor packaging track.
 - Real-time collaborative editing.
-- Public profiles, follows, leaderboards, social feeds.
+- Public profiles, follows, leaderboards, or social feeds.
 - A marketplace for paid plans.
-- Onboarding "tutorial" walkthroughs of more than 2 screens.
+- Onboarding tutorial walkthroughs longer than 2 screens.
 - Any feature that requires being online to start using.
 
-### 3.5 The trainee is sacred
+### 3.5 The Trainee Is Sacred
 
 - Never delete trainee data without typed confirmation.
-- Never modify a completed session. Corrections add a correction record;
-  the original snapshot stays intact.
-- Never let a Coach Mode action mutate a trainee's data without trainee
-  confirmation. (V2 ships Plan Packs as files; importing is always an
-  explicit trainee action.)
+- Never modify a completed session in place. Corrections add correction
+  records; the original snapshot stays intact.
+- Never let a Coach Mode action mutate trainee data without trainee
+  confirmation.
 
-## 4. Folder discipline
+## 4. Folder Discipline
 
-- The active plan is `STINGFIT_V2_PLAN.md` at the repo root.
-- Anything under `docs/archive/` is read-only history. Do not link to it
-  from active code or active docs. Do not extract TODOs from it without
-  explicit user approval.
-- Tmp/runtime artifacts (`.tmp-*`, `.pi/`, `.pi-lens/`, `.superpowers/`,
-  `.playwright-mcp/`, `.ruff_cache/`) stay out of git.
-- New documentation files must declare their status in the first 5 lines
-  ("Active", "Draft", or "Archived"). Anything ambiguous gets archived.
+- The active plan is `STINGFIT_V3_PLAN.md` at the repo root.
+- `STINGFIT_V2_PLAN.md` is historical context only.
+- Anything under `docs/archive/` is read-only history. Do not link to it from
+  active implementation docs except as an archive pointer.
+- Scratch/runtime artifacts (`.tmp-*`, `.pi/`, `.pi-lens/`, `.superpowers/`,
+  `.playwright-mcp/`, `.ruff_cache/`, `output/`) stay out of git and out of
+  planning.
+- New documentation files must declare status in the first 5 lines: Active,
+  Draft, or Archived.
 
-## 5. CHANGELOG discipline
+## 5. Changelog Discipline
 
 - Every module ends with 1-3 sentences in `CHANGELOG.md` under
-  `## Unreleased`, written from the user's point of view ("History now...",
-  not "refactored useEffect to useQuery in...").
-- Phase closes promote `## Unreleased` entries under the phase tag
-  (e.g. `## v2-phase-1`).
-- The V2 release closes everything under `## v2.0.0`.
+  `## Unreleased`, written from the user's point of view.
+- V3 release work promotes entries under `## 3.0.0`.
+- Historical V2 release entries stay under `## v2.0.0`.
 
-## 6. Verification gate
+## 6. Verification Gate
 
-A change is not done until **all** of these are green:
+A change is not done until the strongest relevant gate is green:
 
 1. `npm run typecheck`
 2. `npm run lint`
 3. `npm run test:run`
 4. `npm run build`
 
-`npm run check` runs the gate (lint + test:run + build). Run it before
-declaring a module done. Run it again before opening a PR.
+`npm run check` runs lint + tests + build. Run it before declaring behavior,
+schema, or UI work complete.

@@ -4,12 +4,29 @@ All notable changes to StingFit will be documented in this file.
 
 ## Unreleased
 
+_No changes yet._
+
+## 3.0.0 - 2026-05-17
+
+StingFit V3 ships the Train / Progress / Plans rebuild described in [`STINGFIT_V3_PLAN.md`](./STINGFIT_V3_PLAN.md). This release keeps old V2 URLs redirecting for one full release while making canonical V3 routes the app-owned entry points.
+
 ### Added
 
 - V2.1 Mobile App Track now has a Capacitor bootstrap for Android APK and iOS handoff planning, with root-base mobile builds and documented local-first verification gates.
 - Capacitor Android platform generation is now checked in, with a Windows-safe debug APK build wrapper that avoids restricted `C:\Windows` temp writes and produces `android/app/build/outputs/apk/debug/app-debug.apk`.
+- Finish-workout check-ins can now save an optional linked Progress journal note, keeping session notes separate from longer reflection text.
 
 ### Changed
+
+- V3 shell navigation, More sheet, and Progress hub labels now read from the shared Slovak/English i18n catalog instead of local component constants.
+- Legacy V2 URLs now show a one-release redirect notice, while StingFit's own navigation and PWA launch paths use canonical V3 routes.
+- Mobile V3 navigation now has a tested FAB lift, animated More sheet open behavior, and refreshed canonical-route smoke reports.
+
+- Active agent documentation now points cleanly at the V3 plan and a new
+  `AGENT_START_HERE.md` handoff, with V2 material marked as historical so the
+  next coding session does not follow old phase gates.
+
+- Full fitness JSON backups now use payload version 2, include Progress body measurements and journal entries, and keep legacy v1 imports compatible by treating missing progress arrays as empty.
 
 - Custom plan editing now uses compact weekday chips (`Po`-`Ne`) so only one training day expands at a time, with quick day-type presets for `Tlak`, `Ťah`, `Nohy`, `Full body`, `Voľno`, and `Vlastný`.
 - Personal plan weeks can now apply a one-tap `Tlak / Ťah / Nohy` preset that fills or updates all seven day slots without changing the database schema.

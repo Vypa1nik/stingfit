@@ -28,7 +28,8 @@ though it still lives under the larger `New project` workspace.
 ## Recommended daily flow
 
 1. Open the `localflow` folder directly in VS Code.
-2. Use the existing `AI: Pi ...` tasks from `.vscode/tasks.json`.
-3. Create a branch for a focused change.
-4. Run `npm run check` before pushing.
-5. Push to GitHub and let Actions verify lint, tests, and build.
+2. Read `AGENTS.md`, then `AGENT_START_HERE.md`, before older plans or reports.
+3. Use the existing `AI: Pi ...` tasks from `.vscode/tasks.json`.
+4. Create a branch for a focused change.
+5. Run `npm run check` before pushing.
+6. Push to GitHub and let Actions verify lint, tests, and build.

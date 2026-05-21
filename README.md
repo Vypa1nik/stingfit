@@ -17,14 +17,31 @@ No login, no cloud sync, no telemetry, no analytics, no subscriptions, and no pa
 > Read these four files, in this order, before writing any code:
 >
 > 1. [`AGENTS.md`](./AGENTS.md) — agent workflow protocol
-> 2. [`STINGFIT_V2_PLAN.md`](./STINGFIT_V2_PLAN.md) — **the active rebuild plan**
-> 3. [`PRODUCT.md`](./PRODUCT.md) — vision, personas, anti-goals
-> 4. [`RULES.md`](./RULES.md) — engineering and product rules
+> 2. [`AGENT_START_HERE.md`](./AGENT_START_HERE.md) — current clean V3 handoff
+> 3. [`STINGFIT_V3_PLAN.md`](./STINGFIT_V3_PLAN.md) — **the active rebuild plan**
+> 4. [`PRODUCT.md`](./PRODUCT.md) — vision, personas, anti-goals
+> 5. [`RULES.md`](./RULES.md) — engineering and product rules
+>
+> [`STINGFIT_V2_PLAN.md`](./STINGFIT_V2_PLAN.md) remains in the repo as
+> historical context — V2 shipped and V3 builds on top. Use it to understand
+> "why we got here," not to plan new work.
 >
 > Anything in [`docs/archive/`](./docs/archive/) is **archived** and must not
 > influence implementation choices.
 
-## V2 release readiness
+## Current V3 Rebuild
+
+StingFit V3 is the current shipped release (`3.0.0`). It keeps every V2 feature
+reachable while reshaping the app around Train, Progress, Plans, and Tools:
+`/train`, `/progress/*`, `/plans/coach/*`, and `/tools/plates` are the canonical
+app-owned routes, and old V2 URLs redirect with a one-release deprecation banner.
+
+The V3 ship gate passed locally on 2026-05-17 with `npm run check`: lint, the
+full Vitest suite, and the production build were green. `STINGFIT_V3_PLAN.md`
+remains the current plan of record for the V3 scope and shipped criteria, while
+`AGENT_START_HERE.md` records the latest handoff and manual follow-ups.
+
+## Historical V2 Release Readiness
 
 StingFit V2.0 ships as a PWA-only release with the React + Vite PWA and local SQLite storage through `sql.js` persisted in IndexedDB as the verified production path. Coach Mode, Plan Packs, Recap Packs, the PWA install funnel, and the GitHub Pages deployment workflow are implemented; the owner accepted the remaining manual smoke concerns and desktop packaging remains a future track.
 
@@ -59,9 +76,9 @@ npm run mobile:ios:handoff
 
 See `reports/stingfit-mobile-capacitor-track.md` and `reports/stingfit-ios-capacitor-handoff.md` for the Android/iOS build plan and verification checklist.
 
-## What works in V2
+## What works in V3
 
-- Fitness-first shell with Training, Quick, Plans, History, Stats, and Settings
+- Fitness-first shell with Train, Progress, Plans, Tools, Settings, and one-release redirects from old V2 URLs
 - High-Voltage Wasp visual identity: black base, sharp yellow, orange accents
 - Installable PWA shell with offline fallback, mobile install metadata, shortcuts, and screenshot assets
 - Starter templates for Push/Pull/Legs, Upper/Lower, and Full Body 3×
@@ -78,15 +95,16 @@ See `reports/stingfit-mobile-capacitor-track.md` and `reports/stingfit-ios-capac
 - Set corrections in live workouts and history with lightweight correction audit badges
 - Finish check-in with session RPE, energy, and notes
 - Workout history filtering, selected-detail review, PR events, volume, and quality-aware progression hints
+- Progress hub with lifts, PRs, body measurements, journal, and pinned workout history
 - Stats for 1RM trends, 12-week consistency, exercise volume leaders, muscle-group volume, actionable volume recommendations, and recovery signals
 - kg/lb display and logging support while storage remains kg-based
 - Strong CSV import for appending completed workout history from Strong exports
 - Optional guidance visibility for users who prefer a quieter interface
-- Fitness-only JSON export/import/restore
+- Fitness-only JSON export/import/restore including Progress body measurements and journal entries
 - backup nudge after every 30 completed workouts, encouraging a local JSON export
 - Safe starter reset and full local fitness data wipe with typed confirmation
 - Automated no-telemetry/privacy audit in `reports/stingfit-privacy-network-audit.md`
-- V1 smoke coverage for the full local loop
+- Full local-loop smoke coverage for train, finish, history, export, reset, and restore
 
 ## Local-first privacy promise
 
@@ -188,8 +206,8 @@ npm run build
 ## Release documentation
 
 - `docs/landing/index.html` — static landing one-pager for the V2 PWA release path
-- `reports/stingfit-v2-release-readiness.md` — V2 release-readiness handoff, public URL, accepted concerns, and release approval
-- `reports/stingfit-v2.0.0-release-notes.md` — approved PWA-only release notes for `v2.0.0`
+- `docs/archive/reports/stingfit-v2-release-readiness.md` — archived V2 release-readiness handoff, public URL, accepted concerns, and release approval
+- `docs/archive/reports/stingfit-v2.0.0-release-notes.md` — archived PWA-only release notes for `v2.0.0`
 - `reports/stingfit-v1-release-checklist.md` — manual mobile/PWA QA checklist and known limitations
 - `reports/stingfit-privacy-network-audit.md` — no-telemetry/no-cloud audit
 - `public/screenshots/stingfit-training.svg` and `public/screenshots/stingfit-stats.svg` — PWA screenshot assets referenced by the manifest

@@ -1,49 +1,60 @@
-# StingFit — Agent Guide
+# StingFit - Agent Guide
 
 > **Read this file first.** Then read, in order:
-> 1. [`STINGFIT_V2_PLAN.md`](./STINGFIT_V2_PLAN.md) — the active rebuild plan
-> 2. [`PRODUCT.md`](./PRODUCT.md) — vision, personas, anti-goals
-> 3. [`RULES.md`](./RULES.md) — engineering and product rules
-> 4. [`README.md`](./README.md) — current shipped surface
+> 1. [`AGENT_START_HERE.md`](./AGENT_START_HERE.md) - current clean handoff for the next coding agent.
+> 2. [`STINGFIT_V3_PLAN.md`](./STINGFIT_V3_PLAN.md) - **the active rebuild plan**.
+> 3. [`PRODUCT.md`](./PRODUCT.md) - vision, personas, anti-goals.
+> 4. [`RULES.md`](./RULES.md) - binding engineering and product rules.
+> 5. [`README.md`](./README.md) - current shipped surface and commands.
+>
+> `STINGFIT_V2_PLAN.md` is historical context only. V2 shipped. Do not use V2
+> open items, phase gates, or module order to plan new work unless
+> `STINGFIT_V3_PLAN.md` explicitly restates them.
 >
 > **Do not read or extract ideas from `docs/archive/`.** Anything in there is
-> historical context only and carries an ARCHIVED banner. If something in the
-> archive looks worth reviving, raise it in chat — only the user folds it into
-> the active plan.
+> archived. If something looks worth reviving, raise it in chat and wait for
+> the user to fold it into the active V3 plan.
 
 ---
 
-## What StingFit is
+## What StingFit Is
 
 StingFit is a private, local-first fitness training app: personal plans, fast
-gym logging, workout history, PR tracking, progression feedback, and — in V2
-— the coach<->trainee bridge. It runs as a React + Vite PWA today, with a Tauri
-v2 desktop scaffold for V2 distribution.
+gym logging, workout history, PR tracking, progression feedback, and the
+coach<->trainee file handoff. It runs as a React + Vite PWA today, with Tauri
+and Capacitor scaffolds kept as separate packaging tracks.
 
-For the full vision, including the V2 coach<->trainee positioning, read `PRODUCT.md`.
+V3 reorganizes the product around three pillars:
+
+- Train - what do I do right now?
+- Progress - am I improving?
+- Plans - what is next?
+
+No cloud sync, accounts, telemetry, analytics, subscriptions, payments, or
+paywalls are allowed.
 
 ## Stack
 
 - React 19 + TypeScript strict mode
 - Vite 8 + Tailwind 4 (`@tailwindcss/vite`)
-- react-router-dom v7 (HashRouter for Tauri compatibility)
+- react-router-dom v7 with HashRouter compatibility
 - Zustand for client state
-- TanStack Query for fitness reads (V2 Phase 1 adopts this for the legacy `useEffect+setState` paths)
-- `sql.js` (SQLite WASM) persisted via `idb-keyval`
+- TanStack Query for fitness reads
+- `sql.js` persisted via `idb-keyval`
 - Vitest + jsdom + fake-indexeddb
-- Tauri v2 scaffold — desktop builds become a verified path in V2 Phase 4
+- Tauri v2 scaffold and Capacitor mobile scaffold as packaging tracks
 
 ## Commands
 
 ```bash
 npm install
-npm run dev          # local dev (HMR)
+npm run dev
 npm run typecheck
 npm run lint
 npm run test:run
 npm run build
-npm run preview      # serve the production bundle locally
-npm run check        # lint + test:run + build (the verification gate)
+npm run preview
+npm run check
 ```
 
 PWA / mobile production preview:
@@ -54,106 +65,106 @@ npm run mobile:pwa:url
 npm run mobile:pwa:stop
 ```
 
-The verified production path in this workspace is the web/PWA build. Tauri
-desktop builds become a verified path in V2 Phase 4 (Distribution).
+Public preview tunnel:
 
-## Source map
+```bash
+npm run public:start
+npm run public:url
+npm run public:stop
+```
 
-- `src/components/layout/` — `AppShell`, `TopBar`, `NavigationSidebar`, `MobileBottomNav`
-- `src/components/ui/` — reusable primitives (`Button`, `Card`, `Modal`, `CommandPalette`, `ToastHost`, ...)
-- `src/features/fitness/` — the entire shipped product surface (plans, training, history, stats, settings, plate calculator, rest alerts, etc.)
-- `src/features/onboarding/` — first-run flow + simple-start builder
-- `src/features/coach/` — **created in V2 Phase 3.** Plan Packs, Recap Packs, profile switcher, coach views. Does not exist yet.
-- `src/hooks/` — `useDatabase`, `useKeyboardShortcuts`, `useOnboarding`, `useTheme`, `useSpaNavigate`
-- `src/lib/` — `database.ts`, `migrations.ts`, `download.ts`, `shortcuts.ts`, `uiStore.ts`, `utils.ts`, `constants.ts`
-- `src/i18n/sk.ts` — Slovak strings (V2 Phase 2 consolidates remaining hardcoded copy here)
-- `src/styles/` — `globals.css`, `themes.css` (High-Voltage Wasp identity)
-- `src/types/` — shared TypeScript domain types
-- `src-tauri/` — desktop wrapper scaffold (verified in V2 Phase 4)
-- `tests/` — Vitest suites for repository, plan logic, live session, history, stats, UI
-- `tools/` — PWA preview scripts, QR generators, bundle budget (added in V2 Phase 1)
-- `docs/` — `github-agent-workflow.md` (active) and `archive/` (ARCHIVED — do not read for guidance, includes the legacy `superpowers/` plans and specs)
-- `reports/` — release checklist, privacy/network audit, mobile smoke, pre-production audit handoff
+## Source Map
 
-See [`docs/source-map.md`](./docs/source-map.md) for the live source tree map (produced in V2 Phase 0 module 2; refresh it whenever the `src/` tree shifts).
+- `src/components/layout/` - `AppShell`, `TopBar`, `NavigationSidebar`, `MobileBottomNav`, `MoreSheet`
+- `src/components/ui/` - reusable primitives (`Button`, `Card`, `Modal`, `CommandPalette`, `ToastHost`, ...)
+- `src/features/fitness/` - shipped training, quick session, plans, history, settings, plate calculator, stats logic
+- `src/features/progress/` - V3 Progress hub, lift charts, PR feed, body measurements, journal
+- `src/features/coach/` - Coach Mode, Plan Packs, Recap Packs, local file handoff
+- `src/features/onboarding/` - first-run flow + simple-start builder
+- `src/features/profiles/` - local profile state and switcher
+- `src/hooks/` - database, keyboard, onboarding, theme, SPA navigation hooks
+- `src/lib/` - database, migrations, downloads, shortcuts, UI store, constants, utilities
+- `src/i18n/` - Slovak primary copy plus placeholder English catalog
+- `src/styles/` - Tailwind globals and High-Voltage Wasp theme variables
+- `src/types/` - shared TypeScript domain types
+- `tests/` - Vitest suites
+- `tools/` - preview, QR, bundle, mobile packaging scripts
+- `docs/` - active docs plus `docs/archive/` history that must not guide implementation
+- `reports/` - current audits and packaging/smoke reports
 
-## Workflow protocol
+See [`docs/source-map.md`](./docs/source-map.md) for the refreshed live source tree map.
 
-### Per-session entry
+## Per-Session Entry
 
-1. Re-read `STINGFIT_V2_PLAN.md` to confirm the active phase.
-2. Run `npm run check` to confirm the baseline is green before any edit.
-3. If `check` is red on entry, **stop and surface to the user**. Do not start
-   new work on top of a broken main.
+1. Confirm the repo root is `C:\Users\kiko\Documents\New project\localflow`.
+2. Read `AGENT_START_HERE.md` before any older plan or report.
+3. Treat `STINGFIT_V3_PLAN.md` as the only active plan.
+4. Run the smallest useful baseline before editing:
+   - docs-only: `git status -sb`
+   - TS/React code: `npm run typecheck` and `npm run lint`
+   - behavior or DB changes: `npm run check`
+5. If the baseline is red, classify whether it is code breakage or local
+   environment breakage. Surface real blockers instead of building on top of a
+   broken state.
 
-### Per-module protocol
+## Per-Module Protocol
 
-A "module" is the smallest unit of work in the active phase (e.g. "Adopt
-TanStack Query for `FitnessHistoryPage`", not "Phase 1").
+A module is the smallest useful slice from the V3 phase board, not a whole
+phase.
 
-1. **Plan in 3-5 sentences.** State the change in DB schema (if any), in
-   stores, in UI, in tests. Wait for user confirmation before writing code.
-2. **UI first with dummy data** for any new screen or flow.
-3. **Wire stores and DB.** Add a migration in `src/lib/migrations.ts` if the
-   schema moves. Add a regression test in `tests/`.
-4. **Tests.** Every new public function gets at least one Vitest test. New
-   UI gets a happy-path integration test.
-5. **Keyboard / command palette.** Any new user-facing action is reachable
-   via shortcut and from the command palette.
-6. **Self-check.** `npm run check` green. No new ESLint warnings. No console
-   errors in `npm run dev`. No regressions in existing tests.
-7. **CHANGELOG entry.** 1-3 sentences under `## Unreleased` describing what
-   the user notices.
+1. State a 3-5 sentence plan in chat before code. If the user asked to continue
+   directly, proceed after posting the plan.
+2. For new UI, build the visible states first with local/dummy data.
+3. Wire stores and database after the UI shape is clear.
+4. Add or update migrations in `src/lib/migrations.ts` for schema changes.
+5. Add focused Vitest coverage for new public functions, schema changes, and
+   user-facing flows.
+6. Any new user-facing action must be reachable from navigation, keyboard, or
+   command palette where appropriate.
+7. Add a short `CHANGELOG.md` entry under `## Unreleased`.
+8. End with the strongest verification that fits the change.
 
-### Per-phase exit
+## V3 Navigation Contract
 
-- Acceptance criteria from `STINGFIT_V2_PLAN.md` are all green.
-- The phase is tagged (`v2-phase-N`).
-- A short note posted to the user summarizing what shipped and what is next.
+- `/` redirects to `/train`.
+- Train pillar: `/train`, `/train/quick`, `/train/live` alias.
+- Progress pillar: `/progress/lifts`, `/progress/prs`, `/progress/body`,
+  `/progress/journal`, `/progress/history`.
+- Plans pillar: `/plans`, `/plans/coach/*`.
+- Tools: `/tools/plates`.
+- Settings: `/settings`.
+- V2 URLs must keep redirecting for the deprecation window:
+  `/training`, `/quick`, `/stats`, `/history`, `/plates`, `/coach/*`.
 
-### Stuck protocol
+## Hard Product Rules
 
-- 3 failed attempts on the same bug -> stop, revert to the last green commit,
-  and present the user with two alternatives. Do not push past the third
-  attempt without user input.
-- Whenever something in `STINGFIT_V2_PLAN.md` disagrees with reality, **stop
-  and propose a doc edit** before writing code. The plan is the source of truth.
-
-## Hard product rules (cannot be relaxed by an agent)
-
-- Local-first and private. **Never** add cloud sync, login, telemetry,
-  analytics, subscription, payment, or paywall logic. (V2.1+ may introduce
-  opt-in BYO storage; that requires explicit user sign-off and a written
-  change to `PRODUCT.md`.)
-- Sharing is always explicit. Plan Packs and Recap Packs leave the device
-  only when the user takes a deliberate export action.
+- Local-first and private. Never add cloud sync, login, telemetry, analytics,
+  subscription, payment, paywall, ads, or marketplace logic.
+- Sharing is explicit file export/import only. Plan Packs and Recap Packs leave
+  the device only when the user deliberately exports/imports.
 - Do not rewrite the existing fitness module to solve one feature.
-- Build UI states with dummy data first. Every CRUD path needs loading,
-  success, error, and empty states.
-- Validate inputs and import boundaries with structured schemas (Zod where
-  practical).
+- Validate inputs and import boundaries with structured schemas where practical.
 - Schema changes are versioned and covered by tests.
-- Do not silently swallow persistence or import/export failures.
+- Do not silently swallow persistence, import, export, or migration failures.
 - Keep accessible tap/click targets, labels, focus states, and keyboard paths.
-- Do not add large UI libraries unless the local component system cannot
-  reasonably cover the need. The V2 plan pre-approves zero new heavy deps.
+- Do not add large UI libraries unless the user explicitly approves.
 
-## Definition of Done (per change)
+## Definition Of Done
 
 - `npm run build` passes.
 - `npm run test:run` passes for affected logic.
 - `npm run lint` is clean when TypeScript or React code changed.
 - New UI flows are reachable without dev tools.
 - Empty/error states are visible and useful.
-- The handoff names changed files, the verification commands run, and any
-  remaining risk is called out.
+- The handoff names changed files, verification commands, and any remaining
+  risk.
 
-## Repo discipline
+## Repo Discipline
 
-- This folder is the standalone repo root. Run `git` commands from here, not
-  from the parent workspace.
-- Branches small and focused. Keep `npm run check` green before pushing.
-- Tmp/scratch artifacts (`.tmp-*`, `.pi/`, `.pi-lens/`, `.superpowers/`,
-  `.playwright-mcp/`, `.ruff_cache/`) stay gitignored.
-- The GitHub remote workflow targets the StingFit repo. VS Code MCP wiring
-  for GitHub lives in `.vscode/mcp.json`.
+- This folder is the standalone repo root. Run git from here, not from the
+  parent workspace.
+- Branches stay small and focused.
+- Scratch artifacts (`.tmp-*`, `.pi/`, `.pi-lens/`, `.superpowers/`,
+  `.playwright-mcp/`, `.ruff_cache/`, `output/`) stay ignored and must not
+  become planning inputs.
+- The GitHub remote workflow targets the StingFit repo.
