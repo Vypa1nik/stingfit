@@ -29,7 +29,10 @@ describe("StingFit release documentation", () => {
 		expect(readme).toContain("No verified desktop installers are published yet");
 		expect(readme).toContain("reports/stingfit-tauri-desktop-builds.md");
 		expect(readme).toContain(
-			"Lighthouse verification against the live URL passed the V2 gates",
+			"publishes the PWA from version tags (`v*`) or manual workflow dispatch",
+		);
+		expect(readme).toContain(
+			"V3 public smoke stays pending until the `v3.0.0` release tag is pushed and deployed",
 		);
 		expect(readme).toContain(
 			"docs/archive/reports/stingfit-v2-release-readiness.md",

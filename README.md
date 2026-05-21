@@ -49,7 +49,7 @@ StingFit V2.0 ships as a PWA-only release with the React + Vite PWA and local SQ
 
 Live public PWA URL: `https://vypa1nik.github.io/stingfit/`.
 
-GitHub Pages deployment is defined in `.github/workflows/deploy-pwa.yml`. It builds with `VITE_BASE_PATH=/stingfit/` and publishes the PWA from `v2*` tags or manual workflow dispatch. Deploy run `25764435187` completed successfully, and Lighthouse verification against the live URL passed the V2 gates.
+GitHub Pages deployment is defined in `.github/workflows/deploy-pwa.yml`. It builds with `VITE_BASE_PATH=/stingfit/` and publishes the PWA from version tags (`v*`) or manual workflow dispatch. Deploy run `25764435187` completed successfully for V2, and V3 public smoke stays pending until the `v3.0.0` release tag is pushed and deployed.
 
 Desktop downloads: No verified desktop installers are published yet. The Tauri v2 scaffold is present, but Windows/macOS installer links stay omitted until the native toolchain blocker in `reports/stingfit-tauri-desktop-builds.md` is resolved and `npm run tauri:build` is verified on a machine with Rust, Cargo, rustup, and the required platform build tools.
 

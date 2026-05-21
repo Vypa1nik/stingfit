@@ -24,7 +24,7 @@ describe("StingFit GitHub Pages public hosting", () => {
 
 		expect(workflow).toContain("name: Deploy StingFit PWA");
 		expect(workflow).toContain("tags:");
-		expect(workflow).toContain('"v2*"');
+		expect(workflow).toContain('"v*"');
 		expect(workflow).toContain("VITE_BASE_PATH: /stingfit/");
 		expect(workflow).toContain("permissions:");
 		expect(workflow).toContain("pages: write");

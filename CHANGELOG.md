@@ -21,6 +21,7 @@ StingFit V3 ships the Train / Progress / Plans rebuild described in [`STINGFIT_V
 - V3 shell navigation, More sheet, and Progress hub labels now read from the shared Slovak/English i18n catalog instead of local component constants.
 - Legacy V2 URLs now show a one-release redirect notice, while StingFit's own navigation and PWA launch paths use canonical V3 routes.
 - Mobile V3 navigation now has a tested FAB lift, animated More sheet open behavior, and refreshed canonical-route smoke reports.
+- GitHub Pages deployment now accepts version tags (`v*`) so the V3 release tag can publish the public PWA.
 
 - Active agent documentation now points cleanly at the V3 plan and a new
   `AGENT_START_HERE.md` handoff, with V2 material marked as historical so the
