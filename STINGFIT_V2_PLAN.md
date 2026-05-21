@@ -1,9 +1,10 @@
-# StingFit V2 — Master Rebuild Plan
+# StingFit V2 - Archived Master Rebuild Plan
 
-> **This is the single authoritative plan for StingFit V2. Agents must use only
-> this plan together with `PRODUCT.md`, `RULES.md`, `AGENTS.md`, `README.md`,
-> and the live source tree. Anything in `docs/archive/` is historical context
-> only and must NOT influence implementation choices.**
+> **ARCHIVED. V2 shipped. This file is historical context only.**
+> New work must use `STINGFIT_V3_PLAN.md`, `AGENTS.md`,
+> `AGENT_START_HERE.md`, `PRODUCT.md`, `RULES.md`, `README.md`, and the live
+> source tree. Do not import V2 open TODOs, phase gates, or module order into
+> V3 unless `STINGFIT_V3_PLAN.md` explicitly restates them.
 
 _Last revised: 2026-05-12_
 _Owner: Kristián_
