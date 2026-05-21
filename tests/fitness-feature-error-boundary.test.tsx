@@ -56,8 +56,8 @@ describe("FeatureErrorBoundary", () => {
 		);
 
 		expect(routerSource).toContain('<FeatureRoute featureName="Tréning">');
-		expect(routerSource).toContain('<FeatureRoute featureName="História">');
-		expect(routerSource).toContain('<FeatureRoute featureName="Štatistiky">');
+		expect(routerSource).toContain('<FeatureRoute featureName="Progres — História">');
+		expect(routerSource).toContain('<FeatureRoute featureName="Progres — Cviky">');
 		expect(dashboardSource).toMatch(
 			/<FeatureErrorBoundary\s+featureName="Živý tréning"/,
 		);

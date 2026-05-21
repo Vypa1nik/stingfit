@@ -29,7 +29,7 @@ export const SHORTCUTS: ShortcutDefinition[] = [
     group: 'Navigate',
     label: 'Otvoriť históriu',
     keys: 'Cmd/Ctrl + F',
-    description: 'Prejsť priamo do tréningovej histórie.',
+    description: 'Prejsť priamo do tréningovej histórie (Progres → História).',
   },
   {
     group: 'Navigate',
@@ -47,7 +47,7 @@ export const SHORTCUTS: ShortcutDefinition[] = [
     group: 'Navigate',
     label: 'Rýchla navigácia 1–5',
     keys: 'Cmd/Ctrl + 1-5',
-    description: 'Prepínať medzi Tréningom, Plánmi, Históriou, Štatistikami a Nastaveniami.',
+    description: 'Prepínať medzi Tréningom, Progresom, Plánmi, Kalkulačkou kotúčov a Nastaveniami.',
   },
   {
     group: 'Global',

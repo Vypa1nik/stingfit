@@ -126,7 +126,7 @@ describe('FitnessSettingsPage import flow', () => {
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Náhľad importu: 1 osobných plánov, 1 tréningových záznamov, 1 dokončených.')
+    expect(container.textContent).toContain('Náhľad importu: 1 osobných plánov, 1 tréningových záznamov, 1 dokončených, 0 telesných záznamov a 0 zápisov.')
 
     const restoreButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Obnoviť tréningový JSON'))
     expect(restoreButton).toBeDefined()
@@ -147,7 +147,7 @@ describe('FitnessSettingsPage import flow', () => {
     })
 
     expect(confirmSpy).not.toHaveBeenCalled()
-    expect(container.textContent).toContain('Import tréningových dát obnovený: 1 osobných plánov a 1 tréningových záznamov.')
+    expect(container.textContent).toContain('Import tréningových dát obnovený: 1 osobných plánov, 1 tréningových záznamov, 0 telesných záznamov a 0 zápisov.')
     await expect(fitnessRepository.getSettings()).resolves.toMatchObject({ displayUnit: 'lb' })
     expect((await fitnessRepository.listPersonalPlans()).map((plan) => plan.name)).toContain('My PPL Block')
     expect((await fitnessRepository.listCompletedSessions())[0]).toMatchObject({ name: 'Tlakový deň A' })

@@ -6,28 +6,43 @@ function readText(path: string) {
 	return readFileSync(path, "utf8");
 }
 
-describe("StingFit V1 release documentation", () => {
-	test("documents V2 release readiness without claiming blocked artifacts are shipped", () => {
+describe("StingFit release documentation", () => {
+	test("documents V3 as shipped while keeping V2 release material archived", () => {
 		const changelog = readText("CHANGELOG.md");
 		const readme = readText("README.md");
-		const plan = readText("STINGFIT_V2_PLAN.md");
-		const readinessPath = "reports/stingfit-v2-release-readiness.md";
+		const activePlan = readText("STINGFIT_V3_PLAN.md");
+		const startHere = readText("AGENT_START_HERE.md");
 
-		expect(existsSync(readinessPath)).toBe(true);
 		expect(readme).toContain("StingFit is the calm, fast bridge");
+		expect(readme).toContain("Current V3 Rebuild");
+		expect(readme).toContain("current shipped release (`3.0.0`)");
+		expect(readme).toContain(
+			"old V2 URLs redirect with a one-release deprecation banner",
+		);
+		expect(readme).toContain("AGENT_START_HERE.md");
+		expect(readme).toContain("STINGFIT_V3_PLAN.md");
 		expect(readme).toContain("Plan Packs");
 		expect(readme).toContain("Recap Packs");
 		expect(readme).toContain("https://vypa1nik.github.io/stingfit/");
 		expect(readme).toContain("GitHub Pages");
 		expect(readme).toContain("Desktop downloads");
-		expect(readme).toContain(
-			"No verified desktop installers are published yet",
-		);
+		expect(readme).toContain("No verified desktop installers are published yet");
 		expect(readme).toContain("reports/stingfit-tauri-desktop-builds.md");
 		expect(readme).toContain(
 			"Lighthouse verification against the live URL passed the V2 gates",
 		);
+		expect(readme).toContain(
+			"docs/archive/reports/stingfit-v2-release-readiness.md",
+		);
 
+		expect(changelog).toContain("## Unreleased");
+		expect(changelog).toContain("## 3.0.0 - 2026-05-17");
+		expect(changelog).toContain(
+			"[`STINGFIT_V3_PLAN.md`](./STINGFIT_V3_PLAN.md)",
+		);
+		expect(changelog).toContain(
+			"Active agent documentation now points cleanly at the V3 plan",
+		);
 		expect(changelog).toContain("## v2.0.0 - 2026-05-12");
 		for (const phase of [
 			"Phase 0",
@@ -43,22 +58,25 @@ describe("StingFit V1 release documentation", () => {
 		expect(changelog).toContain("live GitHub Pages deployment");
 		expect(changelog).toContain("automated coach handoff rehearsal");
 
-		expect(plan).toContain(
-			"Release docs (APPROVED_WITH_ACCEPTED_CONCERNS 2026-05-12)",
+		expect(activePlan).toContain(
+			"This is the single authoritative plan for StingFit going forward (V3)",
 		);
-		expect(plan).toContain("owner approved the `v2.0.0` PWA-only release");
-
-		const readiness = readText(readinessPath);
-		expect(readiness).toContain("Status: APPROVED_FOR_V2.0_PWA_RELEASE");
-		expect(readiness).toContain(
-			"Live public PWA URL: https://vypa1nik.github.io/stingfit/",
-		);
-		expect(readiness).toContain("Post-deploy smoke — 2026-05-12");
-		expect(readiness).toContain("Coach handoff rehearsal — 2026-05-12");
-		expect(readiness).toContain("No desktop download links are published");
-		expect(readiness).toContain("Release tag approval");
-		expect(existsSync("reports/stingfit-v2.0.0-release-notes.md")).toBe(true);
-		expect(readiness).not.toContain("LocalFlow");
+		expect(activePlan).toContain('Definition of "V3 shipped"');
+		expect(startHere).toContain("V3 Ship Status");
+		expect(startHere).toContain("V3 shipped locally as 3.0.0");
+		expect(startHere).toContain("What Is Still Open");
+		expect(existsSync("reports/stingfit-v3.0.0-release-smoke.md")).toBe(true);
+		const v3Smoke = readText("reports/stingfit-v3.0.0-release-smoke.md");
+		expect(v3Smoke).toContain("LOCAL PRODUCTION PREVIEW PASS");
+		expect(v3Smoke).toContain("PUBLIC DEPLOYMENT STALE/PENDING V3 PUSH");
+		expect(v3Smoke).toContain("SMOKE_PASS count=24");
+		expect(existsSync("reports/stingfit-v2-release-readiness.md")).toBe(false);
+		expect(
+			existsSync("docs/archive/reports/stingfit-v2-release-readiness.md"),
+		).toBe(true);
+		expect(
+			existsSync("docs/archive/reports/stingfit-v2.0.0-release-notes.md"),
+		).toBe(true);
 	});
 
 	test("documents the V1 release and manual QA checklist", () => {
@@ -102,7 +120,7 @@ describe("StingFit V1 release documentation", () => {
 		expect(readme).toContain("reports/stingfit-privacy-network-audit.md");
 
 		const mobileSmoke = readText("reports/stingfit-mobile-pwa-smoke.md");
-		expect(mobileSmoke).toContain("Status: ACCEPTED FOLLOW-UP for V2.0");
+		expect(mobileSmoke).toContain("Status: V3 route matrix updated");
 		expect(mobileSmoke).toContain(
 			"Physical devices are not available in this agent environment",
 		);

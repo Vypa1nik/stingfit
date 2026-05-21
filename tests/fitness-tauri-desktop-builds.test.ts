@@ -82,7 +82,7 @@ describe("StingFit Tauri desktop build readiness", () => {
 		const changelog = readText("CHANGELOG.md");
 
 		expect(report.split("\n").slice(0, 5).join("\n")).toContain(
-			"Status: FUTURE_TRACK_FOR_V2.0",
+			"Status: FUTURE_TRACK_AFTER_V3.0",
 		);
 		expect(report).toContain("WebView2: 147.0.3912.98");
 		expect(report).toContain("rustc: not installed");
@@ -92,7 +92,7 @@ describe("StingFit Tauri desktop build readiness", () => {
 		expect(report).toContain("MSVC and SDK components");
 		expect(report).toContain("npm run tauri -- info");
 		expect(report).toContain("npm run tauri:build");
-		expect(report).toContain("PWA-only release");
+		expect(report).toContain("PWA-first web release");
 		expect(plan).toContain("Tauri desktop builds (BLOCKED 2026-05-10)");
 		expect(changelog).toContain(
 			"Desktop installers are not published in V2.0",

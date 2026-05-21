@@ -2,6 +2,104 @@ import type { FitnessCopyCatalog } from "@/i18n/sk";
 
 export const en = {
 	fitness: {
+		nav: {
+			items: {
+				today: "[en] Dnes",
+				quickTraining: "[en] Rýchly tréning",
+				progressLifts: "[en] Cviky (grafy)",
+				progressPrs: "[en] PR Timeline",
+				progressBody: "[en] Telo",
+				progressJournal: "[en] Zápisník",
+				progressHistory: "[en] História",
+				plans: "[en] Plány",
+				plates: "[en] Kalkulačka kotúčov",
+			},
+			groups: {
+				train: "[en] Tréning",
+				progress: "[en] Progres",
+				plans: "[en] Plány",
+				tools: "[en] Nástroje",
+			},
+			sidebar: {
+				localBadge: "[en] Lokálne",
+				closeMenu: "[en] Zavrieť navigačné menu",
+				expandSidebar: "[en] Rozbaliť bočný panel",
+				collapseSidebar: "[en] Zbaliť bočný panel",
+				settings: "[en] Nastavenia",
+			},
+			mobile: {
+				ariaLabel: "[en] Hlavné mobilné taby",
+				training: "[en] Tréning",
+				progress: "[en] Progres",
+				startTraining: "[en] + Tréning",
+				plans: "[en] Plány",
+				more: "[en] Viac",
+			},
+			moreSheet: {
+				title: "[en] Viac",
+				ariaLabel: "[en] Viac možností",
+				closeOverlay: "[en] Zatvoriť ponuku Viac",
+				closeButton: "[en] Zatvoriť",
+				items: {
+					quick: {
+						label: "[en] Rýchly tréning",
+						description: "[en] Spusti zápisník bez plánu.",
+					},
+					plates: {
+						label: "[en] Kalkulačka kotúčov",
+						description: "[en] Spočítaj kotúče na tyč.",
+					},
+					history: {
+						label: "[en] História",
+						description: "[en] Skoč rovno do tréningového zápisníka.",
+					},
+					coach: {
+						label: "[en] Coach Mode",
+						description: "[en] Klienti, šablóny, recap pack.",
+					},
+					settings: {
+						label: "[en] Nastavenia",
+						description: "[en] Jednotky, dáta, súkromie.",
+					},
+				},
+			},
+		},
+		progressHub: {
+			badge: "[en] Progres & Zápisník",
+			kicker: "[en] Všetko o tvojom raste na jednom mieste.",
+			title: "[en] Ako rastieš.",
+			description:
+				"[en] Štyri pohľady — váhy cvikov, PR feed, telesné miery a osobný zápisník. Všetko sa odvodzuje lokálne z tvojich dokončených tréningov a nikdy neopúšťa zariadenie.",
+			cards: {
+				consistency: "[en] Konzistencia",
+				weeklyVolume: "[en] Týždenný objem",
+				lastPr: "[en] Posledný PR",
+				completedWorkouts: (count: number) =>
+					count === 1 ? "[en] 1 dokončený tréning." : `[en] ${count} dokončených tréningov.`,
+				emptyPr: "[en] Zatiaľ žiadny PR. Dokonči tréning a sem prikvitne.",
+			},
+			tabs: {
+				ariaLabel: "[en] Progres taby",
+				lifts: "[en] Cviky",
+				prs: "[en] PR Timeline",
+				body: "[en] Telo",
+				journal: "[en] Zápisník",
+				history: "[en] História",
+			},
+		},
+		redirectBanner: {
+			dismiss: "[en] Skryť upozornenie",
+			destination: {
+				train: "[en] Tréning",
+				quick: "[en] Rýchly tréning",
+				progress: "[en] Progres",
+				history: "[en] História",
+				plates: "[en] Kalkulačku kotúčov",
+				coach: "[en] Coach Mode v Plánoch",
+			},
+			message: (from: string, destination: string) =>
+				`[en] Presunuté: pôvodná URL \`${from}\` automaticky otvára ${destination}. Aktualizuj záložky.`,
+		},
 		pwa: {
 			installTitle: "[en] Inštalácia aplikácie",
 			installDescription:

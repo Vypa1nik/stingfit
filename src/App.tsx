@@ -62,13 +62,45 @@ function AppFrame() {
 	const actions = useMemo<AppAction[]>(
 		() => [
 			{
-				id: "go-training",
+				id: "go-train",
 				title: "Prejsť na tréning",
-				description: "Otvoriť živý tréningový panel.",
+				description: "Otvoriť dnešný tréningový panel.",
 				group: "Navigácia",
 				shortcut: "Cmd/Ctrl + D",
-				keywords: ["training", "fitness", "workout", "gym", "dashboard"],
-				action: () => navigate("/training"),
+				keywords: ["training", "fitness", "workout", "gym", "dashboard", "train"],
+				action: () => navigate("/train"),
+			},
+			{
+				id: "go-progress",
+				title: "Prejsť na progres",
+				description: "Otvoriť grafy cvikov, PR timeline, telo a zápisník.",
+				group: "Navigácia",
+				keywords: ["progress", "progres", "stats", "pr", "charts", "journal"],
+				action: () => navigate("/progress"),
+			},
+			{
+				id: "go-progress-lifts",
+				title: "Progres — grafy cvikov",
+				description: "Per-cvik krivka pracovnej váhy a odhadu 1RM.",
+				group: "Navigácia",
+				keywords: ["lifts", "charts", "weight", "1rm", "progress"],
+				action: () => navigate("/progress/lifts"),
+			},
+			{
+				id: "go-progress-body",
+				title: "Progres — telo",
+				description: "Telesná hmotnosť, obvody, foto progres.",
+				group: "Navigácia",
+				keywords: ["body", "weight", "telo", "miery", "measurements"],
+				action: () => navigate("/progress/body"),
+			},
+			{
+				id: "go-progress-journal",
+				title: "Progres — zápisník",
+				description: "Voľné poznámky ku každému tréningovému dňu.",
+				group: "Navigácia",
+				keywords: ["journal", "zapisnik", "notes", "diary"],
+				action: () => navigate("/progress/journal"),
 			},
 			{
 				id: "go-plans",
@@ -84,15 +116,7 @@ function AppFrame() {
 				description: "Otvoriť tréningový zápisník.",
 				group: "Navigácia",
 				keywords: ["history", "log", "sessions", "workouts"],
-				action: () => navigate("/history"),
-			},
-			{
-				id: "go-stats",
-				title: "Prejsť na štatistiky",
-				description: "Otvoriť PR napätie a štatistiky progresu.",
-				group: "Navigácia",
-				keywords: ["stats", "progress", "pr", "volume"],
-				action: () => navigate("/stats"),
+				action: () => navigate("/progress/history"),
 			},
 			{
 				id: "open-plate-calculator",
@@ -100,7 +124,7 @@ function AppFrame() {
 				description: "Rýchlo prepočítať kotúče na tyč pred sériou.",
 				group: "Nástroje",
 				keywords: ["plates", "kotuce", "kotúče", "barbell", "calculator"],
-				action: () => navigate("/plates"),
+				action: () => navigate("/tools/plates"),
 			},
 			{
 				id: "go-settings",
@@ -117,7 +141,7 @@ function AppFrame() {
 				group: "Vytvoriť",
 				shortcut: "Cmd/Ctrl + T",
 				keywords: ["start", "workout", "train", "log"],
-				action: () => navigate("/training"),
+				action: () => navigate("/train"),
 			},
 			{
 				id: "start-quick-workout",
@@ -125,7 +149,7 @@ function AppFrame() {
 				description: "Otvoriť zápisník bez plánu a pridať cviky až vo fitku.",
 				group: "Vytvoriť",
 				keywords: ["quick", "free", "pump", "workout", "train", "log"],
-				action: () => navigate("/quick"),
+				action: () => navigate("/train/quick"),
 			},
 			{
 				id: "create-plan",

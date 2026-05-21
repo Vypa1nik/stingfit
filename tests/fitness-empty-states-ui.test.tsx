@@ -65,7 +65,7 @@ describe("fitness empty route states", () => {
 
 	test.each([
 		{
-			route: "/training",
+			route: "/train",
 			element: <FitnessDashboard />,
 			expectedCopy: [
 				"Začni úplne jednoducho",
@@ -74,7 +74,7 @@ describe("fitness empty route states", () => {
 			],
 		},
 		{
-			route: "/quick",
+			route: "/train/quick",
 			element: <FitnessQuickSessionPage />,
 			expectedCopy: [
 				"Rýchly tréning",
@@ -92,7 +92,7 @@ describe("fitness empty route states", () => {
 			],
 		},
 		{
-			route: "/history",
+			route: "/progress/history",
 			element: <FitnessHistoryPage />,
 			expectedCopy: [
 				"Zatiaľ žiadne dokončené tréningy",
@@ -101,7 +101,7 @@ describe("fitness empty route states", () => {
 			],
 		},
 		{
-			route: "/stats",
+			route: "/progress",
 			element: <FitnessStatsPage />,
 			expectedCopy: [
 				"Zatiaľ žiadne štatistiky",
@@ -110,7 +110,7 @@ describe("fitness empty route states", () => {
 			],
 		},
 		{
-			route: "/plates",
+			route: "/tools/plates",
 			element: <FitnessPlateCalculatorPage />,
 			expectedCopy: [
 				"Kalkulačka kotúčov pred sériou",

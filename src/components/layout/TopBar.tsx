@@ -30,7 +30,7 @@ export function TopBar() {
 				className="flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-border bg-white px-4 py-2 text-left text-sm text-text-secondary transition-colors hover:bg-slate-50 sm:min-w-[240px] dark:border-border-dark dark:bg-[#181818] dark:text-text-secondary-dark dark:hover:bg-[#1F1F1F]"
 				aria-label="Otvoriť vyhľadávanie"
 				onClick={() => {
-					navigate("/history");
+					navigate("/progress/history");
 				}}
 			>
 				<Search className="size-4 shrink-0" />
@@ -53,7 +53,7 @@ export function TopBar() {
 				<Button
 					className="fitness-action"
 					leadingIcon={<Dumbbell className="size-4" />}
-					onClick={() => navigate("/training")}
+					onClick={() => navigate("/train")}
 				>
 					<span className="sm:hidden">Tréning</span>
 					<span className="hidden sm:inline">Spustiť tréning</span>

@@ -31,7 +31,7 @@ describe('FitnessDashboard post-workout next action', () => {
   let root: Root
 
   beforeEach(async () => {
-    window.history.replaceState(null, '', '/#/training')
+    window.history.replaceState(null, '', '/#/train')
     await resetDatabaseState()
     await clearAllData()
     await createPplPlan()
@@ -81,6 +81,6 @@ describe('FitnessDashboard post-workout next action', () => {
       await waitForAsyncUi()
     })
 
-    expect(window.location.hash).toBe('#/history?from=finish')
+    expect(window.location.hash).toBe('#/progress/history?from=finish')
   })
 })

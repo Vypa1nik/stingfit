@@ -1,55 +1,171 @@
-import { act } from 'react'
-import { createRoot, type Root } from 'react-dom/client'
-import { MemoryRouter } from 'react-router-dom'
-import { afterEach, describe, expect, test } from 'vitest'
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { MemoryRouter } from "react-router-dom";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
-import { AppShell } from '@/components/layout/AppShell'
+import { AppShell } from "@/components/layout/AppShell";
+import { MoreSheet } from "@/components/layout/MoreSheet";
+import { sk } from "@/i18n/sk";
 
-describe('mobile StingFit shell navigation', () => {
-  let container: HTMLDivElement | null = null
-  let root: Root | null = null
+async function waitForAsyncUi() {
+	await new Promise((resolve) => window.setTimeout(resolve, 150));
+}
 
-  afterEach(() => {
-    if (root) {
-      act(() => {
-        root?.unmount()
-      })
-    }
-    container?.remove()
-    root = null
-    container = null
-  })
+function findButton(container: HTMLDivElement, label: string) {
+	const button = Array.from(container.querySelectorAll("button")).find(
+		(item) =>
+			item.textContent?.includes(label) ||
+			item.getAttribute("aria-label") === label,
+	);
+	expect(button).toBeDefined();
+	return button;
+}
 
-  test('keeps primary mobile tabs visible and gives quick workout a centered CTA', async () => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-    root = createRoot(container)
+describe("mobile StingFit shell navigation", () => {
+	let container: HTMLDivElement | null = null;
+	let root: Root | null = null;
 
-    await act(async () => {
-      root?.render(
-        <MemoryRouter initialEntries={['/quick']}>
-          <AppShell>
-            <div>Obsah tréningu</div>
-          </AppShell>
-        </MemoryRouter>,
-      )
-    })
+	afterEach(() => {
+		if (root) {
+			act(() => {
+				root?.unmount();
+			});
+		}
+		container?.remove();
+		root = null;
+		container = null;
+	});
 
-    const bottomNav = container.querySelector<HTMLElement>('[data-testid="mobile-bottom-nav"]')
-    expect(bottomNav).toBeTruthy()
-    expect(bottomNav?.textContent).toContain('Tréning')
-    expect(bottomNav?.textContent).toContain('Rýchly')
-    expect(bottomNav?.textContent).toContain('Plány')
-    expect(bottomNav?.textContent).toContain('História')
-    expect(bottomNav?.textContent).toContain('Štatistiky')
+	async function renderMobileShell() {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+		root = createRoot(container);
 
-    const quickLink = bottomNav?.querySelector<HTMLAnchorElement>('a[href="/quick"]')
-    expect(quickLink).toBeTruthy()
-    expect(quickLink?.getAttribute('aria-current')).toBe('page')
-    expect(quickLink?.className).toContain('scale-105')
+		await act(async () => {
+			root?.render(
+				<MemoryRouter initialEntries={["/train"]}>
+					<AppShell>
+						<div>Obsah tréningu</div>
+					</AppShell>
+				</MemoryRouter>,
+			);
+			await waitForAsyncUi();
+		});
 
-    const main = container.querySelector('main')
-    expect(main?.className).toContain('pb-28')
-    expect(main?.className).toContain('md:pb-4')
-  })
-})
+		return container;
+	}
+
+	test("keeps the five V3 mobile tiles visible and gives start training a centered CTA", async () => {
+		const rendered = await renderMobileShell();
+
+		const bottomNav = rendered.querySelector<HTMLElement>(
+			'[data-testid="mobile-bottom-nav"]',
+		);
+		expect(bottomNav).toBeTruthy();
+		expect(bottomNav?.getAttribute("aria-label")).toBe(
+			sk.fitness.nav.mobile.ariaLabel,
+		);
+		expect(bottomNav?.textContent).toContain(sk.fitness.nav.mobile.training);
+		expect(bottomNav?.textContent).toContain(sk.fitness.nav.mobile.progress);
+		expect(bottomNav?.textContent).toContain(
+			sk.fitness.nav.mobile.startTraining,
+		);
+		expect(bottomNav?.textContent).toContain(sk.fitness.nav.mobile.plans);
+		expect(bottomNav?.textContent).toContain(sk.fitness.nav.mobile.more);
+
+		const primaryLink = Array.from(
+			bottomNav?.querySelectorAll<HTMLAnchorElement>('a[href="/train"]') ?? [],
+		).find((link) =>
+			link.textContent?.includes(sk.fitness.nav.mobile.startTraining),
+		);
+		expect(primaryLink).toBeTruthy();
+		expect(primaryLink?.getAttribute("aria-current")).toBe("page");
+		expect(primaryLink?.className).toContain("mobile-fab-lift");
+		expect(primaryLink?.className).toContain("-mt-5");
+
+		const main = rendered.querySelector("main");
+		expect(main?.className).toContain("pb-28");
+		expect(main?.className).toContain("md:pb-4");
+	});
+
+	test("opens and closes the More sheet with keyboard and overlay actions", async () => {
+		const rendered = await renderMobileShell();
+
+		await act(async () => {
+			findButton(rendered, sk.fitness.nav.mobile.more)?.dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true }),
+			);
+			await waitForAsyncUi();
+		});
+
+		const dialog = rendered.querySelector<HTMLElement>(
+			'[role="dialog"][aria-modal="true"]',
+		);
+		expect(dialog).toBeTruthy();
+		expect(dialog?.getAttribute("aria-label")).toBe(
+			sk.fitness.nav.moreSheet.ariaLabel,
+		);
+		expect(dialog?.className).toContain("mobile-more-sheet-enter");
+		expect(rendered.textContent).toContain(
+			sk.fitness.nav.moreSheet.items.plates.label,
+		);
+		expect(
+			rendered.querySelector<HTMLAnchorElement>('a[href="/tools/plates"]'),
+		).toBeTruthy();
+
+		await act(async () => {
+			window.dispatchEvent(
+				new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+			);
+			await waitForAsyncUi();
+		});
+		expect(rendered.querySelector('[role="dialog"]')).toBeNull();
+
+		await act(async () => {
+			findButton(rendered, sk.fitness.nav.mobile.more)?.dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true }),
+			);
+			await waitForAsyncUi();
+		});
+		await act(async () => {
+			findButton(
+				rendered,
+				sk.fitness.nav.moreSheet.closeOverlay,
+			)?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			await waitForAsyncUi();
+		});
+		expect(rendered.querySelector('[role="dialog"]')).toBeNull();
+
+	});
+	test("calls onClose when a More sheet navigation link is selected", async () => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+		root = createRoot(container);
+		const onClose = vi.fn();
+
+		await act(async () => {
+			root?.render(
+				<MemoryRouter initialEntries={["/train"]}>
+					<MoreSheet open onClose={onClose} />
+				</MemoryRouter>,
+			);
+			await waitForAsyncUi();
+		});
+
+		const historyLink = container.querySelector<HTMLAnchorElement>(
+			'a[href="/progress/history"]',
+		);
+		expect(historyLink).toBeTruthy();
+		historyLink?.addEventListener("click", (event) => event.preventDefault(), {
+			capture: true,
+		});
+
+		await act(async () => {
+			historyLink?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			await waitForAsyncUi();
+		});
+
+		expect(onClose).toHaveBeenCalledTimes(1);
+	});
+
+});

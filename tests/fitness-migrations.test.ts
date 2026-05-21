@@ -3,7 +3,9 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { initDatabase, query, resetDatabaseState } from '@/lib/database'
 
 const FITNESS_TABLES = [
+  'fitness_body_measurements',
   'fitness_exercises',
+  'fitness_journal_entries',
   'fitness_plans',
   'fitness_plan_weeks',
   'fitness_plan_days',
@@ -75,5 +77,49 @@ describe('fitness migrations', () => {
     expect(columns).toContain('right_weight_kg')
     expect(columns).toContain('corrected_at')
     expect(columns).toContain('correction_count')
+  })
+
+  test('creates v004 progress tables with expected columns and indexes', async () => {
+    await initDatabase()
+
+    const bodyRows = await query<{ name: string }>(`PRAGMA table_info(fitness_body_measurements)`)
+    const journalRows = await query<{ name: string }>(`PRAGMA table_info(fitness_journal_entries)`)
+    const bodyIndexes = await query<{ name: string }>(`PRAGMA index_list(fitness_body_measurements)`)
+    const journalIndexes = await query<{ name: string }>(`PRAGMA index_list(fitness_journal_entries)`)
+    const journalTriggers = await query<{ name: string }>(
+      `SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'fitness_sessions'`,
+    )
+
+    expect(bodyRows.map((row) => row.name)).toEqual([
+      'id',
+      'recorded_on',
+      'bodyweight_kg',
+      'waist_cm',
+      'chest_cm',
+      'biceps_left_cm',
+      'biceps_right_cm',
+      'thigh_left_cm',
+      'thigh_right_cm',
+      'calf_left_cm',
+      'calf_right_cm',
+      'note',
+      'photo_uri',
+      'created_at',
+      'updated_at',
+    ])
+    expect(journalRows.map((row) => row.name)).toEqual([
+      'id',
+      'entry_date',
+      'session_id',
+      'body',
+      'mood',
+      'sleep_hours',
+      'energy',
+      'created_at',
+      'updated_at',
+    ])
+    expect(bodyIndexes.map((row) => row.name)).toContain('idx_fitness_body_measurements_date')
+    expect(journalIndexes.map((row) => row.name)).toContain('idx_fitness_journal_entries_date')
+    expect(journalTriggers.map((row) => row.name)).toContain('trg_fitness_journal_entries_session_deleted')
   })
 })

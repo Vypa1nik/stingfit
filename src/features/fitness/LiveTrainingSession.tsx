@@ -93,6 +93,7 @@ export function LiveTrainingSession({
 		session.energyLevel === null ? "3" : String(session.energyLevel),
 	);
 	const [finishNotes, setFinishNotes] = useState(session.notes);
+	const [finishJournalBody, setFinishJournalBody] = useState("");
 	const [editingSetId, setEditingSetId] = useState<string | null>(null);
 	const [optimisticLoggedSets, setOptimisticLoggedSets] = useState<
 		Record<string, FitnessSessionSetRecord>
@@ -153,6 +154,7 @@ export function LiveTrainingSession({
 			session.energyLevel === null ? "3" : String(session.energyLevel),
 		);
 		setFinishNotes(session.notes);
+		setFinishJournalBody("");
 		setIsFinishReviewOpen(true);
 	};
 
@@ -161,6 +163,7 @@ export function LiveTrainingSession({
 			notes: finishNotes,
 			sessionRpe: optionalNumber(finishRpe),
 			energyLevel: optionalNumber(finishEnergy),
+			journalBody: finishJournalBody,
 		});
 	};
 
@@ -253,10 +256,12 @@ export function LiveTrainingSession({
 								sessionRpe={finishRpe}
 								energyLevel={finishEnergy}
 								notes={finishNotes}
+								journalBody={finishJournalBody}
 								isMutating={isMutating}
 								onSessionRpeChange={setFinishRpe}
 								onEnergyLevelChange={setFinishEnergy}
 								onNotesChange={setFinishNotes}
+								onJournalBodyChange={setFinishJournalBody}
 								onSubmit={submitFinishReview}
 								onCancel={() => setIsFinishReviewOpen(false)}
 							/>
@@ -561,10 +566,12 @@ export function LiveTrainingSession({
 								sessionRpe={finishRpe}
 								energyLevel={finishEnergy}
 								notes={finishNotes}
+								journalBody={finishJournalBody}
 								isMutating={isMutating}
 								onSessionRpeChange={setFinishRpe}
 								onEnergyLevelChange={setFinishEnergy}
 								onNotesChange={setFinishNotes}
+								onJournalBodyChange={setFinishJournalBody}
 								onSubmit={submitFinishReview}
 								onCancel={() => setIsFinishReviewOpen(false)}
 							/>
@@ -1090,10 +1097,12 @@ interface FinishCheckInPanelProps {
 	sessionRpe: string;
 	energyLevel: string;
 	notes: string;
+	journalBody: string;
 	isMutating: boolean;
 	onSessionRpeChange: (value: string) => void;
 	onEnergyLevelChange: (value: string) => void;
 	onNotesChange: (value: string) => void;
+	onJournalBodyChange: (value: string) => void;
 	onSubmit: () => Promise<void>;
 	onCancel: () => void;
 }
@@ -1102,10 +1111,12 @@ function FinishCheckInPanel({
 	sessionRpe,
 	energyLevel,
 	notes,
+	journalBody,
 	isMutating,
 	onSessionRpeChange,
 	onEnergyLevelChange,
 	onNotesChange,
+	onJournalBodyChange,
 	onSubmit,
 	onCancel,
 }: FinishCheckInPanelProps) {
@@ -1152,6 +1163,17 @@ function FinishCheckInPanel({
 						value={notes}
 						onInput={(event) => onNotesChange(event.currentTarget.value)}
 						placeholder="Spánok, bolesť, pumpa, technika, výmena stroja…"
+					/>
+				</label>
+
+				<label className="block text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+					Zápis do denníka
+					<textarea
+						aria-label="Zápis do denníka"
+						className="mt-2 min-h-24 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-3 py-3 text-sm font-bold text-fitness-warm outline-none focus:border-fitness-yellow"
+						value={journalBody}
+						onInput={(event) => onJournalBodyChange(event.currentTarget.value)}
+						placeholder="Voliteľné: čo si chceš vidieť v Progres → Zápisník?"
 					/>
 				</label>
 

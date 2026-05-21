@@ -105,7 +105,7 @@ export function FitnessStatsPage() {
 					title={sk.fitness.stats.emptyTitle}
 					description={sk.fitness.stats.emptyDescription}
 					ctaLabel={sk.fitness.stats.emptyCta}
-					onCta={() => navigate("/training")}
+					onCta={() => navigate("/train")}
 				/>
 			) : null}
 

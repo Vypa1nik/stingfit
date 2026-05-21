@@ -18,7 +18,13 @@ import type {
 	FitnessLiveSession,
 	FitnessSessionSetRecord,
 } from "@/features/fitness/fitnessTypes";
-import { VIEW_NAV_ITEMS } from "@/lib/constants";
+import { sk } from "@/i18n/sk";
+import {
+	PLAN_NAV_ITEMS,
+	PROGRESS_NAV_ITEMS,
+	TOOLS_NAV_ITEMS,
+	TRAIN_NAV_ITEMS,
+} from "@/lib/constants";
 import { clearAllData, resetDatabaseState } from "@/lib/database";
 import { SHORTCUTS } from "@/lib/shortcuts";
 
@@ -101,11 +107,22 @@ describe("Slovak StingFit localization", () => {
 	});
 
 	test("uses Slovak labels for primary navigation and shortcuts", () => {
-		expect(VIEW_NAV_ITEMS.map((item) => item.label)).toEqual([
-			"Tréning",
-			"Plány",
-			"História",
-			"Štatistiky",
+		expect(TRAIN_NAV_ITEMS.map((item) => item.label)).toEqual([
+			sk.fitness.nav.items.today,
+			sk.fitness.nav.items.quickTraining,
+		]);
+		expect(PROGRESS_NAV_ITEMS.map((item) => item.label)).toEqual([
+			sk.fitness.nav.items.progressLifts,
+			sk.fitness.nav.items.progressPrs,
+			sk.fitness.nav.items.progressBody,
+			sk.fitness.nav.items.progressJournal,
+			sk.fitness.nav.items.progressHistory,
+		]);
+		expect(PLAN_NAV_ITEMS.map((item) => item.label)).toEqual([
+			sk.fitness.nav.items.plans,
+		]);
+		expect(TOOLS_NAV_ITEMS.map((item) => item.label)).toEqual([
+			sk.fitness.nav.items.plates,
 		]);
 		expect(SHORTCUTS.map((shortcut) => shortcut.label)).toContain(
 			"Spustiť tréning",

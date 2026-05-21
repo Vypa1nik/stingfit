@@ -2,32 +2,48 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, test } from "vitest";
 
-import { VIEW_NAV_ITEMS } from "@/lib/constants";
+import { sk } from "@/i18n/sk";
+import { TRAIN_NAV_ITEMS } from "@/lib/constants";
 import { SHORTCUTS } from "@/lib/shortcuts";
 
-describe("fitness navigation", () => {
-	test("promotes the training screen as a primary view", () => {
-		expect(VIEW_NAV_ITEMS[0]).toMatchObject({
-			id: "fitness",
-			label: "Tréning",
-			path: "/training",
+describe("fitness navigation (V3 IA)", () => {
+	test("promotes the training screen as the first Train-pillar entry", () => {
+		expect(TRAIN_NAV_ITEMS[0]).toMatchObject({
+			id: "train",
+			label: sk.fitness.nav.items.today,
+			path: "/train",
 		});
 	});
 
-	test("keeps fitness and gated coach routes in the application router", () => {
+	test("router exposes V3 routes (and keeps V2 URLs working via redirects)", () => {
 		const routerSource = readFileSync("src/router.tsx", "utf8");
 
+		expect(routerSource).toMatch(/path:\s*["']\/train["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/train\/quick["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/progress\/lifts["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/progress\/prs["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/progress\/body["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/progress\/journal["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/progress\/history["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/plans["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/tools\/plates["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/settings["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/plans\/coach\/clients["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/plans\/coach\/plans["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/plans\/coach\/templates["']/);
+		expect(routerSource).toMatch(/path:\s*["']\/plans\/coach\/recaps["']/);
+
+		// Backward-compat redirects from V2 must still resolve
 		expect(routerSource).toMatch(/path:\s*["']\/training["']/);
 		expect(routerSource).toMatch(/path:\s*["']\/quick["']/);
-		expect(routerSource).toMatch(/path:\s*["']\/plans["']/);
 		expect(routerSource).toMatch(/path:\s*["']\/history["']/);
 		expect(routerSource).toMatch(/path:\s*["']\/stats["']/);
 		expect(routerSource).toMatch(/path:\s*["']\/plates["']/);
-		expect(routerSource).toMatch(/path:\s*["']\/settings["']/);
 		expect(routerSource).toMatch(/path:\s*["']\/coach\/clients["']/);
-		expect(routerSource).toMatch(/path:\s*["']\/coach\/plans["']/);
-		expect(routerSource).toMatch(/path:\s*["']\/coach\/templates["']/);
-		expect(routerSource).toMatch(/path:\s*["']\/coach\/recaps["']/);
+		expect(routerSource).toContain("function LegacyRedirect");
+		expect(routerSource).toContain('<LegacyRedirect from="/stats" to="/progress" />');
+		expect(routerSource).toContain('<ForwardRedirect to="/progress/lifts" />');
+
 		expect(routerSource).not.toMatch(
 			/path:\s*["']\/(notes|tasks|projects|inbox|today|archive|search|view)/,
 		);
@@ -62,18 +78,19 @@ describe("fitness navigation", () => {
 		}
 	});
 
-	test("surfaces the plate calculator from quick actions and mobile navigation", () => {
+	test("surfaces the plate calculator from quick actions and a discoverable mobile entry", () => {
 		const appSource = readFileSync("src/App.tsx", "utf8");
-		const mobileNavSource = readFileSync(
-			"src/components/layout/MobileBottomNav.tsx",
+		const moreSheetSource = readFileSync(
+			"src/components/layout/MoreSheet.tsx",
 			"utf8",
 		);
 
 		expect(appSource).toContain('id: "open-plate-calculator"');
 		expect(appSource).toContain('title: "Otvoriť kalkulačku kotúčov"');
-		expect(appSource).toContain('navigate("/plates")');
-		expect(mobileNavSource).toContain("Kotúče");
-		expect(mobileNavSource).toMatch(/path:\s*["']\/plates["']/);
+		expect(appSource).toContain('navigate("/tools/plates")');
+		expect(sk.fitness.nav.moreSheet.items.plates.label).toBe("Kalkulačka kotúčov");
+		expect(moreSheetSource).toContain("sk.fitness.nav.moreSheet");
+		expect(moreSheetSource).toMatch(/path:\s*["']\/tools\/plates["']/);
 	});
 
 	test("documents the training dashboard shortcut", () => {

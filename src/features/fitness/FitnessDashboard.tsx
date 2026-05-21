@@ -14,6 +14,7 @@ import {
 	shouldShowBackupNudge,
 } from "@/features/fitness/fitnessBackupNudge";
 import { fitnessRepository } from "@/features/fitness/fitnessRepository";
+import { progressRepository } from "@/features/progress/progressRepository";
 import {
 	invalidateFitnessQueries,
 	useFitnessTrainingStateQuery,
@@ -234,10 +235,21 @@ export function FitnessDashboard({
 		setSuccessMessage(null);
 		setPostWorkoutAction(null);
 		try {
+			const { journalBody, ...sessionInput } = input ?? {};
 			const completedSession = await fitnessRepository.finishSession(
 				sessionId,
-				input,
+				sessionInput,
 			);
+			if (journalBody?.trim()) {
+				await progressRepository.upsertJournalEntry({
+					entryDate: (completedSession.completedAt ?? new Date().toISOString()).slice(0, 10),
+					sessionId: completedSession.id,
+					body: journalBody.trim(),
+					mood: null,
+					sleepHours: null,
+					energy: sessionInput.energyLevel ?? completedSession.energyLevel,
+				});
+			}
 			setIsRecoveryPromptVisible(false);
 			await invalidateFitnessQueries();
 			setSuccessMessage("Tréning dokončený");
@@ -356,7 +368,7 @@ export function FitnessDashboard({
 		<PostWorkoutActionCard
 			sessionName={postWorkoutAction.sessionName}
 			isMutating={isMutating}
-			onOpenHistory={() => navigate("/history?from=finish")}
+			onOpenHistory={() => navigate("/progress/history?from=finish")}
 			onExportBackup={() => void exportBackupFromNudge()}
 			onDismiss={() => setPostWorkoutAction(null)}
 		/>
@@ -541,7 +553,7 @@ export function FitnessDashboard({
 				<SimpleStartBuilder
 					isMutating={isMutating}
 					onSelectPlan={(choice) => void createSimpleStarterPlan(choice)}
-					onQuickSession={() => navigate("/quick")}
+					onQuickSession={() => navigate("/train/quick")}
 				/>
 				{backupNudge}
 			</div>
@@ -573,7 +585,7 @@ export function FitnessDashboard({
 						variant="secondary"
 						className="mt-5 border-fitness-yellow/25 bg-black/60 text-fitness-warm hover:bg-fitness-yellow/10"
 						leadingIcon={<Zap className="size-4" />}
-						onClick={() => navigate("/quick")}
+						onClick={() => navigate("/train/quick")}
 						disabled={isMutating}
 					>
 						Len rýchly tréning bez plánu

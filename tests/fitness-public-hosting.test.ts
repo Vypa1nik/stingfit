@@ -61,10 +61,10 @@ describe("StingFit GitHub Pages public hosting", () => {
 		expect(serviceWorker).toContain("self.registration.scope");
 		expect(serviceWorker).toContain("new URL(path, self.registration.scope)");
 		expect(serviceWorker).not.toContain('cache.put("/index.html"');
-		expect(installPage).toContain('href="./#/training"');
-		expect(offlinePage).toContain('href="./#/training"');
-		expect(manifest.id).toBe("./#/training");
-		expect(manifest.start_url).toBe("./#/training");
+		expect(installPage).toContain('href="./#/train"');
+		expect(offlinePage).toContain('href="./#/train"');
+		expect(manifest.id).toBe("./#/train");
+		expect(manifest.start_url).toBe("./#/train");
 		expect(manifest.scope).toBe("./");
 		for (const icon of manifest.icons) {
 			expect(icon.src, icon.src).not.toMatch(/^\//);

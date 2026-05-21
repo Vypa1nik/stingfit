@@ -27,7 +27,7 @@ describe('StingFit mobile PWA preview tooling', () => {
     expect(startScript).toContain('stingfit-mobile-preview-url.txt')
     expect(startScript).toContain('GatewayAddresses')
     expect(startScript).toContain('MOBILE_PWA_URL_CANDIDATES')
-    expect(startScript).toContain('#/training')
+    expect(startScript).toContain('#/train')
     expect(startScript).not.toContain('cloudflared')
     expect(startScript).not.toContain('trycloudflare')
     expect(startScript).not.toContain('loca.lt')

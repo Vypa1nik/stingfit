@@ -29,6 +29,8 @@ interface DatabaseDebugChannel {
 
 const sqliteStore = createStore("stingfit-db", "binary");
 const FITNESS_TABLES_IN_DELETE_ORDER = [
+	"fitness_journal_entries",
+	"fitness_body_measurements",
 	"fitness_sets",
 	"fitness_session_exercises",
 	"fitness_sessions",

@@ -200,7 +200,7 @@ export function FitnessHistoryPage() {
 					title={sk.fitness.history.emptyTitle}
 					description={sk.fitness.history.emptyDescription}
 					ctaLabel={sk.fitness.history.emptyCta}
-					onCta={() => navigate("/training")}
+					onCta={() => navigate("/train")}
 				/>
 			) : null}
 
@@ -301,7 +301,7 @@ export function FitnessHistoryPage() {
 												<button
 													type="button"
 													className="min-h-11 rounded-full border border-fitness-yellow/40 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-fitness-yellow transition-colors hover:bg-fitness-yellow hover:text-black"
-													onClick={() => navigate("/training")}
+													onClick={() => navigate("/train")}
 												>
 													Otvoriť Tréning
 												</button>

@@ -1,6 +1,6 @@
 import { lazy, Suspense, type ReactNode } from "react";
 
-import { Navigate, useRoutes } from "react-router-dom";
+import { Navigate, useLocation, useRoutes } from "react-router-dom";
 
 import { FeatureErrorBoundary } from "@/components/ui/FeatureErrorBoundary";
 
@@ -24,11 +24,6 @@ const FitnessHistoryPage = lazy(() =>
 		default: module.FitnessHistoryPage,
 	})),
 );
-const FitnessStatsPage = lazy(() =>
-	import("@/features/fitness/FitnessStatsPage").then((module) => ({
-		default: module.FitnessStatsPage,
-	})),
-);
 const FitnessPlateCalculatorPage = lazy(() =>
 	import("@/features/fitness/FitnessPlateCalculatorPage").then((module) => ({
 		default: module.FitnessPlateCalculatorPage,
@@ -44,6 +39,17 @@ const CoachModePage = lazy(() =>
 		default: module.CoachModePage,
 	})),
 );
+const ProgressHubPage = lazy(() =>
+	import("@/features/progress/ProgressHubPage").then((module) => ({
+		default: module.ProgressHubPage,
+	})),
+);
+
+export interface LegacyRedirectInfo {
+	kind: "v2-deprecation";
+	from: string;
+	to: string;
+}
 
 function RouteLoadingState() {
 	return (
@@ -78,11 +84,56 @@ function FeatureRoute({
 	);
 }
 
+function readLocationState(state: unknown): Record<string, unknown> {
+	return state && typeof state === "object" && !Array.isArray(state)
+		? (state as Record<string, unknown>)
+		: {};
+}
+
+function preserveSearch(to: string, search: string) {
+	return `${to}${search}`;
+}
+
+function LegacyRedirect({ from, to }: { from: string; to: string }) {
+	const location = useLocation();
+	const state = readLocationState(location.state);
+
+	return (
+		<Navigate
+			to={preserveSearch(to, location.search)}
+			replace
+			state={{
+				...state,
+				legacyRedirect: {
+					kind: "v2-deprecation",
+					from,
+					to,
+				} satisfies LegacyRedirectInfo,
+			}}
+		/>
+	);
+}
+
+function ForwardRedirect({ to }: { to: string }) {
+	const location = useLocation();
+
+	return (
+		<Navigate
+			to={preserveSearch(to, location.search)}
+			replace
+			state={readLocationState(location.state)}
+		/>
+	);
+}
+
 export function AppRouter() {
 	return useRoutes([
-		{ path: "/", element: <Navigate to="/training" replace /> },
+		// Root → Train hub
+		{ path: "/", element: <Navigate to="/train" replace /> },
+
+		// === TRAIN pillar ===========================================
 		{
-			path: "/training",
+			path: "/train",
 			element: (
 				<FeatureRoute featureName="Tréning">
 					<FitnessDashboard />
@@ -90,13 +141,69 @@ export function AppRouter() {
 			),
 		},
 		{
-			path: "/quick",
+			path: "/train/quick",
 			element: (
 				<FeatureRoute featureName="Rýchly tréning">
 					<FitnessQuickSessionPage />
 				</FeatureRoute>
 			),
 		},
+		// /train/live is rendered inline inside FitnessDashboard; the URL
+		// alias just lands users at the same dashboard.
+		{ path: "/train/live", element: <Navigate to="/train" replace /> },
+
+		// V2 redirects
+		{ path: "/training", element: <LegacyRedirect from="/training" to="/train" /> },
+		{ path: "/quick", element: <LegacyRedirect from="/quick" to="/train/quick" /> },
+
+		// === PROGRESS pillar (NEW) ==================================
+		{ path: "/progress", element: <ForwardRedirect to="/progress/lifts" /> },
+		{
+			path: "/progress/lifts",
+			element: (
+				<FeatureRoute featureName="Progres — Cviky">
+					<ProgressHubPage tab="lifts" />
+				</FeatureRoute>
+			),
+		},
+		{
+			path: "/progress/prs",
+			element: (
+				<FeatureRoute featureName="Progres — PR Timeline">
+					<ProgressHubPage tab="prs" />
+				</FeatureRoute>
+			),
+		},
+		{
+			path: "/progress/body",
+			element: (
+				<FeatureRoute featureName="Progres — Telo">
+					<ProgressHubPage tab="body" />
+				</FeatureRoute>
+			),
+		},
+		{
+			path: "/progress/journal",
+			element: (
+				<FeatureRoute featureName="Progres — Zápisník">
+					<ProgressHubPage tab="journal" />
+				</FeatureRoute>
+			),
+		},
+		{
+			path: "/progress/history",
+			element: (
+				<FeatureRoute featureName="Progres — História">
+					<FitnessHistoryPage />
+				</FeatureRoute>
+			),
+		},
+
+		// V2 redirects → Progress
+		{ path: "/stats", element: <LegacyRedirect from="/stats" to="/progress" /> },
+		{ path: "/history", element: <LegacyRedirect from="/history" to="/progress/history" /> },
+
+		// === PLANS pillar ===========================================
 		{
 			path: "/plans",
 			element: (
@@ -105,30 +212,72 @@ export function AppRouter() {
 				</LazyRoute>
 			),
 		},
+
+		// Coach Mode (V3 nests under /plans, V2 URLs keep redirecting)
 		{
-			path: "/history",
+			path: "/plans/coach/clients",
 			element: (
-				<FeatureRoute featureName="História">
-					<FitnessHistoryPage />
+				<FeatureRoute featureName="Coach Mode">
+					<CoachModePage section="clients" />
 				</FeatureRoute>
 			),
 		},
 		{
-			path: "/stats",
+			path: "/plans/coach/plans",
 			element: (
-				<FeatureRoute featureName="Štatistiky">
-					<FitnessStatsPage />
+				<FeatureRoute featureName="Coach Mode">
+					<CoachModePage section="plans" />
 				</FeatureRoute>
 			),
 		},
 		{
-			path: "/plates",
+			path: "/plans/coach/templates",
+			element: (
+				<FeatureRoute featureName="Coach Mode">
+					<CoachModePage section="templates" />
+				</FeatureRoute>
+			),
+		},
+		{
+			path: "/plans/coach/recaps",
+			element: (
+				<FeatureRoute featureName="Coach Mode">
+					<CoachModePage section="recaps" />
+				</FeatureRoute>
+			),
+		},
+
+		// V2 coach URL redirects
+		{
+			path: "/coach/clients",
+			element: <LegacyRedirect from="/coach/clients" to="/plans/coach/clients" />,
+		},
+		{
+			path: "/coach/plans",
+			element: <LegacyRedirect from="/coach/plans" to="/plans/coach/plans" />,
+		},
+		{
+			path: "/coach/templates",
+			element: <LegacyRedirect from="/coach/templates" to="/plans/coach/templates" />,
+		},
+		{
+			path: "/coach/recaps",
+			element: <LegacyRedirect from="/coach/recaps" to="/plans/coach/recaps" />,
+		},
+
+		// === TOOLS ==================================================
+		{
+			path: "/tools/plates",
 			element: (
 				<FeatureRoute featureName="Kalkulačka kotúčov">
 					<FitnessPlateCalculatorPage />
 				</FeatureRoute>
 			),
 		},
+		// V2 redirect
+		{ path: "/plates", element: <LegacyRedirect from="/plates" to="/tools/plates" /> },
+
+		// === SETTINGS ===============================================
 		{
 			path: "/settings",
 			element: (
@@ -137,38 +286,8 @@ export function AppRouter() {
 				</LazyRoute>
 			),
 		},
-		{
-			path: "/coach/clients",
-			element: (
-				<FeatureRoute featureName="Coach Mode">
-					<CoachModePage section="clients" />
-				</FeatureRoute>
-			),
-		},
-		{
-			path: "/coach/plans",
-			element: (
-				<FeatureRoute featureName="Coach Mode">
-					<CoachModePage section="plans" />
-				</FeatureRoute>
-			),
-		},
-		{
-			path: "/coach/templates",
-			element: (
-				<FeatureRoute featureName="Coach Mode">
-					<CoachModePage section="templates" />
-				</FeatureRoute>
-			),
-		},
-		{
-			path: "/coach/recaps",
-			element: (
-				<FeatureRoute featureName="Coach Mode">
-					<CoachModePage section="recaps" />
-				</FeatureRoute>
-			),
-		},
-		{ path: "*", element: <Navigate to="/training" replace /> },
+
+		// Fallback
+		{ path: "*", element: <Navigate to="/train" replace /> },
 	]);
 }

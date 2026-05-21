@@ -41,7 +41,7 @@ export function OnboardingFlow() {
 				goal: choice.goal,
 			});
 
-			finishAndNavigate("/training");
+			finishAndNavigate("/train");
 		} catch (cause) {
 			setError(
 				cause instanceof Error
@@ -72,7 +72,7 @@ export function OnboardingFlow() {
 						<SimpleStartBuilder
 							isMutating={isPreparing}
 							onSelectPlan={(choice) => void prepareSimplePlan(choice)}
-							onQuickSession={() => finishAndNavigate("/quick")}
+							onQuickSession={() => finishAndNavigate("/train/quick")}
 						/>
 
 						<div className="grid gap-3 md:grid-cols-2">

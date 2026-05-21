@@ -172,10 +172,61 @@ const fitnessSchema = [
 	`CREATE INDEX IF NOT EXISTS idx_fitness_sets_session_exercise ON fitness_sets(session_exercise_id, set_number)`,
 ] as const;
 
+/**
+ * V3 — Progress journal & body measurements.
+ *
+ * Both tables are additive; v001..v003 are untouched. The schema follows
+ * the spec in STINGFIT_V3_PLAN.md §5.6.
+ */
+const progressSchema = [
+	`CREATE TABLE IF NOT EXISTS fitness_body_measurements (
+    id TEXT PRIMARY KEY,
+    recorded_on TEXT NOT NULL,
+    bodyweight_kg REAL DEFAULT NULL,
+    waist_cm REAL DEFAULT NULL,
+    chest_cm REAL DEFAULT NULL,
+    biceps_left_cm REAL DEFAULT NULL,
+    biceps_right_cm REAL DEFAULT NULL,
+    thigh_left_cm REAL DEFAULT NULL,
+    thigh_right_cm REAL DEFAULT NULL,
+    calf_left_cm REAL DEFAULT NULL,
+    calf_right_cm REAL DEFAULT NULL,
+    note TEXT NOT NULL DEFAULT '',
+    photo_uri TEXT DEFAULT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+	`CREATE INDEX IF NOT EXISTS idx_fitness_body_measurements_date
+    ON fitness_body_measurements(recorded_on)`,
+	`CREATE TABLE IF NOT EXISTS fitness_journal_entries (
+    id TEXT PRIMARY KEY,
+    entry_date TEXT NOT NULL,
+    session_id TEXT DEFAULT NULL,
+    body TEXT NOT NULL DEFAULT '',
+    mood INTEGER DEFAULT NULL,
+    sleep_hours REAL DEFAULT NULL,
+    energy INTEGER DEFAULT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (session_id) REFERENCES fitness_sessions(id) ON DELETE SET NULL
+  )`,
+	`CREATE INDEX IF NOT EXISTS idx_fitness_journal_entries_date
+    ON fitness_journal_entries(entry_date)`,
+	`CREATE TRIGGER IF NOT EXISTS trg_fitness_journal_entries_session_deleted
+    AFTER DELETE ON fitness_sessions
+    BEGIN
+      UPDATE fitness_journal_entries
+      SET session_id = NULL,
+          updated_at = datetime('now')
+      WHERE session_id = OLD.id;
+    END`,
+] as const;
+
 export const MIGRATIONS = [
 	{ id: "v001", statements: appSchema },
 	{ id: "v002", statements: fitnessSchema },
 	{ id: "v003", statements: profileSchema },
+	{ id: "v004", statements: progressSchema },
 ] as const;
 
 function getTableColumns(database: SqlRunner, tableName: string) {

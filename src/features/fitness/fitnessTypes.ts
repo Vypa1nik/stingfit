@@ -1,4 +1,8 @@
 import type { FitnessDisplayUnit } from "@/features/fitness/fitnessUnits";
+import type {
+	BodyMeasurementRecord,
+	JournalEntryRecord,
+} from "@/features/progress/progressTypes";
 
 export type FitnessPlanKind = "starter" | "personal";
 export type FitnessPlanStatus = "draft" | "active" | "archived";
@@ -354,7 +358,7 @@ export interface FitnessStarterResetResult {
 	starterExerciseCount: number;
 }
 
-export interface FitnessExportPayload {
+export interface FitnessExportPayloadV1 {
 	version: 1;
 	exportedAt: string;
 	settings: FitnessSettingsRecord;
@@ -364,16 +368,33 @@ export interface FitnessExportPayload {
 	sessions: FitnessLiveSession[];
 }
 
+export interface FitnessExportPayloadV2 {
+	version: 2;
+	exportedAt: string;
+	settings: FitnessSettingsRecord;
+	exercises: FitnessExerciseRecord[];
+	starterPlans: FitnessPlanStructure[];
+	personalPlans: FitnessPlanStructure[];
+	sessions: FitnessLiveSession[];
+	bodyMeasurements: BodyMeasurementRecord[];
+	journalEntries: JournalEntryRecord[];
+}
+
+export type FitnessExportPayload = FitnessExportPayloadV2;
+export type FitnessImportPayload = FitnessExportPayloadV1 | FitnessExportPayloadV2;
+
 export type FitnessImportMode = "replace";
 
 export interface FitnessImportPreview {
-	version: 1;
+	version: 1 | 2;
 	displayUnit: FitnessDisplayUnit;
 	exerciseCount: number;
 	starterPlanCount: number;
 	personalPlanCount: number;
 	sessionCount: number;
 	completedSessionCount: number;
+	bodyMeasurementCount: number;
+	journalEntryCount: number;
 }
 
 export interface FitnessImportResult extends FitnessImportPreview {
@@ -412,6 +433,7 @@ export interface FinishFitnessSessionInput {
 	notes?: string;
 	sessionRpe?: number | null;
 	energyLevel?: number | null;
+	journalBody?: string;
 }
 
 export interface AddUnplannedExerciseInput {

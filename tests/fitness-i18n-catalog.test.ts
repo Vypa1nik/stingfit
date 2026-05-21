@@ -77,6 +77,44 @@ describe("Slovak i18n catalog scaffold", () => {
 		);
 	});
 
+	test("centralizes V3 shell and progress hub copy", () => {
+		expect(sk.fitness.nav.items.today).toBe("Dnes");
+		expect(sk.fitness.nav.items.progressLifts).toBe("Cviky (grafy)");
+		expect(sk.fitness.nav.groups.tools).toBe("Nástroje");
+		expect(sk.fitness.nav.mobile.startTraining).toBe("+ Tréning");
+		expect(sk.fitness.nav.moreSheet.items.plates.label).toBe(
+			"Kalkulačka kotúčov",
+		);
+		expect(sk.fitness.progressHub.badge).toBe("Progres & Zápisník");
+		expect(sk.fitness.progressHub.cards.completedWorkouts(2)).toBe(
+			"2 dokončených tréningov.",
+		);
+		expect(sk.fitness.progressHub.tabs.history).toBe("História");
+		expect(sk.fitness.redirectBanner.message("/stats", "Progres")).toBe(
+			"Presunuté: pôvodná URL `/stats` automaticky otvára Progres. Aktualizuj záložky.",
+		);
+		expect(en.fitness.nav.items.today).toBe("[en] Dnes");
+	});
+
+	test("uses the catalog in V3 shell and Progress hub surfaces", () => {
+		expect(readText("src/lib/constants.ts")).toContain("sk.fitness.nav.items");
+		expect(readText("src/components/layout/NavigationSidebar.tsx")).toContain(
+			"sk.fitness.nav",
+		);
+		expect(readText("src/components/layout/MobileBottomNav.tsx")).toContain(
+			"sk.fitness.nav.mobile",
+		);
+		expect(readText("src/components/layout/MoreSheet.tsx")).toContain(
+			"sk.fitness.nav.moreSheet",
+		);
+		expect(readText("src/features/progress/ProgressHubPage.tsx")).toContain(
+			"sk.fitness.progressHub",
+		);
+		expect(
+			readText("src/components/layout/RedirectDeprecationBanner.tsx"),
+		).toContain("sk.fitness.redirectBanner");
+	});
+
 	test("uses the catalog in the Phase 3 user-facing surfaces", () => {
 		expect(readText("src/features/fitness/FitnessSettingsPage.tsx")).toContain(
 			"sk.fitness.pwa.installTitle",

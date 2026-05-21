@@ -142,9 +142,9 @@ describe("StingFit PWA install and offline assets", () => {
 		);
 		expect(manifest.shortcuts).toEqual(
 			expect.arrayContaining([
-				expect.objectContaining({ name: "Tréning", url: "./#/training" }),
-				expect.objectContaining({ name: "Rýchly tréning", url: "./#/quick" }),
-				expect.objectContaining({ name: "História", url: "./#/history" }),
+				expect.objectContaining({ name: "Tréning", url: "./#/train" }),
+				expect.objectContaining({ name: "Rýchly tréning", url: "./#/train/quick" }),
+				expect.objectContaining({ name: "História", url: "./#/progress/history" }),
 			]),
 		);
 		expect(manifest.screenshots).toEqual(
@@ -239,7 +239,7 @@ describe("StingFit PWA install and offline assets", () => {
 		expect(installDocs).toContain("Bez účtu, cloudu a telemetrie");
 		expect(installPage).toContain("Nainštaluj StingFit");
 		expect(installPage).toContain("Add to Home Screen");
-		expect(installPage).toContain("./#/training");
+		expect(installPage).toContain("./#/train");
 	});
 
 	test("public PWA assets do not keep old LocalFlow preview names", () => {
@@ -257,7 +257,7 @@ describe("StingFit PWA install and offline assets", () => {
 
 		expect(offline).toContain("StingFit funguje aj offline");
 		expect(offline).toContain("Tréningové dáta zostávajú v zariadení");
-		expect(offline).toContain("./#/training");
+		expect(offline).toContain("./#/train");
 		expect(offline).not.toContain("LocalFlow");
 	});
 });

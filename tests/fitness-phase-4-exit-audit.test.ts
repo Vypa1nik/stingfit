@@ -7,19 +7,17 @@ function readText(path: string) {
 }
 
 describe("StingFit Phase 4 exit audit", () => {
-	test("documents distribution readiness with accepted release concerns", () => {
+	test("keeps the accepted V2 distribution evidence while V3 is active", () => {
 		const reportPath = "reports/stingfit-phase-4-exit-audit.md";
 		expect(existsSync(reportPath)).toBe(true);
 
 		const report = readText(reportPath);
-		const plan = readText("STINGFIT_V2_PLAN.md");
+		const activePlan = readText("STINGFIT_V3_PLAN.md");
 		const changelog = readText("CHANGELOG.md");
-		const releaseReadiness = readText(
-			"reports/stingfit-v2-release-readiness.md",
-		);
+		const readme = readText("README.md");
 
 		expect(report).toContain("Status: DONE_WITH_ACCEPTED_CONCERNS");
-		expect(report).toContain("Target: V2 Phase 4 — Distribution");
+		expect(report).toContain("Target: V2 Phase 4");
 		for (const moduleName of [
 			"PWA install funnel",
 			"Tauri desktop builds",
@@ -43,12 +41,11 @@ describe("StingFit Phase 4 exit audit", () => {
 		expect(report).toContain("V2.0 is approved as a PWA-only release");
 		expect(report).not.toContain("LocalFlow");
 
-		expect(plan).toContain(
-			"PHASE 4 — Distribution (DONE_WITH_ACCEPTED_CONCERNS 2026-05-12)",
-		);
+		expect(activePlan).toContain("StingFit V3");
 		expect(changelog).toContain("Phase 4 exit audit");
-		expect(releaseReadiness).toContain(
-			"reports/stingfit-phase-4-exit-audit.md",
+		expect(readme).toContain(
+			"docs/archive/reports/stingfit-v2-release-readiness.md",
 		);
+		expect(existsSync("reports/stingfit-v2-release-readiness.md")).toBe(false);
 	});
 });

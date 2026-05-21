@@ -21,7 +21,7 @@ function renderTopBar() {
 
 	act(() => {
 		root.render(
-			<MemoryRouter initialEntries={["/training"]}>
+			<MemoryRouter initialEntries={["/train"]}>
 				<TopBar />
 			</MemoryRouter>,
 		);

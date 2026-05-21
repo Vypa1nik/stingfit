@@ -1069,7 +1069,7 @@ export function FitnessPlansPage() {
         <BeginnerPlanSummary
           structure={selectedStructure}
           isMutating={isMutating}
-          onOpenTraining={() => navigate('/training')}
+          onOpenTraining={() => navigate('/train')}
           onCompleteFromStarter={fullBodyStarterPlan ? () => void createFromStarter(fullBodyStarterPlan) : undefined}
         />
       ) : null}

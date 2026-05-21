@@ -1,6 +1,7 @@
 import { execute, query } from '@/lib/database'
 import { STARTER_FITNESS_EXERCISES, STARTER_FITNESS_PLANS, STARTER_PLAN_STRUCTURES } from '@/features/fitness/fitnessSeed'
 import { buildStrongCsvPreview, parseStrongCsvImport, type ParsedStrongCsvWorkout } from '@/features/fitness/fitnessStrongCsv'
+import { progressRepository } from '@/features/progress/progressRepository'
 import type {
   AddPlanDayInput,
   AddPlanExerciseInput,
@@ -44,6 +45,10 @@ import type {
   UpdatePlanExerciseInput,
   UpdatePlanWorkoutInput,
 } from '@/features/fitness/fitnessTypes'
+import type {
+  BodyMeasurementRecord,
+  JournalEntryRecord,
+} from '@/features/progress/progressTypes'
 import { normalizeMuscleGroup, requireMuscleGroup } from '@/features/fitness/fitnessMuscleGroups'
 import { normalizeDisplayUnit } from '@/features/fitness/fitnessUnits'
 
@@ -1025,14 +1030,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function parseFitnessImportPayload(payload: unknown): FitnessExportPayload {
+interface ParsedFitnessImportPayload extends FitnessExportPayload {
+  sourceVersion: 1 | 2
+}
+
+function parseFitnessImportPayload(payload: unknown): ParsedFitnessImportPayload {
   if (!isRecord(payload)) {
     throw new Error('Fitness import payload must be a JSON object')
   }
 
-  if (payload.version !== 1) {
+  if (payload.version !== 1 && payload.version !== 2) {
     throw new Error('Unsupported fitness import version')
   }
+  const sourceVersion = payload.version
 
   if (!Array.isArray(payload.starterPlans) || !Array.isArray(payload.personalPlans)) {
     throw new Error('Fitness import payload is missing plan arrays')
@@ -1054,32 +1064,52 @@ function parseFitnessImportPayload(payload: unknown): FitnessExportPayload {
     updatedAt: typeof payload.settings.updatedAt === 'string' ? payload.settings.updatedAt : null,
   }
 
+  let bodyMeasurements: BodyMeasurementRecord[] = []
+  let journalEntries: JournalEntryRecord[] = []
+  if (sourceVersion === 2) {
+    if (!Array.isArray(payload.bodyMeasurements) || !Array.isArray(payload.journalEntries)) {
+      throw new Error('Fitness import payload is missing progress arrays')
+    }
+    bodyMeasurements = payload.bodyMeasurements as BodyMeasurementRecord[]
+    journalEntries = payload.journalEntries as JournalEntryRecord[]
+  }
+
   return {
-    version: 1,
+    version: 2,
+    sourceVersion,
     exportedAt: typeof payload.exportedAt === 'string' ? payload.exportedAt : nowIso(),
     settings,
     exercises: payload.exercises as FitnessExportPayload['exercises'],
     starterPlans: payload.starterPlans as FitnessExportPayload['starterPlans'],
     personalPlans: payload.personalPlans as FitnessExportPayload['personalPlans'],
     sessions: payload.sessions as FitnessExportPayload['sessions'],
+    bodyMeasurements,
+    journalEntries,
   }
 }
 
-function buildFitnessImportPreview(payload: unknown): FitnessImportPreview {
-  const parsed = parseFitnessImportPayload(payload)
+function buildFitnessImportPreviewFromParsed(parsed: ParsedFitnessImportPayload): FitnessImportPreview {
   return {
-    version: 1,
+    version: parsed.sourceVersion,
     displayUnit: parsed.settings.displayUnit,
     exerciseCount: parsed.exercises.length,
     starterPlanCount: parsed.starterPlans.length,
     personalPlanCount: parsed.personalPlans.length,
     sessionCount: parsed.sessions.length,
     completedSessionCount: parsed.sessions.filter((session) => session.status === 'completed').length,
+    bodyMeasurementCount: parsed.bodyMeasurements.length,
+    journalEntryCount: parsed.journalEntries.length,
   }
+}
+
+function buildFitnessImportPreview(payload: unknown): FitnessImportPreview {
+  return buildFitnessImportPreviewFromParsed(parseFitnessImportPayload(payload))
 }
 
 async function clearFitnessTablesForImport() {
   for (const table of [
+    'fitness_journal_entries',
+    'fitness_body_measurements',
     'fitness_sets',
     'fitness_session_exercises',
     'fitness_sessions',
@@ -1321,8 +1351,56 @@ async function insertSessionForImport(session: FitnessLiveSession) {
   }
 }
 
+async function insertBodyMeasurementForImport(record: BodyMeasurementRecord) {
+  await execute(
+    `INSERT OR REPLACE INTO fitness_body_measurements(
+      id, recorded_on, bodyweight_kg, waist_cm, chest_cm,
+      biceps_left_cm, biceps_right_cm, thigh_left_cm, thigh_right_cm,
+      calf_left_cm, calf_right_cm, note, photo_uri, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      record.id,
+      record.recordedOn,
+      record.bodyweightKg,
+      record.waistCm,
+      record.chestCm,
+      record.bicepsLeftCm,
+      record.bicepsRightCm,
+      record.thighLeftCm,
+      record.thighRightCm,
+      record.calfLeftCm,
+      record.calfRightCm,
+      record.note,
+      record.photoUri,
+      record.createdAt,
+      record.updatedAt,
+    ],
+  )
+}
+
+async function insertJournalEntryForImport(record: JournalEntryRecord) {
+  await execute(
+    `INSERT OR REPLACE INTO fitness_journal_entries(
+      id, entry_date, session_id, body, mood, sleep_hours, energy, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      record.id,
+      record.entryDate,
+      record.sessionId,
+      record.body,
+      record.mood,
+      record.sleepHours,
+      record.energy,
+      record.createdAt,
+      record.updatedAt,
+    ],
+  )
+}
+
 export const fitnessRepository = {
   resetFitnessData: async () => {
+    await execute(`DELETE FROM fitness_journal_entries`)
+    await execute(`DELETE FROM fitness_body_measurements`)
     await execute(`DELETE FROM fitness_sets`)
     await execute(`DELETE FROM fitness_session_exercises`)
     await execute(`DELETE FROM fitness_sessions`)
@@ -1915,12 +1993,22 @@ export const fitnessRepository = {
   },
 
   exportFitnessData: async (): Promise<FitnessExportPayload> => {
-    const [settings, exercises, starterPlans, personalPlans, sessionRows] = await Promise.all([
+    const [
+      settings,
+      exercises,
+      starterPlans,
+      personalPlans,
+      sessionRows,
+      bodyMeasurements,
+      journalEntries,
+    ] = await Promise.all([
       getFitnessSettings(),
       fitnessRepository.listExercises(),
       fitnessRepository.listStarterPlans(),
       fitnessRepository.listPersonalPlans(),
       query<FitnessSessionRow>(`SELECT * FROM fitness_sessions ORDER BY created_at ASC`),
+      progressRepository.listBodyMeasurements(),
+      progressRepository.listJournalEntries(),
     ])
 
     const [starterPlanStructures, personalPlanStructures, sessions] = await Promise.all([
@@ -1930,13 +2018,15 @@ export const fitnessRepository = {
     ])
 
     return {
-      version: 1,
+      version: 2,
       exportedAt: nowIso(),
       settings,
       exercises,
       starterPlans: starterPlanStructures,
       personalPlans: personalPlanStructures,
       sessions,
+      bodyMeasurements,
+      journalEntries,
     }
   },
 
@@ -1963,7 +2053,7 @@ export const fitnessRepository = {
     }
 
     const parsed = parseFitnessImportPayload(payload)
-    const preview = buildFitnessImportPreview(parsed)
+    const preview = buildFitnessImportPreviewFromParsed(parsed)
     await clearFitnessTablesForImport()
 
     for (const exercise of parsed.exercises) {
@@ -1977,6 +2067,12 @@ export const fitnessRepository = {
     }
     for (const session of parsed.sessions) {
       await insertSessionForImport(session)
+    }
+    for (const record of parsed.bodyMeasurements) {
+      await insertBodyMeasurementForImport(record)
+    }
+    for (const entry of parsed.journalEntries) {
+      await insertJournalEntryForImport(entry)
     }
     await upsertFitnessSetting('display_unit', parsed.settings.displayUnit)
     await upsertFitnessSetting('show_guidance', parsed.settings.showGuidance ? '1' : '0')

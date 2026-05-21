@@ -289,7 +289,7 @@ export function FitnessSettingsPage() {
 			const filename = `stingfit-fitness-export-${new Date().toISOString().slice(0, 10)}.json`;
 			downloadBlob(blob, filename);
 			setSuccessMessage(
-				`Export tréningových dát je pripravený: ${exported.exercises.length} cvikov, ${exported.personalPlans.length} osobných plánov, ${exported.sessions.length} tréningových záznamov.`,
+				`Export tréningových dát je pripravený: ${exported.exercises.length} cvikov, ${exported.personalPlans.length} osobných plánov, ${exported.sessions.length} tréningových záznamov, ${exported.bodyMeasurements.length} telesných záznamov a ${exported.journalEntries.length} zápisov.`,
 			);
 		} catch (cause) {
 			setError(
@@ -400,7 +400,7 @@ export function FitnessSettingsPage() {
 			const preview = fitnessRepository.previewFitnessImport(parsed);
 			setImportPreview(preview);
 			setSuccessMessage(
-				`Náhľad importu: ${preview.personalPlanCount} osobných plánov, ${preview.sessionCount} tréningových záznamov, ${preview.completedSessionCount} dokončených.`,
+				`Náhľad importu: ${preview.personalPlanCount} osobných plánov, ${preview.sessionCount} tréningových záznamov, ${preview.completedSessionCount} dokončených, ${preview.bodyMeasurementCount} telesných záznamov a ${preview.journalEntryCount} zápisov.`,
 			);
 		} catch (cause) {
 			setError(
@@ -424,7 +424,7 @@ export function FitnessSettingsPage() {
 			setSettings(updatedSettings);
 			setImportPreview(result);
 			setSuccessMessage(
-				`Import tréningových dát obnovený: ${result.personalPlanCount} osobných plánov a ${result.sessionCount} tréningových záznamov.`,
+				`Import tréningových dát obnovený: ${result.personalPlanCount} osobných plánov, ${result.sessionCount} tréningových záznamov, ${result.bodyMeasurementCount} telesných záznamov a ${result.journalEntryCount} zápisov.`,
 			);
 		} catch (cause) {
 			setError(
@@ -905,7 +905,9 @@ export function FitnessSettingsPage() {
 											{importPreview.exerciseCount} cvikov ·{" "}
 											{importPreview.starterPlanCount} štartovacích plánov ·{" "}
 											{importPreview.personalPlanCount} osobných plánov ·{" "}
-											{importPreview.sessionCount} tréningových záznamov ·
+											{importPreview.sessionCount} tréningových záznamov ·{" "}
+											{importPreview.bodyMeasurementCount} telesných záznamov ·{" "}
+											{importPreview.journalEntryCount} zápisov ·
 											jednotka {importPreview.displayUnit}
 										</p>
 									</div>

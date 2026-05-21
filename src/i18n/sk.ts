@@ -1,5 +1,103 @@
 export const sk = {
 	fitness: {
+		nav: {
+			items: {
+				today: "Dnes",
+				quickTraining: "Rýchly tréning",
+				progressLifts: "Cviky (grafy)",
+				progressPrs: "PR Timeline",
+				progressBody: "Telo",
+				progressJournal: "Zápisník",
+				progressHistory: "História",
+				plans: "Plány",
+				plates: "Kalkulačka kotúčov",
+			},
+			groups: {
+				train: "Tréning",
+				progress: "Progres",
+				plans: "Plány",
+				tools: "Nástroje",
+			},
+			sidebar: {
+				localBadge: "Lokálne",
+				closeMenu: "Zavrieť navigačné menu",
+				expandSidebar: "Rozbaliť bočný panel",
+				collapseSidebar: "Zbaliť bočný panel",
+				settings: "Nastavenia",
+			},
+			mobile: {
+				ariaLabel: "Hlavné mobilné taby",
+				training: "Tréning",
+				progress: "Progres",
+				startTraining: "+ Tréning",
+				plans: "Plány",
+				more: "Viac",
+			},
+			moreSheet: {
+				title: "Viac",
+				ariaLabel: "Viac možností",
+				closeOverlay: "Zatvoriť ponuku Viac",
+				closeButton: "Zatvoriť",
+				items: {
+					quick: {
+						label: "Rýchly tréning",
+						description: "Spusti zápisník bez plánu.",
+					},
+					plates: {
+						label: "Kalkulačka kotúčov",
+						description: "Spočítaj kotúče na tyč.",
+					},
+					history: {
+						label: "História",
+						description: "Skoč rovno do tréningového zápisníka.",
+					},
+					coach: {
+						label: "Coach Mode",
+						description: "Klienti, šablóny, recap pack.",
+					},
+					settings: {
+						label: "Nastavenia",
+						description: "Jednotky, dáta, súkromie.",
+					},
+				},
+			},
+		},
+		progressHub: {
+			badge: "Progres & Zápisník",
+			kicker: "Všetko o tvojom raste na jednom mieste.",
+			title: "Ako rastieš.",
+			description:
+				"Štyri pohľady — váhy cvikov, PR feed, telesné miery a osobný zápisník. Všetko sa odvodzuje lokálne z tvojich dokončených tréningov a nikdy neopúšťa zariadenie.",
+			cards: {
+				consistency: "Konzistencia",
+				weeklyVolume: "Týždenný objem",
+				lastPr: "Posledný PR",
+				completedWorkouts: (count: number) =>
+					count === 1 ? "1 dokončený tréning." : `${count} dokončených tréningov.`,
+				emptyPr: "Zatiaľ žiadny PR. Dokonči tréning a sem prikvitne.",
+			},
+			tabs: {
+				ariaLabel: "Progres taby",
+				lifts: "Cviky",
+				prs: "PR Timeline",
+				body: "Telo",
+				journal: "Zápisník",
+				history: "História",
+			},
+		},
+		redirectBanner: {
+			dismiss: "Skryť upozornenie",
+			destination: {
+				train: "Tréning",
+				quick: "Rýchly tréning",
+				progress: "Progres",
+				history: "História",
+				plates: "Kalkulačku kotúčov",
+				coach: "Coach Mode v Plánoch",
+			},
+			message: (from: string, destination: string) =>
+				`Presunuté: pôvodná URL \`${from}\` automaticky otvára ${destination}. Aktualizuj záložky.`,
+		},
 		pwa: {
 			installTitle: "Inštalácia aplikácie",
 			installDescription:

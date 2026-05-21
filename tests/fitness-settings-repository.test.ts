@@ -55,7 +55,12 @@ describe('fitness settings repository', () => {
 
     const exported = await fitnessRepository.exportFitnessData()
 
-    expect(exported).toMatchObject({ version: 1, settings: { displayUnit: 'lb' } })
+    expect(exported).toMatchObject({
+      version: 2,
+      settings: { displayUnit: 'lb' },
+      bodyMeasurements: [],
+      journalEntries: [],
+    })
     expect(exported.exercises.some((exercise) => exercise.name === 'Tlak na lavičke')).toBe(true)
     expect(exported.personalPlans.some((structure) => structure.plan.name === 'My PPL Block')).toBe(true)
     expect(exported.sessions[0]).toMatchObject({ name: 'Tlakový deň A', status: 'completed' })

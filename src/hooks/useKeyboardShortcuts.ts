@@ -44,13 +44,13 @@ export function useKeyboardShortcuts() {
 
     if (event.key.toLowerCase() === 'f') {
       event.preventDefault()
-      navigate('/history')
+      navigate('/progress/history')
       return
     }
 
     if (event.key.toLowerCase() === 'd') {
       event.preventDefault()
-      navigate('/training')
+      navigate('/train')
       return
     }
 
@@ -68,13 +68,14 @@ export function useKeyboardShortcuts() {
 
     if (event.key.toLowerCase() === 't') {
       event.preventDefault()
-      navigate('/training')
+      navigate('/train')
       return
     }
 
     if (['1', '2', '3', '4', '5'].includes(event.key)) {
       event.preventDefault()
-      const mapping = ['/training', '/plans', '/history', '/stats', '/settings']
+      // V3 mapping: Train · Progress · Plans · Tools · Settings
+      const mapping = ['/train', '/progress', '/plans', '/tools/plates', '/settings']
       navigate(mapping[Number(event.key) - 1] ?? '/')
     }
   })

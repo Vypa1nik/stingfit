@@ -44,7 +44,7 @@ describe('FitnessHistoryPage simplified history result', () => {
   let root: Root
 
   beforeEach(async () => {
-    window.history.replaceState(null, '', '/#/history')
+    window.history.replaceState(null, '', '/#/progress/history')
     await resetDatabaseState()
     await clearAllData()
     await createFinishedWorkout()
@@ -85,7 +85,7 @@ describe('FitnessHistoryPage simplified history result', () => {
   })
 
   test('labels the latest result as the just-finished workout after finish handoff', async () => {
-    window.history.replaceState(null, '', '/#/history?from=finish')
+    window.history.replaceState(null, '', '/#/progress/history?from=finish')
 
     await act(async () => {
       root.render(<FitnessHistoryPage />)
@@ -105,6 +105,6 @@ describe('FitnessHistoryPage simplified history result', () => {
       await waitForAsyncUi()
     })
 
-    expect(window.location.hash).toBe('#/training')
+    expect(window.location.hash).toBe('#/train')
   })
 })
