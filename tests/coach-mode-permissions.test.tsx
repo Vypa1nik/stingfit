@@ -15,6 +15,52 @@ async function waitForAsyncUi(delayMs = 500) {
 	await new Promise((resolve) => window.setTimeout(resolve, delayMs));
 }
 
+async function waitForText(
+	container: HTMLElement,
+	text: string,
+	timeoutMs = 2500,
+) {
+	const deadline = Date.now() + timeoutMs;
+	while (Date.now() < deadline) {
+		if (container.textContent?.includes(text)) {
+			return;
+		}
+
+		await act(async () => {
+			await waitForAsyncUi(50);
+		});
+	}
+
+	expect(container.textContent).toContain(text);
+}
+
+async function waitForEnabledButton(
+	container: HTMLElement,
+	label: string,
+	timeoutMs = 2500,
+) {
+	const deadline = Date.now() + timeoutMs;
+	while (Date.now() < deadline) {
+		const button = Array.from(container.querySelectorAll("button")).find(
+			(item) => item.textContent?.includes(label) && !item.disabled,
+		);
+
+		if (button) {
+			return button;
+		}
+
+		await act(async () => {
+			await waitForAsyncUi(50);
+		});
+	}
+
+	const matchingButton = Array.from(container.querySelectorAll("button")).find(
+		(item) => item.textContent?.includes(label),
+	);
+	expect(matchingButton?.disabled).toBe(false);
+	return matchingButton;
+}
+
 function render(element: ReactNode) {
 	const container = document.createElement("div");
 	document.body.appendChild(container);
@@ -59,11 +105,7 @@ describe("Coach Mode permissions", () => {
 		roots.push(rendered.root);
 		containers.push(rendered.container);
 
-		await act(async () => {
-			await waitForAsyncUi();
-		});
-
-		expect(rendered.container.textContent).toContain("Coach Mode je vypnutý");
+		await waitForText(rendered.container, "Coach Mode je vypnutý");
 		expect(rendered.container.textContent).not.toContain("Klienti trénera");
 	});
 
@@ -79,11 +121,7 @@ describe("Coach Mode permissions", () => {
 		roots.push(rendered.root);
 		containers.push(rendered.container);
 
-		await act(async () => {
-			await waitForAsyncUi();
-		});
-
-		expect(rendered.container.textContent).toContain(title);
+		await waitForText(rendered.container, title);
 		expect(rendered.container.textContent).toContain("Coach Mode");
 		expect(rendered.container.textContent).not.toContain(
 			"Coach Mode je vypnutý",
@@ -95,25 +133,23 @@ describe("Coach Mode permissions", () => {
 		roots.push(rendered.root);
 		containers.push(rendered.container);
 
-		await act(async () => {
-			await waitForAsyncUi();
-		});
-
-		expect(rendered.container.textContent).toContain("Som tréner");
+		await waitForText(rendered.container, "Som tréner");
 		expect(rendered.container.textContent).toContain("Coach Mode: vypnutý");
 		expect(rendered.container.textContent).toContain("bez účtu alebo cloudu");
 
-		const enableButton = Array.from(
-			rendered.container.querySelectorAll("button"),
-		).find((button) => button.textContent?.includes("Zapnúť Coach Mode"));
-		expect(enableButton).toBeDefined();
+		const enableButton = await waitForEnabledButton(
+			rendered.container,
+			"Zapnúť Coach Mode",
+		);
 
 		await act(async () => {
-			enableButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+			enableButton?.dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true }),
+			);
 			await waitForAsyncUi();
 		});
 
-		expect(rendered.container.textContent).toContain("Coach Mode zapnutý");
+		await waitForText(rendered.container, "Coach Mode zapnutý");
 		await expect(getCoachModeEnabled()).resolves.toBe(true);
 	});
 });
