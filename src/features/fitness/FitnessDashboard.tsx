@@ -483,7 +483,7 @@ export function FitnessDashboard({
 				) : null}
 				<FeatureErrorBoundary
 					featureName="Živý tréning"
-					description="Aktívna session zostáva uložená lokálne. Ak sa táto časť znovu nenačíta, prejdi do Histórie alebo exportuj zálohu z Nastavení."
+					description="Rozbehnutý tréning zostáva uložený lokálne. Ak sa táto časť znovu nenačíta, prejdi do Histórie alebo exportuj zálohu z Nastavení."
 					resetKey={activeSession.id}
 				>
 					<LiveTrainingSession

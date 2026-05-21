@@ -263,6 +263,8 @@ describe("Slovak StingFit localization", () => {
 
 		for (const phrase of [
 			"High-Voltage",
+			"Aktívna session",
+			"session zostáva",
 			"snímka session",
 			"Snímka session",
 			"Aktívna snímka session",

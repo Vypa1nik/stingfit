@@ -4,7 +4,10 @@ All notable changes to StingFit will be documented in this file.
 
 ## Unreleased
 
-_No changes yet._
+### Changed
+
+- Live training crash fallback copy now uses Slovak training wording instead of
+  the English "session" label.
 
 ## 3.0.0 - 2026-05-17
 
