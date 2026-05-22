@@ -1,21 +1,21 @@
 # StingFit Tauri desktop builds
 
-Status: FUTURE_TRACK_AFTER_V3.0
-Date: 2026-05-17
-Scope: V3 release metadata check — Tauri desktop build readiness
+Status: FUTURE_TRACK_AFTER_V3.0.1
+Date: 2026-05-22
+Scope: V3.0.1 post-release metadata check — Tauri desktop build readiness
 
 ## Summary
 
-The StingFit Tauri scaffold is present and aligned with the Vite/HashRouter app shell, but native desktop artifacts cannot be built in this environment. The build machine is missing Rust and the Windows native build toolchain that Tauri requires.
+The StingFit Tauri scaffold is present and aligned with the Vite/HashRouter app shell, but native desktop artifacts still cannot be built in this environment. The build machine is missing Rust and the Windows native build toolchain that Tauri requires.
 
-V3.0 proceeds as a **PWA-first web release**. The owner accepted desktop installers as a future release track until the missing desktop build prerequisites are installed and verified.
+V3.0.1 remains a **PWA-first web release**. The owner accepted desktop installers as a future release track until the missing desktop build prerequisites are installed and verified.
 
 ## Configuration checked
 
 - `package.json` exposes `npm run tauri`, `npm run tauri:dev`, and `npm run tauri:build`.
 - `src-tauri/tauri.conf.json` uses:
   - `productName: "StingFit"`
-  - `version: "3.0.0"`
+  - `version: "3.0.1"`
   - `identifier: "com.stingfit.app"`
   - `frontendDist: "../dist"`
   - `beforeBuildCommand: "npm run build"`
@@ -31,7 +31,7 @@ Command run:
 npm run tauri -- info
 ```
 
-Relevant result:
+Relevant result from the 2026-05-22 re-check:
 
 ```text
 WebView2: 147.0.3912.98
@@ -40,17 +40,22 @@ rustc: not installed!
 Cargo: not installed!
 rustup: not installed!
 Rust toolchain: couldn't be detected!
+node: 24.14.0
+npm: 11.9.0
 ```
 
-Direct shell checks also returned no toolchain executables:
+Direct shell checks also returned no native toolchain executables:
 
-```bash
-cargo --version
-rustc --version
-rustup --version
+```text
+rustc=MISSING
+cargo=MISSING
+rustup=MISSING
+cl=MISSING
+cmake=MISSING
+ninja=MISSING
 ```
 
-Result: all three commands were unavailable in PATH.
+Result: Rust, Cargo, rustup, MSVC compiler, CMake, and Ninja were unavailable in PATH.
 
 ## Build status
 
@@ -66,4 +71,4 @@ Expected prerequisites before retrying desktop artifacts:
 
 ## Decision
 
-For V3.0, do not promise `.msi` or `.dmg` artifacts. Continue with the verified PWA install path and keep desktop installers as a future track until a machine with the required native toolchain is available.
+For V3.0.1, do not promise `.msi` or `.dmg` artifacts. Continue with the verified PWA install path and keep desktop installers as a future track until a machine with the required native toolchain is available.

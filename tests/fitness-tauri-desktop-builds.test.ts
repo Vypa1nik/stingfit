@@ -82,7 +82,7 @@ describe("StingFit Tauri desktop build readiness", () => {
 		const changelog = readText("CHANGELOG.md");
 
 		expect(report.split("\n").slice(0, 5).join("\n")).toContain(
-			"Status: FUTURE_TRACK_AFTER_V3.0",
+			"Status: FUTURE_TRACK_AFTER_V3.0.1",
 		);
 		expect(report).toContain("WebView2: 147.0.3912.98");
 		expect(report).toContain("rustc: not installed");
@@ -90,6 +90,9 @@ describe("StingFit Tauri desktop build readiness", () => {
 		expect(report).toContain("rustup: not installed");
 		expect(report).toContain("Visual Studio or VS Build Tools");
 		expect(report).toContain("MSVC and SDK components");
+		expect(report).toContain("cl=MISSING");
+		expect(report).toContain("cmake=MISSING");
+		expect(report).toContain("ninja=MISSING");
 		expect(report).toContain("npm run tauri -- info");
 		expect(report).toContain("npm run tauri:build");
 		expect(report).toContain("PWA-first web release");
