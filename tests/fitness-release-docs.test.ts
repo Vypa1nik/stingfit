@@ -82,7 +82,8 @@ describe("StingFit release documentation", () => {
 		expect(existsSync("reports/stingfit-v3.0.0-release-smoke.md")).toBe(true);
 		const v3Smoke = readText("reports/stingfit-v3.0.0-release-smoke.md");
 		expect(v3Smoke).toContain("LOCAL PRODUCTION PREVIEW PASS");
-		expect(v3Smoke).toContain("PUBLIC DEPLOYMENT STALE/PENDING V3 PUSH");
+		expect(v3Smoke).toContain("PUBLIC V3.0.1 DEPLOYMENT VERIFIED");
+		expect(v3Smoke).toContain("stingfit-v3.0.1-github-pages");
 		expect(v3Smoke).toContain("SMOKE_PASS count=24");
 		expect(existsSync("reports/stingfit-v2-release-readiness.md")).toBe(false);
 		expect(
