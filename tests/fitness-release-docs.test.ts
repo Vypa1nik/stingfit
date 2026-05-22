@@ -20,6 +20,10 @@ describe("StingFit release documentation", () => {
 		expect(readme).not.toContain("V2 adds explicit coach");
 		expect(readme).toContain("Current V3 Rebuild");
 		expect(readme).toContain("StingFit V3.0.1 is the current shipped release");
+		expect(readme).toContain("StingFit is built around one simple loop");
+		expect(readme).toContain("Native Mobile App Track");
+		expect(readme).not.toContain("V1 is built around one simple loop");
+		expect(readme).not.toContain("## V2.1 Mobile App Track");
 		expect(readme).toContain(
 			"old V2 URLs redirect with a one-release deprecation banner",
 		);

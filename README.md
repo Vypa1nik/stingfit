@@ -4,7 +4,7 @@ StingFit is the calm, fast bridge between a coach and the person doing the worko
 
 A coach can export a `.stfplan` Plan Pack, a trainee can import it and train offline, and the trainee can later export a `.stfrecap` Recap Pack back to the coach. All sharing is a deliberate file action, and the core gym loop remains fast: open the app, see today's workout, log sets, finish, and review progress from local history.
 
-V1 is built around one simple loop:
+StingFit is built around one simple loop:
 
 ```text
 Start → Log → Finish → Learn
@@ -56,7 +56,7 @@ GitHub Pages deployment is defined in `.github/workflows/deploy-pwa.yml`. It bui
 
 Desktop downloads: No verified desktop installers are published yet. The Tauri v2 scaffold is present, but Windows/macOS installer links stay omitted until the native toolchain blocker in `reports/stingfit-tauri-desktop-builds.md` is resolved and `npm run tauri:build` is verified on a machine with Rust, Cargo, rustup, and the required platform build tools.
 
-## V2.1 Mobile App Track
+## Native Mobile App Track
 
 StingFit keeps a separate native mobile packaging track with Capacitor that began after the PWA-only `v2.0.0` release. Android debug APK is the first native target; iOS builds are prepared as a handoff package and completed on a MacBook with Xcode/signing. The PWA remains the canonical public install path until native packages pass their own device smoke checks.
 

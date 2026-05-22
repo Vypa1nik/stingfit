@@ -94,11 +94,11 @@ describe('StingFit V1 release identity', () => {
     expect(readText('package.json')).not.toContain('.tmp-localflow-public-url.txt')
   })
 
-  test('README presents StingFit V1 instead of the old productivity workspace', () => {
+  test('README presents StingFit instead of the old productivity workspace', () => {
     const readme = readText('README.md')
 
     expect(readme.startsWith('# StingFit')).toBe(true)
-    expect(readme).toContain('V1')
+    expect(readme).toContain('StingFit is built around one simple loop')
     expect(readme).toContain('Start → Log → Finish → Learn')
     expect(readme).toContain('No login, no cloud sync, no telemetry')
     expect(readme).not.toContain('LocalFlow is a private, offline-first productivity workspace')
