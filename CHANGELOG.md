@@ -4,8 +4,13 @@ All notable changes to StingFit will be documented in this file.
 
 ## Unreleased
 
+## 3.0.1 - 2026-05-22
+
 ### Changed
 
+- Installed PWAs now rotate the GitHub Pages service-worker cache to the V3.0.1
+  shell and ask the browser for service-worker updates on load, so returning
+  users are pushed off the old V2 cached UI after the new release activates.
 - Live training crash fallback copy now uses Slovak training wording instead of
   the English "session" label.
 - Android Chrome public PWA route smoke is documented with the remaining

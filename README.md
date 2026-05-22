@@ -31,15 +31,18 @@ No login, no cloud sync, no telemetry, no analytics, no subscriptions, and no pa
 
 ## Current V3 Rebuild
 
-StingFit V3 is the current shipped release (`3.0.0`). It keeps every V2 feature
+StingFit V3.0.1 is the current shipped release. It keeps every V2 feature
 reachable while reshaping the app around Train, Progress, Plans, and Tools:
 `/train`, `/progress/*`, `/plans/coach/*`, and `/tools/plates` are the canonical
 app-owned routes, and old V2 URLs redirect with a one-release deprecation banner.
 
-The V3 ship gate passed locally on 2026-05-17 with `npm run check`: lint, the
-full Vitest suite, and the production build were green. `STINGFIT_V3_PLAN.md`
-remains the current plan of record for the V3 scope and shipped criteria, while
-`AGENT_START_HERE.md` records the latest handoff and manual follow-ups.
+The V3.0.0 ship gate passed locally on 2026-05-17 with `npm run check`: lint,
+the full Vitest suite, and the production build were green. V3.0.1 is a public
+PWA cache/update patch that rotates the GitHub Pages service-worker cache and
+nudges already-installed PWAs to reload after the new worker activates.
+`STINGFIT_V3_PLAN.md` remains the current plan of record for the V3 scope and
+shipped criteria, while `AGENT_START_HERE.md` records the latest handoff and
+manual follow-ups.
 
 ## Historical V2 Release Readiness
 
@@ -49,7 +52,7 @@ StingFit V2.0 ships as a PWA-only release with the React + Vite PWA and local SQ
 
 Live public PWA URL: `https://vypa1nik.github.io/stingfit/`.
 
-GitHub Pages deployment is defined in `.github/workflows/deploy-pwa.yml`. It builds with `VITE_BASE_PATH=/stingfit/` and publishes the PWA from version tags (`v*`) or manual workflow dispatch. Deploy run `25764435187` completed successfully for V2, and V3 public smoke stays pending until the `v3.0.0` release tag is pushed and deployed.
+GitHub Pages deployment is defined in `.github/workflows/deploy-pwa.yml`. It builds with `VITE_BASE_PATH=/stingfit/` and publishes the PWA from version tags (`v*`) or manual workflow dispatch. Deploy run `25764435187` completed successfully for V2, deploy run `26214491840` published the `v3.0.0` tag, and V3.0.1 is the patch tag used to force the public PWA cache/update refresh.
 
 Desktop downloads: No verified desktop installers are published yet. The Tauri v2 scaffold is present, but Windows/macOS installer links stay omitted until the native toolchain blocker in `reports/stingfit-tauri-desktop-builds.md` is resolved and `npm run tauri:build` is verified on a machine with Rust, Cargo, rustup, and the required platform build tools.
 

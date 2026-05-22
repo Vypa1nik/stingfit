@@ -15,7 +15,7 @@ describe("StingFit release documentation", () => {
 
 		expect(readme).toContain("StingFit is the calm, fast bridge");
 		expect(readme).toContain("Current V3 Rebuild");
-		expect(readme).toContain("current shipped release (`3.0.0`)");
+		expect(readme).toContain("StingFit V3.0.1 is the current shipped release");
 		expect(readme).toContain(
 			"old V2 URLs redirect with a one-release deprecation banner",
 		);
@@ -26,19 +26,23 @@ describe("StingFit release documentation", () => {
 		expect(readme).toContain("https://vypa1nik.github.io/stingfit/");
 		expect(readme).toContain("GitHub Pages");
 		expect(readme).toContain("Desktop downloads");
-		expect(readme).toContain("No verified desktop installers are published yet");
+		expect(readme).toContain(
+			"No verified desktop installers are published yet",
+		);
 		expect(readme).toContain("reports/stingfit-tauri-desktop-builds.md");
 		expect(readme).toContain(
 			"publishes the PWA from version tags (`v*`) or manual workflow dispatch",
 		);
 		expect(readme).toContain(
-			"V3 public smoke stays pending until the `v3.0.0` release tag is pushed and deployed",
+			"V3.0.1 is the patch tag used to force the public PWA cache/update refresh",
 		);
 		expect(readme).toContain(
 			"docs/archive/reports/stingfit-v2-release-readiness.md",
 		);
 
 		expect(changelog).toContain("## Unreleased");
+		expect(changelog).toContain("## 3.0.1 - 2026-05-22");
+		expect(changelog).toContain("service-worker cache to the V3.0.1");
 		expect(changelog).toContain("## 3.0.0 - 2026-05-17");
 		expect(changelog).toContain(
 			"[`STINGFIT_V3_PLAN.md`](./STINGFIT_V3_PLAN.md)",
@@ -125,7 +129,10 @@ describe("StingFit release documentation", () => {
 		const mobileSmoke = readText("reports/stingfit-mobile-pwa-smoke.md");
 		expect(mobileSmoke).toContain("Status: V3 route matrix updated");
 		expect(mobileSmoke).toContain(
-			"Physical devices are not available in this agent environment",
+			"Android Chrome ADB/CDP public PWA route smoke passed on 2026-05-21",
+		);
+		expect(mobileSmoke).toContain(
+			"installed-PWA/stateful gym flows and iOS Safari remain manual follow-ups",
 		);
 		expect(mobileSmoke).toContain("npm run mobile:pwa:start");
 	});

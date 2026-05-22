@@ -143,8 +143,14 @@ describe("StingFit PWA install and offline assets", () => {
 		expect(manifest.shortcuts).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({ name: "Tréning", url: "./#/train" }),
-				expect.objectContaining({ name: "Rýchly tréning", url: "./#/train/quick" }),
-				expect.objectContaining({ name: "História", url: "./#/progress/history" }),
+				expect.objectContaining({
+					name: "Rýchly tréning",
+					url: "./#/train/quick",
+				}),
+				expect.objectContaining({
+					name: "História",
+					url: "./#/progress/history",
+				}),
 			]),
 		);
 		expect(manifest.screenshots).toEqual(
@@ -180,11 +186,15 @@ describe("StingFit PWA install and offline assets", () => {
 		expect(existsSync("public/install.html")).toBe(true);
 		expect(serviceWorker).toContain('toScopeUrl("offline.html")');
 		expect(serviceWorker).toContain('toScopeUrl("install.html")');
+		expect(serviceWorker).toContain(
+			'const CACHE_VERSION = "stingfit-v3.0.1-github-pages"',
+		);
+		expect(serviceWorker).not.toContain("stingfit-v2-github-pages");
 		expect(serviceWorker).toContain("cache.match(OFFLINE_FALLBACK)");
 	});
 
 	test("keeps install navigation from replacing the cached app shell", async () => {
-		const cacheName = "stingfit-v2-github-pages";
+		const cacheName = "stingfit-v3.0.1-github-pages";
 		const appIndexUrl = "https://example.test/stingfit/index.html";
 		const installUrl = "https://example.test/stingfit/install.html";
 		const { cacheStores, listeners } = createServiceWorkerHarness(
@@ -206,7 +216,7 @@ describe("StingFit PWA install and offline assets", () => {
 	});
 
 	test("serves the cached install guide for install navigations while offline", async () => {
-		const cacheName = "stingfit-v2-github-pages";
+		const cacheName = "stingfit-v3.0.1-github-pages";
 		const appIndexUrl = "https://example.test/stingfit/index.html";
 		const installUrl = "https://example.test/stingfit/install.html";
 		const { cacheStores, listeners } = createServiceWorkerHarness(async () => {

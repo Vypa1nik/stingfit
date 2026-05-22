@@ -57,7 +57,11 @@ describe("StingFit GitHub Pages public hosting", () => {
 		expect(indexHtml).toContain("%BASE_URL%stingfit-icon.svg");
 		expect(indexHtml).toContain("%BASE_URL%icon-192.png");
 		expect(mainSource).toContain("import.meta.env.BASE_URL");
-		expect(mainSource).toContain("navigator.serviceWorker.register");
+		expect(mainSource).toContain(".register(serviceWorkerUrl)");
+		expect(mainSource).toContain("navigator.serviceWorker.controller");
+		expect(mainSource).toContain("registration.update()");
+		expect(mainSource).toContain('addEventListener("controllerchange"');
+		expect(mainSource).toContain("window.location.reload()");
 		expect(serviceWorker).toContain("self.registration.scope");
 		expect(serviceWorker).toContain("new URL(path, self.registration.scope)");
 		expect(serviceWorker).not.toContain('cache.put("/index.html"');

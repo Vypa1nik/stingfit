@@ -33,7 +33,32 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
 			window.location.origin,
 		);
 		const serviceWorkerUrl = new URL("sw.js", appBaseUrl).toString();
-		void navigator.serviceWorker.register(serviceWorkerUrl);
+		const wasControlledBeforeRegistration = Boolean(
+			navigator.serviceWorker.controller,
+		);
+		let reloadPending = false;
+
+		if (wasControlledBeforeRegistration) {
+			navigator.serviceWorker.addEventListener("controllerchange", () => {
+				if (reloadPending) {
+					return;
+				}
+
+				reloadPending = true;
+				window.location.reload();
+			});
+		}
+
+		void navigator.serviceWorker
+			.register(serviceWorkerUrl)
+			.then((registration) => {
+				if (wasControlledBeforeRegistration) {
+					void registration.update();
+				}
+			})
+			.catch((error: unknown) => {
+				console.error("StingFit service worker registration failed.", error);
+			});
 	});
 }
 

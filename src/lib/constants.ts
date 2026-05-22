@@ -2,7 +2,7 @@ import { sk } from '@/i18n/sk'
 import type { ThemeMode } from '@/types/common'
 
 export const APP_NAME = 'StingFit'
-export const APP_VERSION = '3.0.0'
+export const APP_VERSION = '3.0.1'
 export const DATABASE_NAME = 'stingfit.db'
 export const DATABASE_STORAGE_KEY = 'stingfit.sqlite.binary'
 export const DEFAULT_THEME: ThemeMode = 'system'

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "stingfit-v2-github-pages";
+const CACHE_VERSION = "stingfit-v3.0.1-github-pages";
 
 function toScopeUrl(path) {
 	return new URL(path, self.registration.scope).toString();
