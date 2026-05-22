@@ -14,6 +14,10 @@ describe("StingFit release documentation", () => {
 		const startHere = readText("AGENT_START_HERE.md");
 
 		expect(readme).toContain("StingFit is the calm, fast bridge");
+		expect(readme).toContain(
+			"It works for solo training and explicit coach<->trainee file handoff",
+		);
+		expect(readme).not.toContain("V2 adds explicit coach");
 		expect(readme).toContain("Current V3 Rebuild");
 		expect(readme).toContain("StingFit V3.0.1 is the current shipped release");
 		expect(readme).toContain(
@@ -34,7 +38,13 @@ describe("StingFit release documentation", () => {
 			"publishes the PWA from version tags (`v*`) or manual workflow dispatch",
 		);
 		expect(readme).toContain(
-			"V3.0.1 is the patch tag used to force the public PWA cache/update refresh",
+			"deploy run `26273148755` published the `v3.0.1` public PWA cache/update refresh",
+		);
+		expect(readme).toContain(
+			"V3.0.1 public cache/update smoke has passed against it",
+		);
+		expect(readme).not.toContain(
+			"Lighthouse passed against the live deployment for the V2.0 PWA-only release",
 		);
 		expect(readme).toContain(
 			"docs/archive/reports/stingfit-v2-release-readiness.md",
@@ -81,10 +91,14 @@ describe("StingFit release documentation", () => {
 		expect(activePlan).toContain(
 			"This is the single authoritative plan for StingFit going forward (V3)",
 		);
-		expect(activePlan).toContain("V3.0.1 is the public GitHub Pages PWA cache/update patch");
+		expect(activePlan).toContain(
+			"V3.0.1 is the public GitHub Pages PWA cache/update patch",
+		);
 		expect(activePlan).toContain('Definition of "V3 shipped"');
 		expect(activePlan).toContain("Post-release patch status");
-		expect(activePlan).toContain("reports/stingfit-v3.0.1-public-pwa-cache-fix.md");
+		expect(activePlan).toContain(
+			"reports/stingfit-v3.0.1-public-pwa-cache-fix.md",
+		);
 		expect(startHere).toContain("V3 Ship Status");
 		expect(startHere).toContain("V3 shipped locally as 3.0.0");
 		expect(startHere).toContain("What Is Still Open");

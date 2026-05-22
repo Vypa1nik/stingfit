@@ -1,6 +1,6 @@
 # StingFit
 
-StingFit is the calm, fast bridge between a coach and the person doing the workout: one local-first app where a trainer's plan becomes a trainee's clean, friction-free training day. It still works for solo training, but V2 adds explicit coach<->trainee file handoff through Plan Packs and Recap Packs without accounts, cloud sync, telemetry, or analytics.
+StingFit is the calm, fast bridge between a coach and the person doing the workout: one local-first app where a trainer's plan becomes a trainee's clean, friction-free training day. It works for solo training and explicit coach<->trainee file handoff through Plan Packs and Recap Packs without accounts, cloud sync, telemetry, or analytics.
 
 A coach can export a `.stfplan` Plan Pack, a trainee can import it and train offline, and the trainee can later export a `.stfrecap` Recap Pack back to the coach. All sharing is a deliberate file action, and the core gym loop remains fast: open the app, see today's workout, log sets, finish, and review progress from local history.
 
@@ -46,19 +46,19 @@ manual follow-ups.
 
 ## Historical V2 Release Readiness
 
-StingFit V2.0 ships as a PWA-only release with the React + Vite PWA and local SQLite storage through `sql.js` persisted in IndexedDB as the verified production path. Coach Mode, Plan Packs, Recap Packs, the PWA install funnel, and the GitHub Pages deployment workflow are implemented; the owner accepted the remaining manual smoke concerns and desktop packaging remains a future track.
+StingFit V2.0 shipped as a PWA-only release with the React + Vite PWA and local SQLite storage through `sql.js` persisted in IndexedDB as the verified production path. Coach Mode, Plan Packs, Recap Packs, the PWA install funnel, and the GitHub Pages deployment workflow were implemented; the owner accepted the remaining manual smoke concerns and desktop packaging remained a future track.
 
 ## Public install path
 
 Live public PWA URL: `https://vypa1nik.github.io/stingfit/`.
 
-GitHub Pages deployment is defined in `.github/workflows/deploy-pwa.yml`. It builds with `VITE_BASE_PATH=/stingfit/` and publishes the PWA from version tags (`v*`) or manual workflow dispatch. Deploy run `25764435187` completed successfully for V2, deploy run `26214491840` published the `v3.0.0` tag, and V3.0.1 is the patch tag used to force the public PWA cache/update refresh.
+GitHub Pages deployment is defined in `.github/workflows/deploy-pwa.yml`. It builds with `VITE_BASE_PATH=/stingfit/` and publishes the PWA from version tags (`v*`) or manual workflow dispatch. Deploy run `25764435187` completed successfully for V2, deploy run `26214491840` published the `v3.0.0` tag, and deploy run `26273148755` published the `v3.0.1` public PWA cache/update refresh.
 
 Desktop downloads: No verified desktop installers are published yet. The Tauri v2 scaffold is present, but Windows/macOS installer links stay omitted until the native toolchain blocker in `reports/stingfit-tauri-desktop-builds.md` is resolved and `npm run tauri:build` is verified on a machine with Rust, Cargo, rustup, and the required platform build tools.
 
 ## V2.1 Mobile App Track
 
-After the PWA-only `v2.0.0` release, StingFit opens a separate V2.1 mobile packaging track with Capacitor. Android debug APK is the first native target; iOS builds are prepared as a handoff package and completed on a MacBook with Xcode/signing. The PWA remains the canonical public install path until native packages pass their own device smoke checks.
+StingFit keeps a separate native mobile packaging track with Capacitor that began after the PWA-only `v2.0.0` release. Android debug APK is the first native target; iOS builds are prepared as a handoff package and completed on a MacBook with Xcode/signing. The PWA remains the canonical public install path until native packages pass their own device smoke checks.
 
 Capacitor uses the existing React/Vite app with `webDir: dist`, `appId: com.stingfit.app`, and `appName: StingFit`. Native wrappers must keep the same local-first privacy contract: no accounts, cloud sync, telemetry, analytics, subscriptions, payments, or paywalls.
 
@@ -208,7 +208,7 @@ npm run build
 
 ## Release documentation
 
-- `docs/landing/index.html` — static landing one-pager for the V2 PWA release path
+- `docs/landing/index.html` — static landing one-pager from the V2 PWA release path
 - `docs/archive/reports/stingfit-v2-release-readiness.md` — archived V2 release-readiness handoff, public URL, accepted concerns, and release approval
 - `docs/archive/reports/stingfit-v2.0.0-release-notes.md` — archived PWA-only release notes for `v2.0.0`
 - `reports/stingfit-v3.0.1-public-pwa-cache-fix.md` — public GitHub Pages PWA cache/update incident report and verification evidence
@@ -219,6 +219,6 @@ npm run build
 ## Notes for future releases
 
 - The web/PWA build is the verified production path.
-- The GitHub Pages URL is live as the public install path, and Lighthouse passed against the live deployment for the V2.0 PWA-only release.
-- Desktop packaging should be treated as a future release track until the Tauri build is verified on a machine with Rust tooling.
+- The GitHub Pages URL is live as the public install path, and V3.0.1 public cache/update smoke has passed against it; rerun Lighthouse as a fresh gate before the next public release.
+- Desktop packaging should be treated as a future release track until the Tauri build is verified on a machine with Rust, Cargo, rustup, MSVC, CMake, and Ninja.
 - Internal database/storage keys remain stable to avoid accidental local data loss across upgrades.
