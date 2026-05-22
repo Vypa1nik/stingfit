@@ -211,6 +211,7 @@ npm run build
 - `docs/landing/index.html` — static landing one-pager for the V2 PWA release path
 - `docs/archive/reports/stingfit-v2-release-readiness.md` — archived V2 release-readiness handoff, public URL, accepted concerns, and release approval
 - `docs/archive/reports/stingfit-v2.0.0-release-notes.md` — archived PWA-only release notes for `v2.0.0`
+- `reports/stingfit-v3.0.1-public-pwa-cache-fix.md` — public GitHub Pages PWA cache/update incident report and verification evidence
 - `reports/stingfit-v1-release-checklist.md` — manual mobile/PWA QA checklist and known limitations
 - `reports/stingfit-privacy-network-audit.md` — no-telemetry/no-cloud audit
 - `public/screenshots/stingfit-training.svg` and `public/screenshots/stingfit-stats.svg` — PWA screenshot assets referenced by the manifest
