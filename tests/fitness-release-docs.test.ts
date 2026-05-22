@@ -40,12 +40,18 @@ describe("StingFit release documentation", () => {
 			"docs/archive/reports/stingfit-v2-release-readiness.md",
 		);
 		expect(readme).toContain("reports/stingfit-v3.0.1-public-pwa-cache-fix.md");
-		expect(existsSync("reports/stingfit-v3.0.1-public-pwa-cache-fix.md")).toBe(true);
-		const v301CacheFix = readText("reports/stingfit-v3.0.1-public-pwa-cache-fix.md");
+		expect(existsSync("reports/stingfit-v3.0.1-public-pwa-cache-fix.md")).toBe(
+			true,
+		);
+		const v301CacheFix = readText(
+			"reports/stingfit-v3.0.1-public-pwa-cache-fix.md",
+		);
 		expect(v301CacheFix).toContain("Status: Active post-release report");
 		expect(v301CacheFix).toContain("stingfit-v3.0.1-github-pages");
 		expect(v301CacheFix).toContain("26273148755");
-		expect(v301CacheFix).toContain("Headless Chrome/CDP public smoke after deploy");
+		expect(v301CacheFix).toContain(
+			"Headless Chrome/CDP public smoke after deploy",
+		);
 
 		expect(changelog).toContain("## Unreleased");
 		expect(changelog).toContain("## 3.0.1 - 2026-05-22");
@@ -75,7 +81,10 @@ describe("StingFit release documentation", () => {
 		expect(activePlan).toContain(
 			"This is the single authoritative plan for StingFit going forward (V3)",
 		);
+		expect(activePlan).toContain("V3.0.1 is the public GitHub Pages PWA cache/update patch");
 		expect(activePlan).toContain('Definition of "V3 shipped"');
+		expect(activePlan).toContain("Post-release patch status");
+		expect(activePlan).toContain("reports/stingfit-v3.0.1-public-pwa-cache-fix.md");
 		expect(startHere).toContain("V3 Ship Status");
 		expect(startHere).toContain("V3 shipped locally as 3.0.0");
 		expect(startHere).toContain("What Is Still Open");

@@ -7,10 +7,11 @@
 > `STINGFIT_V2_PLAN.md` becomes historical context — read only for "why we got
 > here." Anything in `docs/archive/` is read-only history.
 
-_Last revised: 2026-05-17_
+_Last revised: 2026-05-22_
 _Owner: Kristián_
 _Codename: V3 — "Calm & Clear"_
-_Replaces: STINGFIT_V2_PLAN.md (V2 shipped; this is the next cycle)_
+_Replaces: STINGFIT_V2_PLAN.md (V2 shipped; this is the current shipped cycle)_
+_Post-release state: V3 shipped locally as `3.0.0`; V3.0.1 is the public GitHub Pages PWA cache/update patch._
 
 ---
 
@@ -515,9 +516,11 @@ big enough to be a single PR. All work follows the per-module protocol in
 Use this as the working checklist. Each row is one PR-sized module per
 `AGENTS.md`.
 
-_Status snapshot: 2026-05-17. V3 is shipped locally as `3.0.0`: the missing
-tests/export/import/polish items are complete and `npm run check` is green on
-Windows._
+_Status snapshot: 2026-05-22. V3 is shipped locally as `3.0.0`, and the public
+PWA cache/update patch shipped as `3.0.1` from tag `v3.0.1`. The missing
+tests/export/import/polish items are complete, `npm run check` is green on
+Windows, and public GitHub Pages V3.0.1 smoke is documented in
+`reports/stingfit-v3.0.1-public-pwa-cache-fix.md`._
 
 | # | Phase | Module | Owner | Status |
 |---|-------|--------|-------|--------|
@@ -580,6 +583,20 @@ V3 shipped locally as `3.0.0` on 2026-05-17 when **all** of these became true:
 7. `STINGFIT_V2_PLAN.md` is left in place (for history) and this file —
    `STINGFIT_V3_PLAN.md` — is the document linked from `README.md` as the
    *current* plan of record.
+
+## 11. Post-release patch status
+
+V3.0.1 shipped publicly on 2026-05-22 to rotate the GitHub Pages PWA service-worker
+cache to `stingfit-v3.0.1-github-pages` and force already-controlled installed
+PWAs to request a fresh service-worker update. The patch is documented in
+`reports/stingfit-v3.0.1-public-pwa-cache-fix.md` and the public deploy passed
+workflow `26273148755` from tag `v3.0.1`.
+
+Remaining V3 follow-ups are not feature-plan blockers:
+
+- physical installed-PWA/stateful smoke on iOS Safari and Android Chrome;
+- desktop installer verification after Rust, Cargo, rustup, MSVC, CMake, and
+  Ninja are available.
 
 ---
 
