@@ -1,8 +1,8 @@
 # StingFit Mobile PWA Smoke
 
-Date: 2026-05-17
+Date: 2026-05-22
 Target: V3 production PWA preview from `npm run mobile:pwa:start` and public PWA at `https://vypa1nik.github.io/stingfit/`
-Status: V3 route matrix updated; automated asset/build coverage passed in `npm run check`; Android Chrome ADB/CDP public PWA route smoke passed on 2026-05-21, while full installed-PWA/stateful gym flows and iOS Safari remain manual follow-ups.
+Status: V3 route matrix updated; V3.0.1 public cache/update smoke passed on 2026-05-22; automated asset/build coverage passed in `npm run check`; Android Chrome ADB/CDP public PWA route smoke passed on 2026-05-21, while full installed-PWA/stateful gym flows and iOS Safari remain manual follow-ups.
 
 ## Preview command
 
@@ -34,11 +34,13 @@ These checks define the V3 production-preview smoke contract. The route and asse
 | `/#/tools/plates` is the canonical plate calculator URL | Pass            |
 | `/manifest.webmanifest` served                          | Pass            |
 | `/sw.js` served                                         | Pass            |
+| public `/sw.js` uses `stingfit-v3.0.1-github-pages`     | Pass            |
 | `/offline.html` served                                  | Pass            |
 | `/stingfit-icon.svg` served                             | Pass            |
 | manifest icons served                                   | Pass            |
 | manifest screenshots served                             | Pass            |
 | built JS/CSS assets from `index.html` served            | Pass            |
+| cache-busted public GitHub Pages renders V3 navigation  | Pass            |
 | manifest name is `StingFit`                             | Pass            |
 | manifest `start_url` is `/#/train`                      | Pass            |
 | manifest display mode is `standalone`                   | Pass            |
@@ -84,7 +86,31 @@ Passed checks:
 - Mobile `Viac` opened a bottom-sheet dialog containing Rýchly tréning, Kalkulačka kotúčov, História, Coach Mode, and Nastavenia.
 - CDP offline reload simulation on `/#/train` kept the app shell available while service-worker controlled.
 
-Not covered in this automated phone pass:
+## Public V3.0.1 PWA cache-update smoke - 2026-05-22
+
+Public target: `https://vypa1nik.github.io/stingfit/`.
+Release: tag `v3.0.1`, deploy workflow `26273148755`, commit `173949907f172c308fc6548a0c1f542e00414972`.
+Method: cache-busted public fetches plus headless Chrome/CDP against `/#/train` after the V3.0.1 deploy.
+
+Passed checks:
+
+- Public HTML served main JS `/stingfit/assets/index-Bp1YSjxj.js`.
+- Public `sw.js` served `const CACHE_VERSION = "stingfit-v3.0.1-github-pages";`.
+- Public manifest kept `id` and `start_url` on `./#/train` with scope `./`.
+- Headless Chrome rendered V3 desktop navigation: Tréning, Progres, Cviky, PR Timeline, Telo, Zápisník, Plány, Nástroje, and Kalkulačka kotúčov.
+- Headless Chrome rendered V3 mobile navigation labels: Tréning, Progres, + Tréning, Plány, and Viac.
+- Service worker controller was active from `https://vypa1nik.github.io/stingfit/sw.js`.
+
+Not covered in this public cache-update smoke:
+
+- Installed Add-to-Home-Screen lifecycle.
+- Existing installed-client update timing on physical devices.
+- Gesture flows for duplicate/skip/edit sets.
+- Export/import/reset flows.
+- Full workout mutation flow with plan creation, set logging, finish check-in, and restore.
+- iOS Safari behavior.
+
+Not covered in the 2026-05-21 automated phone pass:
 
 - Installed Add-to-Home-Screen lifecycle.
 - Gesture flows for duplicate/skip/edit sets.
@@ -96,7 +122,7 @@ Not covered in this automated phone pass:
 
 | Severity  | Area              | Steps                                                             | Expected                        | Actual                                                                                                  | Status                |
 | --------- | ----------------- | ----------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------- |
-| Follow-up | Manual phone pass | Run checklist above on real iOS Safari and Android Chrome devices | All critical gym/PWA paths pass | Android Chrome ADB/CDP route smoke passed; installed PWA, stateful gym flows, and iOS Safari remain open | Open manual follow-up |
+| Follow-up | Manual phone pass | Run checklist above on real iOS Safari and Android Chrome devices | All critical gym/PWA paths pass | Android Chrome ADB/CDP route smoke and V3.0.1 public cache/update smoke passed; installed PWA, stateful gym flows, and iOS Safari remain open | Open manual follow-up |
 
 ## Notes
 

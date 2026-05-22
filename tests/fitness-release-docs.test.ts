@@ -136,8 +136,13 @@ describe("StingFit release documentation", () => {
 		const mobileSmoke = readText("reports/stingfit-mobile-pwa-smoke.md");
 		expect(mobileSmoke).toContain("Status: V3 route matrix updated");
 		expect(mobileSmoke).toContain(
+			"V3.0.1 public cache/update smoke passed on 2026-05-22",
+		);
+		expect(mobileSmoke).toContain(
 			"Android Chrome ADB/CDP public PWA route smoke passed on 2026-05-21",
 		);
+		expect(mobileSmoke).toContain("stingfit-v3.0.1-github-pages");
+		expect(mobileSmoke).toContain("26273148755");
 		expect(mobileSmoke).toContain(
 			"installed-PWA/stateful gym flows and iOS Safari remain manual follow-ups",
 		);
