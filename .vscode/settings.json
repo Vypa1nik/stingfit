@@ -1,5 +1,10 @@
 {
   "terminal.integrated.env.windows": {
+    "HOME": "C:\\Users\\kiko",
+    "USERPROFILE": "C:\\Users\\kiko",
+    "GIT_TERMINAL_PROMPT": "0",
+    "GCM_INTERACTIVE": "never",
+    "GH_NO_UPDATE_NOTIFIER": "1",
     "PI_AGENT_PROFILE": "openai",
     "PI_CODING_AGENT_DIR": "C:\\Users\\kiko\\Documents\\New project\\.pi\\profiles\\codex-1",
     "PI_SKIP_VERSION_CHECK": "1",
