@@ -4,6 +4,12 @@ All notable changes to StingFit will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Post-release handoff, public PWA cache report, mobile PWA smoke, and Tauri
+  desktop blocker docs now reflect the V3.0.1 public release state and remaining
+  physical-device follow-ups.
+
 ## 3.0.1 - 2026-05-22
 
 ### Changed
