@@ -8,7 +8,8 @@ All notable changes to StingFit will be documented in this file.
 
 - Active V3 plan, post-release handoff, public PWA cache report, mobile PWA
   smoke, and Tauri desktop blocker docs now reflect the V3.0.1 public release
-  state and remaining physical-device follow-ups.
+  state, Android Chrome ADB/CDP V3.0.1 smoke, and remaining physical-device
+  follow-ups.
 
 ## 3.0.1 - 2026-05-22
 

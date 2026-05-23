@@ -167,12 +167,16 @@ describe("StingFit release documentation", () => {
 			"V3.0.1 public cache/update smoke passed on 2026-05-22",
 		);
 		expect(mobileSmoke).toContain(
-			"Android Chrome ADB/CDP public PWA route smoke passed on 2026-05-21",
+			"Android Chrome ADB/CDP smoke - 2026-05-21",
 		);
+		expect(mobileSmoke).toContain(
+			"Android Chrome ADB/CDP V3.0.1 public PWA smoke passed on 2026-05-23",
+		);
+		expect(mobileSmoke).toContain("Chrome `148.0.7778.178`");
 		expect(mobileSmoke).toContain("stingfit-v3.0.1-github-pages");
 		expect(mobileSmoke).toContain("26273148755");
 		expect(mobileSmoke).toContain(
-			"installed-PWA/stateful gym flows and iOS Safari remain manual follow-ups",
+			"installed-PWA lifecycle, stateful gym mutation flows, and iOS Safari remain manual follow-ups",
 		);
 		expect(mobileSmoke).toContain("npm run mobile:pwa:start");
 	});
