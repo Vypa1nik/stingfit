@@ -414,6 +414,7 @@ export const en = {
 			quickDescription:
 				"[en] Otvor prázdny zápisník, pridaj cviky pri stojane a zapisuj série bez tvorby plánu.",
 			quickButton: "[en] Spustiť rýchly zápis",
+			howItWorksSummary: "[en] Ako to funguje",
 		},
 		onboarding: {
 			eyebrow: "[en] Štart",

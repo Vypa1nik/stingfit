@@ -54,7 +54,7 @@ export function OnboardingFlow() {
 	};
 
 	return (
-		<div className="fixed inset-0 z-[70] overflow-y-auto bg-[#05070B] px-4 py-8 text-white">
+		<div className="fixed inset-0 z-[70] overflow-y-auto bg-[#05070B] px-3 py-4 text-white sm:px-4 sm:py-8">
 			<div className="mx-auto max-w-5xl">
 				<OnboardingStep
 					icon={Zap}
@@ -73,6 +73,7 @@ export function OnboardingFlow() {
 							isMutating={isPreparing}
 							onSelectPlan={(choice) => void prepareSimplePlan(choice)}
 							onQuickSession={() => finishAndNavigate("/train/quick")}
+							variant="embedded"
 						/>
 
 						<div className="grid gap-3 md:grid-cols-2">

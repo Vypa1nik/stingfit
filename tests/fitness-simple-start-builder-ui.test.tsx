@@ -94,6 +94,9 @@ describe("Simple Start Builder", () => {
 
 		expect(container.textContent).toContain("Vyber jednoduchý začiatok");
 		expect(container.textContent).toContain("Tvoj prvý tréning je tu do minúty");
+		expect(
+			container.querySelector('[data-simple-start-variant="embedded"]'),
+		).not.toBeNull();
 		expect(container.textContent).toContain("Neviem, vyber za mňa");
 		expect(container.textContent).toContain("Spustiť rýchly zápis");
 		expect(container.textContent).not.toContain(

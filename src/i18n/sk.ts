@@ -403,6 +403,7 @@ export const sk = {
 			quickDescription:
 				"Otvor prázdny zápisník, pridaj cviky pri stojane a zapisuj série bez tvorby plánu.",
 			quickButton: "Spustiť rýchly zápis",
+			howItWorksSummary: "Ako to funguje",
 		},
 		onboarding: {
 			eyebrow: "Štart",

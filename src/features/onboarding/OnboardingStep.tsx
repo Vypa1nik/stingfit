@@ -11,14 +11,14 @@ interface OnboardingStepProps {
 
 export function OnboardingStep({ icon: Icon, eyebrow, title, description, children }: OnboardingStepProps) {
   return (
-    <div className="mx-auto max-w-3xl rounded-[28px] border border-white/10 bg-[#0D1117] px-6 py-8 text-white shadow-modal md:px-10 md:py-10">
-      <div className="mb-6 inline-flex rounded-2xl bg-white/10 p-4">
-        <Icon className="size-8" />
+    <div className="mx-auto max-w-3xl rounded-[24px] border border-white/10 bg-[#0D1117] px-4 py-5 text-white shadow-modal sm:rounded-[28px] sm:px-6 sm:py-8 md:px-10 md:py-10">
+      <div className="mb-4 inline-flex rounded-2xl bg-white/10 p-3 sm:mb-6 sm:p-4">
+        <Icon className="size-6 sm:size-8" />
       </div>
-      <p className="text-xs uppercase tracking-[0.28em] text-blue-200">{eyebrow}</p>
-      <h2 className="mt-3 text-3xl font-semibold">{title}</h2>
-      <p className="mt-3 max-w-2xl text-base text-slate-300">{description}</p>
-      {children ? <div className="mt-8">{children}</div> : null}
+      <p className="text-[11px] uppercase tracking-[0.22em] text-blue-200 sm:text-xs sm:tracking-[0.28em]">{eyebrow}</p>
+      <h2 className="mt-2 text-2xl font-semibold leading-tight sm:mt-3 sm:text-3xl">{title}</h2>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300 sm:mt-3 sm:text-base">{description}</p>
+      {children ? <div className="mt-5 sm:mt-8">{children}</div> : null}
     </div>
   )
 }

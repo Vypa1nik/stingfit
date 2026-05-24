@@ -6,6 +6,9 @@ All notable changes to StingFit will be documented in this file.
 
 ### Changed
 
+- First-run and simple-start surfaces now fit mobile screens better: the primary
+  starter plan and quick workout action appear above the bottom navigation on a
+  360px phone viewport, with desktop spacing preserved.
 - Train, Progress, Plans, the mobile top bar, and the mobile bottom nav now have
   a visibly rebuilt V3 product pass: stronger first-run guidance, a clearer
   "what do I do now" training panel, larger Progress tab cards, and less cramped
