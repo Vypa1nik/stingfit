@@ -60,7 +60,7 @@ export function MobileBottomNav() {
 			<nav
 				aria-label={mobileNavCopy.ariaLabel}
 				data-testid="mobile-bottom-nav"
-				className="fixed inset-x-0 bottom-0 z-40 border-t border-fitness-yellow/25 bg-black/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.6rem)] pt-2 shadow-[0_-18px_40px_rgba(0,0,0,0.45)] backdrop-blur md:hidden"
+				className="fixed inset-x-0 bottom-0 z-40 border-t border-fitness-yellow/25 bg-black/95 px-2 pb-[calc(env(safe-area-inset-bottom)+0.55rem)] pt-2 shadow-[0_-18px_40px_rgba(0,0,0,0.45)] backdrop-blur md:hidden"
 			>
 				<div className="mx-auto grid max-w-xl grid-cols-5 items-end gap-1">
 					{MOBILE_NAV_TILES.map((tile) => {
@@ -75,14 +75,14 @@ export function MobileBottomNav() {
 									aria-expanded={moreOpen}
 									onClick={() => setMoreOpen((value) => !value)}
 									className={cn(
-										"flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[10px] font-black transition-all duration-150 ease-out",
+										"flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-[10px] font-black tracking-tight transition-all duration-150 ease-out",
 										moreOpen
 											? "bg-fitness-yellow/15 text-fitness-yellow"
 											: "text-fitness-warm/65 hover:bg-fitness-yellow/10 hover:text-fitness-yellow",
 									)}
 								>
 									<Icon className="size-4 shrink-0" />
-									<span className="leading-none">{tile.label}</span>
+									<span className="max-w-full truncate leading-tight">{tile.label}</span>
 								</button>
 							);
 						}
@@ -94,7 +94,7 @@ export function MobileBottomNav() {
 								end={tile.path === "/train" && !tile.primary}
 								className={({ isActive }) =>
 									cn(
-										"flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[10px] font-black transition-all duration-150 ease-out",
+										"flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-[10px] font-black tracking-tight transition-all duration-150 ease-out",
 										tile.primary
 											? "mobile-fab-lift -mt-5 min-h-16 rounded-3xl border border-fitness-yellow bg-fitness-yellow text-black shadow-[0_0_28px_rgba(255,255,0,0.28)]"
 											: "",
@@ -114,7 +114,7 @@ export function MobileBottomNav() {
 										tile.primary ? "size-5" : "size-4",
 									)}
 								/>
-								<span className="leading-none">{tile.label}</span>
+								<span className="max-w-full truncate leading-tight">{tile.label}</span>
 							</NavLink>
 						);
 					})}

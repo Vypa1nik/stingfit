@@ -49,10 +49,10 @@ describe('FitnessDashboard beginner training focus', () => {
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Dnes stačí spustiť jeden tréning')
-    expect(container.textContent).toContain('Tvoj prvý tréning')
+    expect(container.textContent).toContain('Dnes máš jednu jasnú akciu')
+    expect(container.textContent).toContain('Prvý tréning pripravený')
     expect(container.textContent).toContain('Celé telo A')
-    expect(container.textContent).toContain('Nerieš celý plán naraz')
+    expect(container.textContent).toContain('Otvor tréning, zapíš série')
     expect(container.textContent).toContain('Ukázať všetky tréningy')
     expect(container.textContent).not.toContain('Nabitý tréning')
     expect(container.textContent).not.toContain('Spustiteľné tréningy')

@@ -6,6 +6,10 @@ All notable changes to StingFit will be documented in this file.
 
 ### Changed
 
+- Train, Progress, Plans, the mobile top bar, and the mobile bottom nav now have
+  a visibly rebuilt V3 product pass: stronger first-run guidance, a clearer
+  "what do I do now" training panel, larger Progress tab cards, and less cramped
+  mobile navigation.
 - Active V3 plan, post-release handoff, public PWA cache report, mobile PWA
   smoke, and Tauri desktop blocker docs now reflect the V3.0.1 public release
   state, Android Chrome ADB/CDP V3.0.1 smoke, and remaining physical-device

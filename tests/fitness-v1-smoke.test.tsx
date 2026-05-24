@@ -52,15 +52,15 @@ describe('StingFit V1 smoke flow', () => {
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Začni úplne jednoducho')
+    expect(container.textContent).toContain('Tvoj prvý tréning je tu do minúty')
     expect(container.textContent).toContain('3 dni / týždeň')
 
     await clickButton(container, '3 dni / týždeň')
 
     expect(container.textContent).toContain('Jednoduchý 3-dňový plán je pripravený')
-    expect(container.textContent).toContain('Spustiť Celé telo A')
+    expect(container.textContent).toContain('Spustiť teraz')
 
-    await clickButton(container, 'Spustiť Celé telo A')
+    await clickButton(container, 'Spustiť teraz')
 
     expect(container.textContent).toContain('Tréning spustený')
     expect(container.textContent).toContain('Tlak na lavičke')

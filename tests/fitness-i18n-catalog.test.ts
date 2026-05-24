@@ -63,7 +63,7 @@ describe("Slovak i18n catalog scaffold", () => {
 		);
 		expect(sk.fitness.stats.emptyTitle).toBe("Zatiaľ žiadne štatistiky");
 		expect(sk.fitness.onboarding.title).toBe("Vyber jednoduchý začiatok");
-		expect(sk.fitness.simpleStart.quickButton).toBe("Len rýchly tréning");
+		expect(sk.fitness.simpleStart.quickButton).toBe("Spustiť rýchly zápis");
 		expect(sk.fitness.profiles.activeProfileLabel).toBe("Aktívny profil");
 		expect(sk.fitness.coachMode.settingsTitle).toBe("Som tréner");
 		expect(sk.fitness.coachMode.settingsStatus(false)).toBe(

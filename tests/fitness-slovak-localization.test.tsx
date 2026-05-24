@@ -163,7 +163,7 @@ describe("Slovak StingFit localization", () => {
 			await waitForAsyncUi();
 		});
 
-		expect(container.textContent).toContain("Začni úplne jednoducho");
+		expect(container.textContent).toContain("Tvoj prvý tréning je tu do minúty");
 		expect(container.textContent).toContain("3 dni / týždeň");
 		expect(container.textContent).toContain("Neviem, vyber za mňa");
 		expect(container.textContent).not.toContain("Prepare Push / Pull / Legs");

@@ -25,6 +25,16 @@ export const sk = {
 				collapseSidebar: "Zbaliť bočný panel",
 				settings: "Nastavenia",
 			},
+			topBar: {
+				openMenu: "Otvoriť navigačné menu",
+				brandKicker: "StingFit V3",
+				pillarSummary: "Tréning · Progres · Plány",
+				searchAria: "Otvoriť vyhľadávanie",
+				searchPlaceholder: "Hľadať tréningy, plány, cviky",
+				commandsButton: "Príkazy",
+				mobileStartButton: "Štart",
+				desktopStartButton: "Spustiť tréning",
+			},
 			mobile: {
 				ariaLabel: "Hlavné mobilné taby",
 				training: "Tréning",
@@ -73,7 +83,9 @@ export const sk = {
 				weeklyVolume: "Týždenný objem",
 				lastPr: "Posledný PR",
 				completedWorkouts: (count: number) =>
-					count === 1 ? "1 dokončený tréning." : `${count} dokončených tréningov.`,
+					count === 1
+						? "1 dokončený tréning."
+						: `${count} dokončených tréningov.`,
 				emptyPr: "Zatiaľ žiadny PR. Dokonči tréning a sem prikvitne.",
 			},
 			tabs: {
@@ -83,6 +95,58 @@ export const sk = {
 				body: "Telo",
 				journal: "Zápisník",
 				history: "História",
+			},
+		},
+		trainHub: {
+			firstExerciseLabel: "Prvý cvik",
+			unsetExercise: "Nenastavené",
+			hero: {
+				badge: "Tréning",
+				kicker: "Tréningový prehľad V3",
+				title: "Dnes máš jednu jasnú akciu.",
+				description:
+					"Otvor tréning, zapíš série a až po výkone rieš Progres alebo Plány. Táto obrazovka je velín pre otázku: čo mám robiť teraz?",
+				quickSessionButton: "Rýchly zápis bez plánu",
+				editPlanButton: "Upraviť plán",
+			},
+			fallback: {
+				kicker: "Dnes",
+				title: "Vyber tréning zo zoznamu nižšie.",
+				description:
+					"StingFit nenašiel jednoznačné odporúčanie, ale pripravené tréningy sú dostupné v rozbaľovacom zozname.",
+			},
+			allWorkouts: {
+				summary: "Ukázať všetky tréningy",
+				description:
+					"Toto je len záloha, keď chceš vedome vybrať iný deň. Najjednoduchšia cesta je karta vyššie.",
+			},
+			upNext: {
+				firstTitle: "Prvý tréning pripravený",
+				nextTitle: "Ďalší tréning pripravený",
+				firstDescription: "Stlač štart a zapisuj. Editor plánu môže počkať.",
+				nextDescription:
+					"Odporúčané podľa lokálnej histórie; rozhodnutie ostáva u teba.",
+				rangeLabel: "Rozsah",
+				snapshotHint: "Štart vytvorí snímku tréningu",
+				lastCompleted: (workoutName: string) =>
+					"Naposledy dokončené: " + workoutName,
+				startNowButton: "Spustiť teraz",
+			},
+			gateway: {
+				trainingTitle: "Tréning",
+				trainingDescription:
+					"Rýchly zápis ostáva po ruke, keď nejdeš podľa plánu.",
+				trainingCta: "Spustiť rýchlo",
+				progressTitle: "Progres",
+				progressDescriptionWithSessions: (completedWorkouts: string) =>
+					completedWorkouts + " už živí grafy, PR a históriu.",
+				progressEmptyDescription:
+					"Po prvom dokončenom tréningu tu uvidíš grafy, PR a históriu.",
+				progressCta: "Otvoriť Progres",
+				plansTitle: "Plány",
+				plansDescription:
+					"Uprav rytmus týždňa až keď vieš, čo chceš trénovať ďalej.",
+				plansCta: "Otvoriť Plány",
 			},
 		},
 		redirectBanner: {
@@ -292,17 +356,53 @@ export const sk = {
 			formatRecapSessionCount: (count: number) =>
 				count === 1 ? "1 tréning v rozsahu" : `${count} tréningov v rozsahu`,
 		},
+		plansPage: {
+			hero: {
+				badge: "Plány",
+				kicker: "Čo je ďalší mesiac",
+				sectionKicker: "Tvorba osobného plánu",
+				title: "Plán je mapa, nie ďalšia prekážka.",
+				description:
+					"Začni zo štartovacieho rozdelenia Tlak / Ťah / Nohy, aktivuj ho v Tréningu a detaily dolaď až vtedy, keď ti rytmus sedí.",
+				createPplButton: "Vytvoriť PPL blok",
+				createBlankButton: "Vytvoriť prázdny plán",
+				steps: {
+					weekTitle: "1. Týždeň",
+					weekDescription: "Rozlož dni tak, aby sa dali reálne odtrénovať.",
+					exercisesTitle: "2. Cviky",
+					exercisesDescription:
+						"Série, opakovania, RIR a pauzy zostávajú editovateľné.",
+					activateTitle: "3. Aktivuj",
+					activateDescription: "Aktívny plán sa objaví v Tréningu.",
+				},
+			},
+		},
 		simpleStart: {
-			badge: "Jednoduchý štart",
-			noSetupBadge: "Bez nastavovania",
-			title: "Začni úplne jednoducho",
+			badge: "Nový štart vo V3",
+			noSetupBadge: "Bez účtu a cloudu",
+			recommendedKicker: "Prvý tréning bez nastavovania",
+			title: "Tvoj prvý tréning je tu do minúty",
 			description:
-				"Vyber len počet dní. StingFit pripraví plán, prvý tréning a detaily môžeš riešiť až neskôr.",
+				"Vyber jeden rytmus. StingFit pripraví plán, prvý tréning a čistý zápis sérií, aby si vo fitku nemusel riešiť editor.",
 			preparePlan: "Pripraviť plán",
-			quickTitle: "Nechcem plánovať",
+			steps: [
+				{
+					title: "Vyber rytmus",
+					description: "3, 4 alebo 5–6 dní podľa toho, koľko reálne chodíš.",
+				},
+				{
+					title: "Spusti Dnes",
+					description: "Prvý tréning sa zobrazí rovno v pilieri Tréning.",
+				},
+				{
+					title: "Sleduj rast",
+					description: "Dokončené série sa prelejú do Progresu a Histórie.",
+				},
+			],
+			quickTitle: "Som už vo fitku",
 			quickDescription:
-				"Otvor prázdny zápisník, pridaj cviky vo fitku a len zapisuj série.",
-			quickButton: "Len rýchly tréning",
+				"Otvor prázdny zápisník, pridaj cviky pri stojane a zapisuj série bez tvorby plánu.",
+			quickButton: "Spustiť rýchly zápis",
 		},
 		onboarding: {
 			eyebrow: "Štart",

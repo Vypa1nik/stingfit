@@ -40,7 +40,7 @@ describe('FitnessPlansPage edit boundary messaging', () => {
     expect(container.textContent).toContain('Šablóna chránená')
     expect(container.textContent).toContain('Na úpravy vytvor osobnú kópiu.')
 
-    const createButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Vytvoriť z Tlak / Ťah / Nohy'))
+    const createButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Vytvoriť PPL blok'))
     expect(createButton).toBeDefined()
 
     await act(async () => {

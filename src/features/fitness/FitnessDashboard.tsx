@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 
-import { AlertTriangle, CheckCircle2, Download, Zap } from "lucide-react";
+import {
+	Activity,
+	AlertTriangle,
+	ArrowRight,
+	CheckCircle2,
+	ClipboardList,
+	Download,
+	Dumbbell,
+	Zap,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -41,6 +50,8 @@ interface FitnessDashboardProps {
 interface PostWorkoutActionState {
 	sessionName: string;
 }
+
+const trainHubCopy = sk.fitness.trainHub;
 
 function readBackupNudgeDismissedCount() {
 	const stored = window.localStorage.getItem(FITNESS_BACKUP_NUDGE_STORAGE_KEY);
@@ -242,7 +253,9 @@ export function FitnessDashboard({
 			);
 			if (journalBody?.trim()) {
 				await progressRepository.upsertJournalEntry({
-					entryDate: (completedSession.completedAt ?? new Date().toISOString()).slice(0, 10),
+					entryDate: (
+						completedSession.completedAt ?? new Date().toISOString()
+					).slice(0, 10),
 					sessionId: completedSession.id,
 					body: journalBody.trim(),
 					mood: null,
@@ -570,49 +583,86 @@ export function FitnessDashboard({
 			) : null}
 			{postWorkoutActionCard}
 
-			<section className="fitness-hero-panel relative p-5 sm:p-6 lg:p-8">
-				<div className="wasp-stripes absolute inset-0 opacity-40" />
-				<div className="relative">
-					<Badge className="fitness-badge">Tréning</Badge>
-					<h1 className="mt-4 max-w-3xl text-3xl font-black tracking-[-0.055em] text-white sm:text-5xl">
-						Dnes stačí spustiť jeden tréning.
-					</h1>
-					<p className="mt-3 max-w-2xl text-sm leading-6 text-fitness-warm/75">
-						Nerieš celý plán naraz. Stlač žlté tlačidlo, zapisuj série a po
-						tréningu sa vráť späť.
-					</p>
-					<Button
-						variant="secondary"
-						className="mt-5 border-fitness-yellow/25 bg-black/60 text-fitness-warm hover:bg-fitness-yellow/10"
-						leadingIcon={<Zap className="size-4" />}
-						onClick={() => navigate("/train/quick")}
-						disabled={isMutating}
-					>
-						Len rýchly tréning bez plánu
-					</Button>
+			<section className="fitness-hero-panel relative p-4 sm:p-6 lg:p-8">
+				<div className="wasp-stripes absolute inset-0 opacity-30" />
+				<div className="relative grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
+					<div className="flex min-w-0 flex-col justify-between rounded-[2rem] border border-fitness-yellow/20 bg-black/70 p-5">
+						<div>
+							<div className="flex flex-wrap items-center gap-3">
+								<Badge className="fitness-badge">{trainHubCopy.hero.badge}</Badge>
+								<span className="rounded-full border border-fitness-yellow/25 bg-black/60 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-fitness-yellow/80">
+									{trainHubCopy.hero.kicker}
+								</span>
+							</div>
+							<h1 className="mt-4 max-w-2xl text-4xl font-black leading-[0.95] tracking-[-0.06em] text-white sm:text-6xl">
+								{trainHubCopy.hero.title}
+							</h1>
+							<p className="mt-4 max-w-xl text-sm leading-6 text-fitness-warm/75 sm:text-base">
+								{trainHubCopy.hero.description}
+							</p>
+						</div>
+						<div className="mt-6 flex flex-col gap-3 sm:flex-row">
+							<Button
+								variant="secondary"
+								className="border-fitness-yellow/30 bg-black/60 text-fitness-warm hover:bg-fitness-yellow/10"
+								leadingIcon={<Zap className="size-4" />}
+								onClick={() => navigate("/train/quick")}
+								disabled={isMutating}
+							>
+								{trainHubCopy.hero.quickSessionButton}
+							</Button>
+							<Button
+								variant="secondary"
+								className="border-fitness-yellow/30 bg-black/60 text-fitness-warm hover:bg-fitness-yellow/10"
+								leadingIcon={<ClipboardList className="size-4" />}
+								onClick={() => navigate("/plans")}
+								disabled={isMutating}
+							>
+								{trainHubCopy.hero.editPlanButton}
+							</Button>
+						</div>
+					</div>
+
+					{recommendedWorkout ? (
+						<UpNextWorkoutCard
+							recommendation={recommendedWorkout}
+							showGuidance={settings.showGuidance}
+							isFirstWorkout={completedSessionCount === 0}
+							isMutating={isMutating}
+							onStartWorkout={startWorkout}
+						/>
+					) : (
+						<div className="rounded-[2rem] border border-fitness-yellow/25 bg-black/75 p-5 text-fitness-warm">
+							<p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+								{trainHubCopy.fallback.kicker}
+							</p>
+							<h2 className="mt-3 text-3xl font-black tracking-[-0.04em] text-white">
+								{trainHubCopy.fallback.title}
+							</h2>
+							<p className="mt-2 text-sm leading-6 text-fitness-warm/70">
+								{trainHubCopy.fallback.description}
+							</p>
+						</div>
+					)}
 				</div>
 			</section>
 
 			{backupNudge}
 			{recoveryPanel}
 
-			{recommendedWorkout ? (
-				<UpNextWorkoutCard
-					recommendation={recommendedWorkout}
-					showGuidance={settings.showGuidance}
-					isFirstWorkout={completedSessionCount === 0}
-					isMutating={isMutating}
-					onStartWorkout={startWorkout}
-				/>
-			) : null}
+			<TrainPillarGatewayCards
+				completedSessionCount={completedSessionCount}
+				onOpenProgress={() => navigate("/progress/lifts")}
+				onOpenPlans={() => navigate("/plans")}
+				onQuickSession={() => navigate("/train/quick")}
+			/>
 
 			<details className="rounded-3xl border border-fitness-yellow/20 bg-black/55 p-4 text-fitness-warm">
 				<summary className="cursor-pointer text-sm font-black uppercase tracking-[0.16em] text-fitness-yellow">
-					Ukázať všetky tréningy
+					{trainHubCopy.allWorkouts.summary}
 				</summary>
 				<p className="mt-2 text-sm text-fitness-warm/65">
-					Toto je len záloha, keď chceš vedome vybrať iný deň. Najjednoduchšia
-					cesta je karta vyššie.
+					{trainHubCopy.allWorkouts.description}
 				</p>
 				<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
 					{startableWorkouts.map((workout) => (
@@ -637,7 +687,8 @@ export function FitnessDashboard({
 												{formatStartSummary(workout)}
 											</p>
 											<p className="mt-1 text-xs text-fitness-warm/60">
-												Prvý cvik: {workout.firstExerciseName ?? "Nenastavené"}
+												{trainHubCopy.firstExerciseLabel}: {" "}
+												{workout.firstExerciseName ?? trainHubCopy.unsetExercise}
 											</p>
 										</>
 									) : null}
@@ -680,62 +731,135 @@ function UpNextWorkoutCard({
 	onStartWorkout: (workoutId: string) => Promise<void>;
 }) {
 	const { workout } = recommendation;
-	const title = isFirstWorkout ? "Tvoj prvý tréning" : "Tvoj ďalší tréning";
+	const title = isFirstWorkout
+		? trainHubCopy.upNext.firstTitle
+		: trainHubCopy.upNext.nextTitle;
 	const description = isFirstWorkout
-		? "Najjednoduchšia cesta: spusti tréning a zapisuj série. Plán vieš riešiť neskôr."
-		: "Odvodené z tvojich lokálne dokončených tréningov. Kontrola zostáva u teba; StingFit iba odporúča.";
+		? trainHubCopy.upNext.firstDescription
+		: trainHubCopy.upNext.nextDescription;
 
 	return (
-		<Card title={title} description={showGuidance ? description : undefined}>
-			<div className="rounded-3xl border border-fitness-yellow/40 bg-fitness-yellow/10 p-5 text-fitness-warm">
-				<div className="flex flex-wrap items-start justify-between gap-4">
-					<div>
-						<p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
-							{isFirstWorkout
-								? "Pripravený prvý tréning"
-								: `Odporúčaný ďalší tréning: ${workout.workoutName}`}
-						</p>
-						<h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-fitness-yellow">
-							{workout.workoutName}
-						</h2>
-						<p className="mt-2 text-sm text-fitness-warm/70">
-							Týždeň {workout.weekNumber} · {workout.dayLabel} ·{" "}
-							{workout.planName}
-						</p>
-						{showGuidance ? (
-							<>
-								<p className="mt-3 text-sm font-semibold text-fitness-warm/80">
-									{formatStartSummary(workout)}
-								</p>
-								<p className="mt-1 text-xs text-fitness-warm/60">
-									Prvý cvik: {workout.firstExerciseName ?? "Nenastavené"}
-								</p>
-								<p className="mt-2 text-xs font-semibold text-fitness-yellow/80">
-									Štart vytvorí snímku tréningu
-								</p>
-							</>
-						) : null}
-						{recommendation.lastCompletedWorkoutName ? (
-							<p className="mt-3 text-sm font-semibold text-fitness-warm/80">
-								Naposledy dokončené: {recommendation.lastCompletedWorkoutName}
-							</p>
-						) : null}
-						<p className="mt-1 text-xs text-fitness-warm/60">
-							{recommendation.reason}
-						</p>
-					</div>
-					<Zap className="size-8 text-fitness-yellow" />
+		<article className="flex min-h-full flex-col rounded-[2rem] border border-fitness-yellow bg-fitness-yellow p-5 text-black shadow-xl">
+			<div className="flex items-start justify-between gap-4">
+				<div className="min-w-0">
+					<p className="text-xs font-black uppercase tracking-[0.18em] text-black/65">
+						{title}
+					</p>
+					<h2 className="mt-3 text-4xl font-black leading-none tracking-[-0.06em] sm:text-5xl">
+						{workout.workoutName}
+					</h2>
 				</div>
-				<Button
-					className="fitness-action mt-5"
-					leadingIcon={<Zap className="size-4" />}
-					onClick={() => void onStartWorkout(workout.workoutId)}
-					disabled={isMutating}
-				>
-					Spustiť {workout.workoutName}
-				</Button>
+				<span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-black text-fitness-yellow">
+					<Dumbbell className="size-6" />
+				</span>
 			</div>
-		</Card>
+			<p className="mt-3 text-sm font-bold text-black/75">
+				Týždeň {workout.weekNumber} · {workout.dayLabel} · {workout.planName}
+			</p>
+			{showGuidance ? (
+				<>
+					<div className="mt-4 grid gap-2 sm:grid-cols-2">
+						<div className="rounded-2xl bg-black/10 p-3">
+							<p className="text-xs font-black uppercase text-black/60">
+								{trainHubCopy.upNext.rangeLabel}
+							</p>
+							<p className="mt-1 text-sm font-black">
+								{formatStartSummary(workout)}
+							</p>
+						</div>
+						<div className="rounded-2xl bg-black/10 p-3">
+							<p className="text-xs font-black uppercase text-black/60">
+								{trainHubCopy.firstExerciseLabel}
+							</p>
+							<p className="mt-1 text-sm font-black">
+								{workout.firstExerciseName ?? trainHubCopy.unsetExercise}
+							</p>
+						</div>
+					</div>
+					<p className="mt-2 text-xs font-black uppercase tracking-[0.14em] text-black/55">
+						{trainHubCopy.upNext.snapshotHint}
+					</p>
+				</>
+			) : null}
+			<p className="mt-4 text-sm leading-6 text-black/70">{description}</p>
+			{recommendation.lastCompletedWorkoutName ? (
+				<p className="mt-2 text-xs font-bold text-black/60">
+					{trainHubCopy.upNext.lastCompleted(recommendation.lastCompletedWorkoutName)}
+				</p>
+			) : null}
+			<p className="mt-1 text-xs text-black/55">{recommendation.reason}</p>
+			<Button
+				className="mt-auto w-full border-0 bg-black font-black text-fitness-yellow hover:bg-black/85"
+				leadingIcon={<Zap className="size-4" />}
+				onClick={() => void onStartWorkout(workout.workoutId)}
+				disabled={isMutating}
+			>
+				{trainHubCopy.upNext.startNowButton}
+			</Button>
+		</article>
+	);
+}
+
+function TrainPillarGatewayCards({
+	completedSessionCount,
+	onOpenProgress,
+	onOpenPlans,
+	onQuickSession,
+}: {
+	completedSessionCount: number;
+	onOpenProgress: () => void;
+	onOpenPlans: () => void;
+	onQuickSession: () => void;
+}) {
+	return (
+		<section className="grid gap-3 md:grid-cols-3">
+			<article className="rounded-3xl border border-fitness-yellow/35 bg-black/70 p-4 text-fitness-warm">
+				<Dumbbell className="size-6 text-fitness-yellow" />
+				<h2 className="mt-3 text-xl font-black text-white">{trainHubCopy.gateway.trainingTitle}</h2>
+				<p className="mt-2 text-sm leading-6 text-fitness-warm/65">
+					{trainHubCopy.gateway.trainingDescription}
+				</p>
+				<button
+					type="button"
+					className="mt-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-fitness-yellow"
+					onClick={onQuickSession}
+				>
+					{trainHubCopy.gateway.trainingCta} <ArrowRight className="size-3" />
+				</button>
+			</article>
+			<article className="rounded-3xl border border-fitness-yellow/35 bg-black/70 p-4 text-fitness-warm">
+				<Activity className="size-6 text-fitness-yellow" />
+				<h2 className="mt-3 text-xl font-black text-white">{trainHubCopy.gateway.progressTitle}</h2>
+				<p className="mt-2 text-sm leading-6 text-fitness-warm/65">
+					{completedSessionCount > 0
+						? trainHubCopy.gateway.progressDescriptionWithSessions(
+								formatCompletedWorkoutCount(completedSessionCount),
+							)
+						: trainHubCopy.gateway.progressEmptyDescription}
+				</p>
+				<button
+					type="button"
+					className="mt-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-fitness-yellow"
+					onClick={onOpenProgress}
+				>
+					{trainHubCopy.gateway.progressCta} <ArrowRight className="size-3" />
+				</button>
+			</article>
+			<article className="rounded-3xl border border-fitness-yellow/35 bg-black/70 p-4 text-fitness-warm">
+				<ClipboardList className="size-6 text-fitness-yellow" />
+				<h2 className="mt-3 text-xl font-black text-white">{trainHubCopy.gateway.plansTitle}</h2>
+				<p className="mt-2 text-sm leading-6 text-fitness-warm/65">
+					{trainHubCopy.gateway.plansDescription}
+				</p>
+				<button
+					type="button"
+					className="mt-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-fitness-yellow"
+					onClick={onOpenPlans}
+				>
+					{trainHubCopy.gateway.plansCta} <ArrowRight className="size-3" />
+				</button>
+			</article>
+		</section>
 	);
 }
 

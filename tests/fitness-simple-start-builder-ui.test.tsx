@@ -58,7 +58,7 @@ describe("Simple Start Builder", () => {
 			await waitForAsyncUi();
 		});
 
-		expect(container.textContent).toContain("Začni úplne jednoducho");
+		expect(container.textContent).toContain("Tvoj prvý tréning je tu do minúty");
 		expect(container.textContent).toContain("3 dni / týždeň");
 		expect(container.textContent).toContain("Najjednoduchšie");
 		expect(container.textContent).toContain("Neviem, vyber za mňa");
@@ -76,7 +76,7 @@ describe("Simple Start Builder", () => {
 		expect(container.textContent).toContain(
 			"Jednoduchý 3-dňový plán je pripravený",
 		);
-		expect(container.textContent).toContain("Spustiť Celé telo A");
+		expect(container.textContent).toContain("Spustiť teraz");
 	});
 
 	test("lands first-time onboarding directly on simple start and quick workout choices", async () => {
@@ -93,16 +93,16 @@ describe("Simple Start Builder", () => {
 		});
 
 		expect(container.textContent).toContain("Vyber jednoduchý začiatok");
-		expect(container.textContent).toContain("Začni úplne jednoducho");
+		expect(container.textContent).toContain("Tvoj prvý tréning je tu do minúty");
 		expect(container.textContent).toContain("Neviem, vyber za mňa");
-		expect(container.textContent).toContain("Len rýchly tréning");
+		expect(container.textContent).toContain("Spustiť rýchly zápis");
 		expect(container.textContent).not.toContain(
 			"Rýchly tréningový zápisník bez cloudu",
 		);
 		expect(container.textContent).not.toContain("Pokračovať");
 
 		await act(async () => {
-			findButton(container, "Len rýchly tréning")?.dispatchEvent(
+			findButton(container, "Spustiť rýchly zápis")?.dispatchEvent(
 				new MouseEvent("click", { bubbles: true }),
 			);
 		});

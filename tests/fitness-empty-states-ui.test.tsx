@@ -68,9 +68,9 @@ describe("fitness empty route states", () => {
 			route: "/train",
 			element: <FitnessDashboard />,
 			expectedCopy: [
-				"Začni úplne jednoducho",
+				"Tvoj prvý tréning je tu do minúty",
 				"3 dni / týždeň",
-				"Len rýchly tréning",
+				"Spustiť rýchly zápis",
 			],
 		},
 		{

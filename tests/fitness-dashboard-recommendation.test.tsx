@@ -67,14 +67,12 @@ describe("FitnessDashboard workout recommendation", () => {
 			await waitForAsyncUi();
 		});
 
-		expect(container.textContent).toContain("Tvoj ďalší tréning");
-		expect(container.textContent).toContain(
-			"Odporúčaný ďalší tréning: Ťahový deň A",
-		);
+		expect(container.textContent).toContain("Ďalší tréning pripravený");
+		expect(container.textContent).toContain("Ťahový deň A");
 		expect(container.textContent).toContain(
 			"Naposledy dokončené: Tlakový deň A",
 		);
-		expect(container.textContent).toContain("Spustiť Ťahový deň A");
+		expect(container.textContent).toContain("Spustiť teraz");
 	});
 
 	test("surfaces a recovery panel with a clear today action after high strain", async () => {

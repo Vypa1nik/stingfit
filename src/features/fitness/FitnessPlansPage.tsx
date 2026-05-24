@@ -11,6 +11,7 @@ import { buildPlanReadinessReport } from '@/features/fitness/fitnessPlanReadines
 import { getPlanDayStatus, summarizePlanWeek, type FitnessPlanDayStatusTone } from '@/features/fitness/fitnessPlanPresentation'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
 import { useSpaNavigate } from '@/hooks/useSpaNavigate'
+import { sk } from '@/i18n/sk'
 import type {
   FitnessExerciseRecord,
   FitnessMuscleGroup,
@@ -22,6 +23,8 @@ import type {
   FitnessPlanWeekRecord,
   FitnessPlanWorkoutRecord,
 } from '@/features/fitness/fitnessTypes'
+
+const plansPageCopy = sk.fitness.plansPage
 
 const weekDays = [
   { day: 'Po', workout: 'Tlak A', active: true },
@@ -906,23 +909,24 @@ export function FitnessPlansPage() {
   return (
     <>
       <div className="space-y-6">
-      <section className="fitness-hero-panel p-6 lg:p-8">
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge className="fitness-badge">Tvorba plánov</Badge>
-          <span className="text-sm text-fitness-yellow/80">Postav, duplikuj, škáluj, trénuj.</span>
-        </div>
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1.15fr,0.85fr]">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.22em] text-fitness-yellow">Tvorba osobného plánu</p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-[-0.06em] text-white sm:text-5xl">
-              Rozpíš si vlastný plán po týždňoch a dňoch.
+      <section className="fitness-hero-panel relative p-4 sm:p-6 lg:p-8">
+        <div className="wasp-stripes absolute inset-0 opacity-20" />
+        <div className="relative grid gap-5 lg:grid-cols-[0.95fr,1.05fr] lg:items-stretch">
+          <div className="rounded-[2rem] border border-fitness-yellow/20 bg-black/70 p-5">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge className="fitness-badge">{plansPageCopy.hero.badge}</Badge>
+              <span className="rounded-full border border-fitness-yellow/25 bg-black/60 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-fitness-yellow/80">{plansPageCopy.hero.kicker}</span>
+            </div>
+            <p className="mt-5 text-sm font-black uppercase tracking-[0.22em] text-fitness-yellow">{plansPageCopy.hero.sectionKicker}</p>
+            <h1 className="mt-3 max-w-3xl text-4xl font-black leading-none tracking-[-0.06em] text-white sm:text-6xl">
+              {plansPageCopy.hero.title}
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-fitness-warm/75">
-              Začni zo štartovacieho rozdelenia alebo z prázdneho plánu. StingFit škáluje cez jasné odporúčania, nie skrytú automatiku.
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-fitness-warm/75 sm:text-base">
+              {plansPageCopy.hero.description}
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Button className="fitness-action" leadingIcon={<Zap className="size-4" />} onClick={createFromPpl} disabled={isLoading || isMutating}>
-                Vytvoriť z Tlak / Ťah / Nohy
+                {plansPageCopy.hero.createPplButton}
               </Button>
               <Button
                 variant="secondary"
@@ -931,19 +935,36 @@ export function FitnessPlansPage() {
                 onClick={createBlank}
                 disabled={isLoading || isMutating}
               >
-                Vytvoriť prázdny plán
+                {plansPageCopy.hero.createBlankButton}
               </Button>
             </div>
           </div>
-          <div className="rounded-3xl border border-fitness-yellow/30 bg-black/70 p-4">
-            <div className="grid grid-cols-7 gap-2">
+          <div className="grid gap-3 rounded-[2rem] border border-fitness-yellow/25 bg-black/75 p-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl bg-fitness-yellow p-4 text-black">
+                <CalendarDays className="size-5" />
+                <p className="mt-3 text-sm font-black">{plansPageCopy.hero.steps.weekTitle}</p>
+                <p className="mt-1 text-xs font-semibold text-black/65">{plansPageCopy.hero.steps.weekDescription}</p>
+              </div>
+              <div className="rounded-2xl border border-fitness-yellow/25 bg-black p-4 text-fitness-warm">
+                <Dumbbell className="size-5 text-fitness-yellow" />
+                <p className="mt-3 text-sm font-black text-white">{plansPageCopy.hero.steps.exercisesTitle}</p>
+                <p className="mt-1 text-xs leading-5 text-fitness-warm/65">{plansPageCopy.hero.steps.exercisesDescription}</p>
+              </div>
+              <div className="rounded-2xl border border-fitness-yellow/25 bg-black p-4 text-fitness-warm">
+                <CheckCircle2 className="size-5 text-fitness-yellow" />
+                <p className="mt-3 text-sm font-black text-white">{plansPageCopy.hero.steps.activateTitle}</p>
+                <p className="mt-1 text-xs leading-5 text-fitness-warm/65">{plansPageCopy.hero.steps.activateDescription}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
               {weekDays.map((item) => (
                 <div
                   key={item.day}
-                  className={item.active ? 'rounded-2xl bg-fitness-yellow p-3 text-center text-black' : 'rounded-2xl border border-fitness-yellow/25 bg-fitness-surface p-3 text-center text-fitness-yellow'}
+                  className={item.active ? 'min-h-20 rounded-2xl bg-fitness-yellow p-3 text-center text-black' : 'min-h-20 rounded-2xl border border-fitness-yellow/25 bg-fitness-surface p-3 text-center text-fitness-yellow'}
                 >
                   <p className="text-xs font-black uppercase">{item.day}</p>
-                  <p className="mt-2 text-xs font-semibold">{item.workout}</p>
+                  <p className="mt-2 text-xs font-semibold leading-4">{item.workout}</p>
                 </div>
               ))}
             </div>
