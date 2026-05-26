@@ -276,9 +276,9 @@ export function LiveTrainingSession({
 		<div className="space-y-6">
 			<section className="fitness-hero-panel relative">
 				<div className="wasp-stripes absolute inset-0 opacity-50" />
-				<div className="relative grid gap-6 p-6 lg:grid-cols-[1.35fr,0.95fr] lg:p-8">
-					<div className="space-y-5">
-						<div className="flex flex-wrap items-center gap-3">
+				<div className="relative grid gap-4 p-4 lg:grid-cols-[1.35fr,0.95fr] lg:gap-6 lg:p-8">
+					<div className="space-y-4 lg:space-y-5">
+						<div className="hidden flex-wrap items-center gap-2 sm:flex sm:gap-3">
 							<Badge className="fitness-badge">Teraz robíš</Badge>
 							{showGuidance ? (
 								<Badge className="fitness-badge">Aktívna snímka tréningu</Badge>
@@ -288,62 +288,97 @@ export function LiveTrainingSession({
 									Superset {activeExercise.supersetGroup}
 								</Badge>
 							) : null}
-							<span className="text-sm font-semibold text-fitness-yellow/80">
+							<span className="hidden text-sm font-semibold text-fitness-yellow/80 sm:inline">
 								{completedSetCount} dokončených · {totalSets} sérií spolu
 							</span>
-							<span className="text-sm font-semibold text-fitness-yellow/80">
+							<span className="hidden text-sm font-semibold text-fitness-yellow/80 sm:inline">
 								Zobrazená jednotka: {displayUnit}
 							</span>
 						</div>
-						<div className="rounded-3xl border border-fitness-yellow/35 bg-black/75 p-5">
-							<p className="text-sm font-black uppercase tracking-[0.22em] text-fitness-yellow">
+						<div className="rounded-3xl border border-fitness-yellow/35 bg-black/75 p-4 sm:p-5">
+							<p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow sm:text-sm sm:tracking-[0.22em]">
 								Teraz robíš
 							</p>
-							<h1 className="mt-3 text-4xl font-black tracking-[-0.06em] text-white sm:text-5xl">
+							<h1 className="mt-2 text-2xl font-black leading-tight tracking-[-0.055em] text-white sm:mt-3 sm:text-5xl sm:leading-none">
 								{activeExercise.nameSnapshot}
 							</h1>
-							<p className="mt-3 max-w-2xl text-sm leading-6 text-fitness-warm/75">
+							<p className="mt-2 hidden max-w-2xl text-sm leading-6 text-fitness-warm/75 sm:block">
 								Stačí zapísať aktuálnu sériu. Poradie cvikov, doplnkové akcie a
 								plán sú nižšie, keď ich budeš potrebovať.
 							</p>
 							{showGuidance ? (
-								<p className="mt-2 text-sm font-semibold text-fitness-yellow/80">
+								<p className="mt-2 hidden text-sm font-semibold text-fitness-yellow/80 sm:block">
 									Zmeny plánu neovplyvnia tento tréning.
 								</p>
 							) : null}
-							<div className="mt-5 grid gap-3 sm:grid-cols-3">
-								<div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
-									<p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
-										Ďalšia séria
+							<div className="mt-4 grid grid-cols-3 gap-2 sm:mt-5 sm:gap-3">
+								<div className="rounded-xl border border-fitness-yellow/30 bg-black/70 p-3 sm:rounded-2xl sm:p-4">
+									<p className="text-[10px] font-black uppercase tracking-[0.14em] text-fitness-yellow/70 sm:text-xs sm:tracking-[0.18em]">
+										Ďalšia<span className="sr-only"> séria</span>
 									</p>
-									<p className="mt-2 text-lg font-black text-white">
-										{currentSet
-											? `Séria ${currentSet.setNumber} z ${activeExercise.sets.length}`
-											: "Cvik dokončený"}
+									<p className="mt-1 text-sm font-black text-white sm:mt-2 sm:text-lg">
+										{currentSet ? (
+											<>
+												<span className="sr-only">
+													Séria {currentSet.setNumber} z {activeExercise.sets.length}
+												</span>
+												<span aria-hidden="true">
+													{currentSet.setNumber}/{activeExercise.sets.length}
+												</span>
+											</>
+										) : (
+											"Hotovo"
+										)}
 									</p>
 								</div>
-								<div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
-									<p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+								<div className="rounded-xl border border-fitness-yellow/30 bg-black/70 p-3 sm:rounded-2xl sm:p-4">
+									<p className="text-[10px] font-black uppercase tracking-[0.14em] text-fitness-yellow/70 sm:text-xs sm:tracking-[0.18em]">
 										Cieľ
 									</p>
-									<p className="mt-2 text-lg font-black text-white">
-										{activeExercise.minReps}–{activeExercise.maxReps} opak.
+									<p className="mt-1 text-sm font-black text-white sm:mt-2 sm:text-lg">
+										{activeExercise.minReps}–{activeExercise.maxReps}
 									</p>
-									<p className="mt-1 text-xs font-semibold text-fitness-warm/60">
+									<p className="mt-1 text-[10px] font-semibold text-fitness-warm/60 sm:text-xs">
 										RIR {activeExercise.targetRir ?? "voľné"}
 									</p>
 								</div>
-								<div className="rounded-2xl border border-fitness-yellow/30 bg-black/70 p-4">
-									<p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
+								<div className="rounded-xl border border-fitness-yellow/30 bg-black/70 p-3 sm:rounded-2xl sm:p-4">
+									<p className="text-[10px] font-black uppercase tracking-[0.14em] text-fitness-yellow/70 sm:text-xs sm:tracking-[0.18em]">
 										Hotovo
 									</p>
-									<p className="mt-2 text-lg font-black text-white">
-										{completedActiveSets.length}/{activeExercise.sets.length}{" "}
-										sérií
+									<p className="mt-1 text-sm font-black text-white sm:mt-2 sm:text-lg">
+										{completedActiveSets.length}/{activeExercise.sets.length}
 									</p>
 								</div>
 							</div>
 						</div>
+					</div>
+
+					{currentSet ? (
+						<div className="lg:row-span-2">
+							<SetLogger
+								key={currentSet.id}
+								set={currentSet}
+								displayUnit={displayUnit}
+								onLog={submitOptimisticSetLog}
+								disabled={isMutating}
+								lastPerformance={activeExercise.lastPerformance ?? null}
+							/>
+						</div>
+					) : (
+						<div className="rounded-3xl border border-fitness-yellow/40 bg-black/85 p-5 lg:row-span-2">
+							<CheckCircle2 className="size-8 text-fitness-yellow" />
+							<h2 className="mt-3 text-2xl font-black text-white">
+								Cvik dokončený
+							</h2>
+							<p className="mt-2 text-sm text-fitness-warm/70">
+								Preskoč ďalej alebo dokonči tréning, keď sú hotové všetky
+								pohyby.
+							</p>
+						</div>
+					)}
+
+					<div className="space-y-4 lg:col-start-1 lg:row-start-2 lg:space-y-5">
 						<details className="rounded-2xl border border-fitness-yellow/20 bg-black/60 p-4 text-fitness-warm">
 							<summary className="cursor-pointer text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow">
 								Prehľad tréningu
@@ -406,28 +441,6 @@ export function LiveTrainingSession({
 							/>
 						)}
 					</div>
-
-					{currentSet ? (
-						<SetLogger
-							key={currentSet.id}
-							set={currentSet}
-							displayUnit={displayUnit}
-							onLog={submitOptimisticSetLog}
-							disabled={isMutating}
-							lastPerformance={activeExercise.lastPerformance ?? null}
-						/>
-					) : (
-						<div className="rounded-3xl border border-fitness-yellow/40 bg-black/85 p-5">
-							<CheckCircle2 className="size-8 text-fitness-yellow" />
-							<h2 className="mt-3 text-2xl font-black text-white">
-								Cvik dokončený
-							</h2>
-							<p className="mt-2 text-sm text-fitness-warm/70">
-								Preskoč ďalej alebo dokonči tréning, keď sú hotové všetky
-								pohyby.
-							</p>
-						</div>
-					)}
 				</div>
 			</section>
 

@@ -161,10 +161,10 @@ export function SetLogger({
 			data-testid="set-logger-panel"
 			className={cn(
 				sticky ? "sticky bottom-24 z-20 lg:static" : "",
-				"mx-auto w-full max-w-xl rounded-3xl border border-fitness-yellow/40 bg-black/95 p-4 shadow-[0_0_40px_rgba(255,255,0,0.16)] sm:p-5 lg:max-w-none",
+				"mx-auto w-full max-w-xl rounded-3xl border border-fitness-yellow/40 bg-black/95 p-3 shadow-[0_0_40px_rgba(255,255,0,0.16)] sm:p-5 lg:max-w-none",
 			)}
 		>
-			<div className="flex items-center justify-between gap-4">
+			<div className="hidden items-center justify-between gap-4 sm:flex">
 				<div>
 					<p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
 						{titleLabel}
@@ -176,21 +176,19 @@ export function SetLogger({
 				<Zap className="size-7 text-fitness-yellow" />
 			</div>
 
-			{showLastPerformance ? (
+			{showLastPerformance && lastPerformance ? (
 				<div className="mt-4 rounded-2xl border border-fitness-yellow/25 bg-fitness-yellow/10 px-4 py-3">
 					<p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow">
 						Naposledy
 					</p>
 					<p className="mt-1 text-sm font-black text-fitness-warm">
-						{lastPerformance
-							? formatLastPerformance(lastPerformance, displayUnit)
-							: "—"}
+						{formatLastPerformance(lastPerformance, displayUnit)}
 					</p>
 				</div>
 			) : null}
 
 			{showRestCue ? (
-				<div className="mt-4 rounded-2xl border border-fitness-yellow/25 bg-fitness-yellow/10 px-4 py-3">
+				<div className="mt-4 hidden rounded-2xl border border-fitness-yellow/25 bg-fitness-yellow/10 px-4 py-3 sm:block">
 					<p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow">
 						Ovládanie jedným palcom
 					</p>
@@ -200,15 +198,9 @@ export function SetLogger({
 				</div>
 			) : null}
 
-			<WeightEntryModeSelector
-				value={weightEntryMode}
-				onChange={setWeightEntryMode}
-				disabled={disabled}
-			/>
-
 			{weightEntryMode === "per_side" ? (
 				<>
-					<div className="mt-5 grid grid-cols-2 gap-3">
+					<div className="mt-3 grid grid-cols-2 gap-3 sm:mt-5">
 						<label className="rounded-2xl border border-fitness-yellow/20 bg-fitness-surface p-3 text-center">
 							<span className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
 								Ľavá
@@ -247,7 +239,7 @@ export function SetLogger({
 					</div>
 				</>
 			) : (
-				<div className="mt-5 grid grid-cols-3 gap-3">
+				<div className="mt-3 grid grid-cols-3 gap-3 sm:mt-5">
 					<label className="rounded-2xl border border-fitness-yellow/20 bg-fitness-surface p-3 text-center">
 						<span className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
 							{displayUnit}
@@ -264,6 +256,45 @@ export function SetLogger({
 					<RirInput value={rir} onChange={setRir} />
 				</div>
 			)}
+
+			{validationErrors.length > 0 ? (
+				<div
+					className="mt-4 space-y-1 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs font-semibold text-rose-100"
+					role="alert"
+				>
+					{validationErrors.map((message) => (
+						<p key={message}>{message}</p>
+					))}
+				</div>
+			) : null}
+
+			<div className="mt-4 grid gap-3 sm:mt-5">
+				<Button
+					className="fitness-action w-full"
+					size="lg"
+					leadingIcon={<Zap className="size-4" />}
+					onClick={handleSubmit}
+					disabled={!canSubmit}
+				>
+					{submitLabel}
+				</Button>
+				{onCancel ? (
+					<Button
+						variant="secondary"
+						className="w-full"
+						onClick={onCancel}
+						disabled={disabled}
+					>
+						Zrušiť opravu
+					</Button>
+				) : null}
+			</div>
+
+			<WeightEntryModeSelector
+				value={weightEntryMode}
+				onChange={setWeightEntryMode}
+				disabled={disabled}
+			/>
 
 			<SetTypeSelector
 				value={setType}
@@ -363,38 +394,6 @@ export function SetLogger({
 				/>
 			</div>
 
-			{validationErrors.length > 0 ? (
-				<div
-					className="mt-4 space-y-1 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs font-semibold text-rose-100"
-					role="alert"
-				>
-					{validationErrors.map((message) => (
-						<p key={message}>{message}</p>
-					))}
-				</div>
-			) : null}
-
-			<div className="mt-5 grid gap-3">
-				<Button
-					className="fitness-action w-full"
-					size="lg"
-					leadingIcon={<Zap className="size-4" />}
-					onClick={handleSubmit}
-					disabled={!canSubmit}
-				>
-					{submitLabel}
-				</Button>
-				{onCancel ? (
-					<Button
-						variant="secondary"
-						className="w-full"
-						onClick={onCancel}
-						disabled={disabled}
-					>
-						Zrušiť opravu
-					</Button>
-				) : null}
-			</div>
 		</div>
 	);
 }

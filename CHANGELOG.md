@@ -11,6 +11,8 @@ All notable changes to StingFit will be documented in this file.
   360px phone viewport, with desktop spacing preserved.
 - The recovered-workout prompt on mobile now keeps Continue and Discard actions
   clear of the bottom navigation while preserving the local active workout.
+- Live workout logging now brings the current kg/reps/RIR fields and primary
+  set-submit action into the first mobile fold on a 360px phone viewport.
 - Train, Progress, Plans, the mobile top bar, and the mobile bottom nav now have
   a visibly rebuilt V3 product pass: stronger first-run guidance, a clearer
   "what do I do now" training panel, larger Progress tab cards, and less cramped
