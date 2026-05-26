@@ -13,6 +13,14 @@ All notable changes to StingFit will be documented in this file.
   clear of the bottom navigation while preserving the local active workout.
 - Live workout logging now brings the current kg/reps/RIR fields and primary
   set-submit action into the first mobile fold on a 360px phone viewport.
+- Route changes now reset the shell scroll position and global shortcuts no
+  longer steal navigation while the user is typing in form fields.
+- Fitness JSON restore now imports atomically, rolling back failed replace
+  imports instead of leaving partially cleared local data.
+- Finishing a workout now stays completed even if the optional Progress journal
+  note fails to save, with a clear non-blocking warning.
+- Compact buttons now keep a larger mobile tap target for gym-time correction
+  actions while staying dense on wider screens.
 - Train, Progress, Plans, the mobile top bar, and the mobile bottom nav now have
   a visibly rebuilt V3 product pass: stronger first-run guidance, a clearer
   "what do I do now" training panel, larger Progress tab cards, and less cramped

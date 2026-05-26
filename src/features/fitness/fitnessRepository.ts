@@ -1,4 +1,4 @@
-import { execute, query } from '@/lib/database'
+import { execute, query, withTransaction } from '@/lib/database'
 import { STARTER_FITNESS_EXERCISES, STARTER_FITNESS_PLANS, STARTER_PLAN_STRUCTURES } from '@/features/fitness/fitnessSeed'
 import { buildStrongCsvPreview, parseStrongCsvImport, type ParsedStrongCsvWorkout } from '@/features/fitness/fitnessStrongCsv'
 import { progressRepository } from '@/features/progress/progressRepository'
@@ -51,6 +51,9 @@ import type {
 } from '@/features/progress/progressTypes'
 import { normalizeMuscleGroup, requireMuscleGroup } from '@/features/fitness/fitnessMuscleGroups'
 import { normalizeDisplayUnit } from '@/features/fitness/fitnessUnits'
+
+type SqlParams = NonNullable<Parameters<typeof execute>[1]>
+type SqlRunner = (sql: string, params?: SqlParams) => Promise<void>
 
 interface FitnessExerciseRow {
   id: string
@@ -866,9 +869,13 @@ async function getLastPerformanceForExercise(exerciseId: string, currentSessionI
   return rows[0] ? lastPerformanceFromRow(rows[0]) : null
 }
 
-async function upsertFitnessSetting(key: string, value: string) {
+async function upsertFitnessSetting(
+  key: string,
+  value: string,
+  runSql: SqlRunner = execute,
+) {
   const timestamp = nowIso()
-  await execute(
+  await runSql(
     `INSERT INTO fitness_settings(key, value, updated_at) VALUES (?, ?, ?)
      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
     [key, value, timestamp],
@@ -1106,7 +1113,7 @@ function buildFitnessImportPreview(payload: unknown): FitnessImportPreview {
   return buildFitnessImportPreviewFromParsed(parseFitnessImportPayload(payload))
 }
 
-async function clearFitnessTablesForImport() {
+async function clearFitnessTablesForImport(runSql: SqlRunner = execute) {
   for (const table of [
     'fitness_journal_entries',
     'fitness_body_measurements',
@@ -1121,12 +1128,15 @@ async function clearFitnessTablesForImport() {
     'fitness_exercises',
     'fitness_settings',
   ]) {
-    await execute(`DELETE FROM ${table}`)
+    await runSql(`DELETE FROM ${table}`)
   }
 }
 
-async function insertExerciseForImport(exercise: FitnessExerciseRecord) {
-  await execute(
+async function insertExerciseForImport(
+  exercise: FitnessExerciseRecord,
+  runSql: SqlRunner = execute,
+) {
+  await runSql(
     `INSERT OR REPLACE INTO fitness_exercises(
       id, name, category, muscle_group, default_rest_seconds, is_custom, created_at, updated_at, deleted_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -1144,9 +1154,12 @@ async function insertExerciseForImport(exercise: FitnessExerciseRecord) {
   )
 }
 
-async function insertPlanStructureForImport(structure: FitnessPlanStructure) {
+async function insertPlanStructureForImport(
+  structure: FitnessPlanStructure,
+  runSql: SqlRunner = execute,
+) {
   const plan = structure.plan
-  await execute(
+  await runSql(
     `INSERT OR REPLACE INTO fitness_plans(
       id, name, goal, kind, source_template_id, status, created_at, updated_at, deleted_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -1154,25 +1167,25 @@ async function insertPlanStructureForImport(structure: FitnessPlanStructure) {
   )
 
   for (const week of structure.weeks) {
-    await execute(
+    await runSql(
       `INSERT OR REPLACE INTO fitness_plan_weeks(id, plan_id, week_number, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`,
       [week.id, week.planId, week.weekNumber, week.notes, week.createdAt, week.updatedAt],
     )
 
     for (const day of week.days) {
-      await execute(
+      await runSql(
         `INSERT OR REPLACE INTO fitness_plan_days(id, week_id, day_index, label, is_rest_day, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [day.id, day.weekId, day.dayIndex, day.label, day.isRestDay ? 1 : 0, day.createdAt, day.updatedAt],
       )
 
       for (const workout of day.workouts) {
-        await execute(
+        await runSql(
           `INSERT OR REPLACE INTO fitness_plan_workouts(id, plan_day_id, name, notes, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [workout.id, workout.planDayId, workout.name, workout.notes, workout.sortOrder, workout.createdAt, workout.updatedAt],
         )
 
         for (const exercise of workout.exercises) {
-          await execute(
+          await runSql(
             `INSERT OR REPLACE INTO fitness_plan_exercises(
               id, plan_workout_id, exercise_id, sort_order, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, superset_group, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -1268,8 +1281,11 @@ async function insertStrongCsvWorkout(workout: ParsedStrongCsvWorkout) {
   }
 }
 
-async function insertSessionForImport(session: FitnessLiveSession) {
-  await execute(
+async function insertSessionForImport(
+  session: FitnessLiveSession,
+  runSql: SqlRunner = execute,
+) {
+  await runSql(
     `INSERT OR REPLACE INTO fitness_sessions(id, plan_id, plan_workout_id, name, status, started_at, completed_at, notes, session_rpe, energy_level, created_at, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
@@ -1289,7 +1305,7 @@ async function insertSessionForImport(session: FitnessLiveSession) {
   )
 
   for (const exercise of session.exercises) {
-    await execute(
+    await runSql(
       `INSERT OR REPLACE INTO fitness_session_exercises(
         id, session_id, exercise_id, name_snapshot, category_snapshot, muscle_group_snapshot, sort_order, status, target_sets, min_reps, max_reps, target_rir, rest_seconds, notes, superset_group, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -1324,7 +1340,7 @@ async function insertSessionForImport(session: FitnessLiveSession) {
         ? importedPerSideWeightKg
         : Number.isFinite(importedTotalWeightKg) ? Math.max(0, importedTotalWeightKg) : 0
       const importedCorrectionCount = Math.max(0, Math.round(Number(set.correctionCount ?? 0) || 0))
-      await execute(
+      await runSql(
         `INSERT OR REPLACE INTO fitness_sets(
           id, session_exercise_id, set_number, weight_kg, weight_entry_mode, left_weight_kg, right_weight_kg, reps, rir, set_type, status, completed_at, corrected_at, correction_count, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -1351,8 +1367,11 @@ async function insertSessionForImport(session: FitnessLiveSession) {
   }
 }
 
-async function insertBodyMeasurementForImport(record: BodyMeasurementRecord) {
-  await execute(
+async function insertBodyMeasurementForImport(
+  record: BodyMeasurementRecord,
+  runSql: SqlRunner = execute,
+) {
+  await runSql(
     `INSERT OR REPLACE INTO fitness_body_measurements(
       id, recorded_on, bodyweight_kg, waist_cm, chest_cm,
       biceps_left_cm, biceps_right_cm, thigh_left_cm, thigh_right_cm,
@@ -1378,8 +1397,11 @@ async function insertBodyMeasurementForImport(record: BodyMeasurementRecord) {
   )
 }
 
-async function insertJournalEntryForImport(record: JournalEntryRecord) {
-  await execute(
+async function insertJournalEntryForImport(
+  record: JournalEntryRecord,
+  runSql: SqlRunner = execute,
+) {
+  await runSql(
     `INSERT OR REPLACE INTO fitness_journal_entries(
       id, entry_date, session_id, body, mood, sleep_hours, energy, created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -2054,30 +2076,37 @@ export const fitnessRepository = {
 
     const parsed = parseFitnessImportPayload(payload)
     const preview = buildFitnessImportPreviewFromParsed(parsed)
-    await clearFitnessTablesForImport()
 
-    for (const exercise of parsed.exercises) {
-      await insertExerciseForImport(exercise)
-    }
-    for (const structure of parsed.starterPlans) {
-      await insertPlanStructureForImport(structure)
-    }
-    for (const structure of parsed.personalPlans) {
-      await insertPlanStructureForImport(structure)
-    }
-    for (const session of parsed.sessions) {
-      await insertSessionForImport(session)
-    }
-    for (const record of parsed.bodyMeasurements) {
-      await insertBodyMeasurementForImport(record)
-    }
-    for (const entry of parsed.journalEntries) {
-      await insertJournalEntryForImport(entry)
-    }
-    await upsertFitnessSetting('display_unit', parsed.settings.displayUnit)
-    await upsertFitnessSetting('show_guidance', parsed.settings.showGuidance ? '1' : '0')
-    await upsertFitnessSetting('rest_sound', parsed.settings.restSoundEnabled ? '1' : '0')
-    await upsertFitnessSetting('rest_vibration', parsed.settings.restVibrationEnabled ? '1' : '0')
+    await withTransaction(async (db) => {
+      const runSql: SqlRunner = async (sql, params = []) => {
+        db.run(sql, params)
+      }
+
+      await clearFitnessTablesForImport(runSql)
+
+      for (const exercise of parsed.exercises) {
+        await insertExerciseForImport(exercise, runSql)
+      }
+      for (const structure of parsed.starterPlans) {
+        await insertPlanStructureForImport(structure, runSql)
+      }
+      for (const structure of parsed.personalPlans) {
+        await insertPlanStructureForImport(structure, runSql)
+      }
+      for (const session of parsed.sessions) {
+        await insertSessionForImport(session, runSql)
+      }
+      for (const record of parsed.bodyMeasurements) {
+        await insertBodyMeasurementForImport(record, runSql)
+      }
+      for (const entry of parsed.journalEntries) {
+        await insertJournalEntryForImport(entry, runSql)
+      }
+      await upsertFitnessSetting('display_unit', parsed.settings.displayUnit, runSql)
+      await upsertFitnessSetting('show_guidance', parsed.settings.showGuidance ? '1' : '0', runSql)
+      await upsertFitnessSetting('rest_sound', parsed.settings.restSoundEnabled ? '1' : '0', runSql)
+      await upsertFitnessSetting('rest_vibration', parsed.settings.restVibrationEnabled ? '1' : '0', runSql)
+    })
 
     return {
       ...preview,

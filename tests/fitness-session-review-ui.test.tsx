@@ -1,6 +1,6 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { FitnessDashboard } from '@/features/fitness/FitnessDashboard'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
@@ -118,6 +118,59 @@ describe('fitness session finish review UI', () => {
         energy: 4,
       },
     ])
+  })
+
+  test('finishes the workout when the optional journal write fails', async () => {
+    const journalSpy = vi
+      .spyOn(progressRepository, 'upsertJournalEntry')
+      .mockRejectedValueOnce(new Error('Journal write failed'))
+
+    await act(async () => {
+      root.render(<FitnessDashboard />)
+    })
+    await act(async () => {
+      await waitForAsyncUi()
+    })
+
+    const startButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Spustiť Tlakový deň A'))
+    expect(startButton).toBeDefined()
+
+    await act(async () => {
+      startButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    const reviewButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Pridať krátku kontrolu'))
+    expect(reviewButton).toBeDefined()
+
+    await act(async () => {
+      reviewButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    const journalInput = container.querySelector<HTMLTextAreaElement>('textarea[aria-label="Zápis do denníka"]')
+    expect(journalInput).toBeTruthy()
+
+    await act(async () => {
+      if (journalInput) {
+        journalInput.value = 'Save the workout even if this note fails.'
+        journalInput.dispatchEvent(new Event('input', { bubbles: true }))
+      }
+    })
+
+    const saveButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Uložiť kontrolu a dokončiť'))
+    expect(saveButton).toBeDefined()
+
+    await act(async () => {
+      saveButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(journalSpy).toHaveBeenCalledTimes(1)
+    expect(container.textContent).toContain('Tréning dokončený')
+    expect(container.textContent).toContain('Zápisník sa nepodarilo uložiť')
+    await expect(fitnessRepository.listCompletedSessions()).resolves.toHaveLength(1)
+    await expect(progressRepository.listJournalEntries()).resolves.toHaveLength(0)
   })
 
   test('does not create a journal entry when the finish journal note is blank', async () => {

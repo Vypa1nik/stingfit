@@ -108,6 +108,31 @@ describe('fitness import repository', () => {
     ])
   })
 
+  test('keeps existing local data when replace import fails after clearing starts', async () => {
+    await createFinishedExportableState()
+    const exported = await fitnessRepository.exportFitnessData()
+    const corrupted = structuredClone(exported)
+    const importedPlan = corrupted.personalPlans[0]?.plan
+    if (!importedPlan) {
+      throw new Error('Expected export fixture to contain a personal plan')
+    }
+    importedPlan.status = 'not-a-valid-plan-status' as typeof importedPlan.status
+
+    await expect(
+      fitnessRepository.importFitnessData(corrupted, { mode: 'replace' }),
+    ).rejects.toThrow()
+
+    await expect(fitnessRepository.getSettings()).resolves.toMatchObject({ displayUnit: 'lb' })
+    expect((await fitnessRepository.listPersonalPlans()).map((plan) => plan.name)).toContain('My PPL Block')
+    expect((await fitnessRepository.listCompletedSessions())[0]).toMatchObject({ name: 'Tlakový deň A', status: 'completed' })
+    await expect(progressRepository.listBodyMeasurements()).resolves.toMatchObject([
+      { bodyweightKg: 83.1, note: 'Exported body record' },
+    ])
+    await expect(progressRepository.listJournalEntries()).resolves.toMatchObject([
+      { body: 'Exported journal entry', energy: 4 },
+    ])
+  })
+
   test('imports legacy v1 fitness exports with empty progress arrays', async () => {
     await createFinishedExportableState()
     const exported = await fitnessRepository.exportFitnessData()

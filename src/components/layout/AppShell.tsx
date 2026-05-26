@@ -1,5 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 
+import { useLocation } from 'react-router-dom'
+
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 import { NavigationSidebar } from '@/components/layout/NavigationSidebar'
 import { RedirectDeprecationBanner } from '@/components/layout/RedirectDeprecationBanner'
@@ -11,9 +13,22 @@ interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps) {
+  const location = useLocation()
   const isMobileSidebarOpen = useUiStore((state) => state.isMobileSidebarOpen)
   const setMobileSidebarOpen = useUiStore((state) => state.setMobileSidebarOpen)
   const mobileDialogRef = useRef<HTMLDivElement>(null)
+  const hasMountedRouteRef = useRef(false)
+
+  useEffect(() => {
+    if (!hasMountedRouteRef.current) {
+      hasMountedRouteRef.current = true
+      return
+    }
+
+    if (window.scrollX !== 0 || window.scrollY !== 0) {
+      window.scrollTo(0, 0)
+    }
+  }, [location.pathname, location.search])
 
   useEffect(() => {
     if (!isMobileSidebarOpen) {

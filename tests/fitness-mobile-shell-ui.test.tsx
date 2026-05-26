@@ -1,6 +1,6 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useNavigate } from "react-router-dom";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 import { AppShell } from "@/components/layout/AppShell";
@@ -26,6 +26,7 @@ describe("mobile StingFit shell navigation", () => {
 	let root: Root | null = null;
 
 	afterEach(() => {
+		vi.restoreAllMocks();
 		if (root) {
 			act(() => {
 				root?.unmount();
@@ -86,6 +87,53 @@ describe("mobile StingFit shell navigation", () => {
 		const main = rendered.querySelector("main");
 		expect(main?.className).toContain("pb-28");
 		expect(main?.className).toContain("md:pb-4");
+	});
+
+	test("resets scroll to the top when the route changes", async () => {
+		const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => undefined);
+		container = document.createElement("div");
+		document.body.appendChild(container);
+		root = createRoot(container);
+
+		function RouteChangeButton() {
+			const navigate = useNavigate();
+
+			return <button onClick={() => navigate("/plans")}>Otvoriť plány</button>;
+		}
+
+		await act(async () => {
+			root?.render(
+				<MemoryRouter initialEntries={["/train"]}>
+					<AppShell>
+						<RouteChangeButton />
+					</AppShell>
+				</MemoryRouter>,
+			);
+			await waitForAsyncUi();
+		});
+		scrollTo.mockClear();
+		const originalScrollY = window.scrollY;
+		Object.defineProperty(window, "scrollY", {
+			configurable: true,
+			value: 320,
+		});
+		const rendered = container;
+		if (!rendered) {
+			throw new Error("Mobile shell test container was not created.");
+		}
+
+		await act(async () => {
+			findButton(rendered, "Otvoriť plány")?.dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true }),
+			);
+			await waitForAsyncUi();
+		});
+
+		expect(scrollTo).toHaveBeenCalledWith(0, 0);
+		Object.defineProperty(window, "scrollY", {
+			configurable: true,
+			value: originalScrollY,
+		});
 	});
 
 	test("opens and closes the More sheet with keyboard and overlay actions", async () => {

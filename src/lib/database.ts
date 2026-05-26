@@ -168,7 +168,7 @@ function clearFitnessTables(db: SqlDatabase) {
 	}
 }
 
-async function withTransaction<T>(
+export async function withTransaction<T>(
 	callback: (db: SqlDatabase) => T | Promise<T>,
 ) {
 	const db = await initDatabase();

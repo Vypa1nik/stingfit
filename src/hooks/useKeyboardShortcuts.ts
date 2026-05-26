@@ -36,6 +36,10 @@ export function useKeyboardShortcuts() {
       return
     }
 
+    if (isTextEntryTarget(event.target)) {
+      return
+    }
+
     if (event.key.toLowerCase() === 'k') {
       event.preventDefault()
       setCommandPaletteOpen(true)

@@ -251,21 +251,30 @@ export function FitnessDashboard({
 				sessionId,
 				sessionInput,
 			);
+			let journalSaveFailed = false;
 			if (journalBody?.trim()) {
-				await progressRepository.upsertJournalEntry({
-					entryDate: (
-						completedSession.completedAt ?? new Date().toISOString()
-					).slice(0, 10),
-					sessionId: completedSession.id,
-					body: journalBody.trim(),
-					mood: null,
-					sleepHours: null,
-					energy: sessionInput.energyLevel ?? completedSession.energyLevel,
-				});
+				try {
+					await progressRepository.upsertJournalEntry({
+						entryDate: (
+							completedSession.completedAt ?? new Date().toISOString()
+						).slice(0, 10),
+						sessionId: completedSession.id,
+						body: journalBody.trim(),
+						mood: null,
+						sleepHours: null,
+						energy: sessionInput.energyLevel ?? completedSession.energyLevel,
+					});
+				} catch {
+					journalSaveFailed = true;
+				}
 			}
 			setIsRecoveryPromptVisible(false);
 			await invalidateFitnessQueries();
-			setSuccessMessage("Tréning dokončený");
+			setSuccessMessage(
+				journalSaveFailed
+					? "Tréning dokončený. Zápisník sa nepodarilo uložiť."
+					: "Tréning dokončený",
+			);
 			setPostWorkoutAction({ sessionName: completedSession.name });
 		} catch (cause) {
 			setError(
