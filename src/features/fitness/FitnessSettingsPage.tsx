@@ -48,7 +48,10 @@ interface BeforeInstallPromptEvent extends Event {
 	userChoice: Promise<BeforeInstallPromptChoice>;
 }
 
-type SettingsConfirmation = "resetStarterData" | "restoreFitnessImport";
+type SettingsConfirmation =
+	| "resetStarterData"
+	| "restoreFitnessImport"
+	| "importStrongCsv";
 
 export function FitnessSettingsPage() {
 	const [settings, setSettings] = useState<FitnessSettingsRecord | null>(null);
@@ -370,6 +373,16 @@ export function FitnessSettingsPage() {
 		}
 	};
 
+	const requestStrongCsvImport = () => {
+		setError(null);
+		setSuccessMessage(null);
+		if (!strongCsvPreview) {
+			setError("Pred importom Strong CSV najprv zobraz náhľad.");
+			return;
+		}
+		setPendingConfirmation("importStrongCsv");
+	};
+
 	const importStrongCsv = async () => {
 		setIsMutating(true);
 		setError(null);
@@ -388,6 +401,7 @@ export function FitnessSettingsPage() {
 			);
 		} finally {
 			setIsMutating(false);
+			setPendingConfirmation(null);
 		}
 	};
 
@@ -835,9 +849,10 @@ export function FitnessSettingsPage() {
 										aria-label="Import zo Strong CSV"
 										className="mt-2 min-h-40 w-full rounded-2xl border border-fitness-yellow/30 bg-black px-4 py-3 font-mono text-xs text-fitness-warm outline-none focus:border-fitness-yellow"
 										value={strongCsvText}
-										onInput={(event) =>
-											setStrongCsvText(event.currentTarget.value)
-										}
+										onInput={(event) => {
+											setStrongCsvText(event.currentTarget.value);
+											setStrongCsvPreview(null);
+										}}
 										placeholder="Sem vlož CSV export zo Strong: Date, Workout Name, Exercise Name, Set Order, Weight, Weight Unit, Reps, RPE…"
 									/>
 								</label>
@@ -866,8 +881,8 @@ export function FitnessSettingsPage() {
 									</Button>
 									<Button
 										className="fitness-action"
-										onClick={() => void importStrongCsv()}
-										disabled={isLoading || isMutating || !strongCsvText.trim()}
+										onClick={requestStrongCsvImport}
+										disabled={isLoading || isMutating || !strongCsvPreview}
 									>
 										Importovať Strong CSV
 									</Button>
@@ -907,8 +922,8 @@ export function FitnessSettingsPage() {
 											{importPreview.personalPlanCount} osobných plánov ·{" "}
 											{importPreview.sessionCount} tréningových záznamov ·{" "}
 											{importPreview.bodyMeasurementCount} telesných záznamov ·{" "}
-											{importPreview.journalEntryCount} zápisov ·
-											jednotka {importPreview.displayUnit}
+											{importPreview.journalEntryCount} zápisov · jednotka{" "}
+											{importPreview.displayUnit}
 										</p>
 									</div>
 								) : null}
@@ -988,6 +1003,16 @@ export function FitnessSettingsPage() {
 				warningText="Pred nahradením dát maj pripravenú lokálnu zálohu. Strong CSV import ostáva append-only; toto JSON obnovenie je replace režim."
 				isConfirming={isMutating}
 				onConfirm={() => void restoreFitnessImport()}
+				onClose={() => setPendingConfirmation(null)}
+			/>
+			<ConfirmModal
+				open={pendingConfirmation === "importStrongCsv"}
+				title="Importovať náhľad Strong CSV?"
+				description="Táto akcia pridá náhľad zo Strong do lokálnej histórie ako dokončené tréningy. Existujúce dáta neprepíše."
+				confirmLabel="Importovať Strong CSV"
+				warningText="Skontroluj počty v náhľade. Import je append-only a nové záznamy budeš neskôr opravovať v histórii."
+				isConfirming={isMutating}
+				onConfirm={() => void importStrongCsv()}
 				onClose={() => setPendingConfirmation(null)}
 			/>
 			<TypedConfirmModal

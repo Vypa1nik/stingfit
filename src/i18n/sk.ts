@@ -427,9 +427,9 @@ export const sk = {
 				"Otvor, keď chceš prepočítať kotúče pre aktuálnu váhu série.",
 		},
 		setGestures: {
-			completedSetsTitle: "Dokončené série aktuálneho cviku",
+			completedSetsTitle: "Dokončené série v tréningu",
 			completedSetsDescription:
-				"Ak sa preklikneš vo váhe, RIR alebo type série, oprav záznam bez rušenia tréningu.",
+				"Ak sa preklikneš vo váhe, RIR alebo type série, oprav aj starší záznam bez rušenia tréningu.",
 			completedSetAria: (setNumber: number) =>
 				`Séria ${setNumber}: potiahni doprava pre duplikovanie alebo doľava pre preskočenie`,
 			duplicateButton: "Duplikovať",
@@ -439,7 +439,7 @@ export const sk = {
 			editButton: "Upraviť",
 			editAria: (setNumber: number) => `Upraviť sériu ${setNumber}`,
 			emptyCompletedSets:
-				"Zatiaľ nie je dokončená žiadna séria aktuálneho cviku.",
+				"Zatiaľ nie je dokončená žiadna séria v tomto tréningu.",
 		},
 	},
 } as const;

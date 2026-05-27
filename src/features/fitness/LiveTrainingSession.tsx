@@ -120,10 +120,17 @@ export function LiveTrainingSession({
 	const currentSet = activeExercise?.sets.find(
 		(set) => set.status === "planned",
 	);
-	const completedActiveSets =
-		activeExercise?.sets.filter((set) => set.status === "completed") ?? [];
+	const completedActiveSetCount =
+		activeExercise?.sets.filter((set) => set.status === "completed").length ??
+		0;
+	const completedSetEntries = visibleSession.exercises.flatMap((exercise) =>
+		exercise.sets
+			.filter((set) => set.status === "completed")
+			.map((set) => ({ set, exerciseName: exercise.nameSnapshot })),
+	);
 	const editingSet =
-		completedActiveSets.find((set) => set.id === editingSetId) ?? null;
+		completedSetEntries.find((entry) => entry.set.id === editingSetId)?.set ??
+		null;
 	const lastCompletedSet = activeExercise?.sets
 		.filter((set) => set.status === "completed" && set.completedAt)
 		.sort((a, b) => String(a.completedAt).localeCompare(String(b.completedAt)))
@@ -200,8 +207,12 @@ export function LiveTrainingSession({
 	};
 
 	const submitSetEdit = async (setId: string, input: LogFitnessSetInput) => {
-		await onUpdateSet(setId, input);
-		setEditingSetId(null);
+		try {
+			await onUpdateSet(setId, input);
+			setEditingSetId(null);
+		} catch {
+			// FitnessDashboard surfaces the mutation error; keep the correction form open.
+		}
 	};
 
 	if (!activeExercise) {
@@ -348,7 +359,7 @@ export function LiveTrainingSession({
 										Hotovo
 									</p>
 									<p className="mt-1 text-sm font-black text-white sm:mt-2 sm:text-lg">
-										{completedActiveSets.length}/{activeExercise.sets.length}
+										{completedActiveSetCount}/{activeExercise.sets.length}
 									</p>
 								</div>
 							</div>
@@ -502,7 +513,7 @@ export function LiveTrainingSession({
 
 					<div className="space-y-6">
 						<CompletedSetsEditor
-							sets={completedActiveSets}
+							entries={completedSetEntries}
 							editingSet={editingSet}
 							displayUnit={displayUnit}
 							isMutating={isMutating}
@@ -773,8 +784,13 @@ function createOptimisticLoggedSet(
 	};
 }
 
+interface CompletedSetEntry {
+	set: FitnessSessionSetRecord;
+	exerciseName: string;
+}
+
 interface CompletedSetsEditorProps {
-	sets: FitnessSessionSetRecord[];
+	entries: CompletedSetEntry[];
 	editingSet: FitnessSessionSetRecord | null;
 	displayUnit: FitnessDisplayUnit;
 	isMutating: boolean;
@@ -786,7 +802,7 @@ interface CompletedSetsEditorProps {
 }
 
 function CompletedSetsEditor({
-	sets,
+	entries,
 	editingSet,
 	displayUnit,
 	isMutating,
@@ -859,16 +875,16 @@ function CompletedSetsEditor({
 			title={sk.fitness.setGestures.completedSetsTitle}
 			description={sk.fitness.setGestures.completedSetsDescription}
 		>
-			{sets.length > 0 ? (
+			{entries.length > 0 ? (
 				<div className="space-y-3">
-					{sets.map((set) => (
+					{entries.map(({ set, exerciseName }) => (
 						<article
 							key={set.id}
 							data-testid={`completed-set-${set.setNumber}`}
 							className="touch-pan-y select-none rounded-2xl border border-fitness-yellow/20 bg-black/70 px-4 py-3 text-fitness-warm"
-							aria-label={sk.fitness.setGestures.completedSetAria(
+							aria-label={`${sk.fitness.setGestures.completedSetAria(
 								set.setNumber,
-							)}
+							)} z ${exerciseName}`}
 							onMouseDown={(event) => startSwipe(set.id, event.clientX)}
 							onMouseUp={(event) => finishSwipe(set.id, event.clientX)}
 							onTouchStart={(event) =>
@@ -881,7 +897,7 @@ function CompletedSetsEditor({
 							<div className="flex flex-wrap items-center justify-between gap-3">
 								<div>
 									<p className="text-xs font-black uppercase tracking-[0.18em] text-fitness-yellow/70">
-										Séria {set.setNumber}
+										Séria {set.setNumber} · {exerciseName}
 									</p>
 									<p className="mt-1 text-sm font-black text-fitness-warm">
 										{formatCompletedSetSummary(set, displayUnit)}
@@ -911,9 +927,9 @@ function CompletedSetsEditor({
 										size="sm"
 										onClick={() => void runSetAction(set.id, onDuplicateSet)}
 										disabled={setActionsDisabled}
-										aria-label={sk.fitness.setGestures.duplicateAria(
+										aria-label={`${sk.fitness.setGestures.duplicateAria(
 											set.setNumber,
-										)}
+										)} z ${exerciseName}`}
 									>
 										{sk.fitness.setGestures.duplicateButton}
 									</Button>
@@ -922,7 +938,7 @@ function CompletedSetsEditor({
 										size="sm"
 										onClick={() => void runSetAction(set.id, onSkipSet)}
 										disabled={setActionsDisabled}
-										aria-label={sk.fitness.setGestures.skipAria(set.setNumber)}
+										aria-label={`${sk.fitness.setGestures.skipAria(set.setNumber)} z ${exerciseName}`}
 									>
 										{sk.fitness.setGestures.skipButton}
 									</Button>
@@ -931,7 +947,7 @@ function CompletedSetsEditor({
 										size="sm"
 										onClick={() => onStartEdit(set.id)}
 										disabled={setActionsDisabled}
-										aria-label={sk.fitness.setGestures.editAria(set.setNumber)}
+										aria-label={`${sk.fitness.setGestures.editAria(set.setNumber)} z ${exerciseName}`}
 									>
 										{sk.fitness.setGestures.editButton}
 									</Button>

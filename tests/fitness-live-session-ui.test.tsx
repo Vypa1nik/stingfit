@@ -1,6 +1,6 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { FitnessDashboard } from '@/features/fitness/FitnessDashboard'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
@@ -74,6 +74,7 @@ describe('FitnessDashboard live session UI', () => {
       root.unmount()
     })
     container.remove()
+    vi.restoreAllMocks()
     await resetDatabaseState()
   })
 
@@ -111,8 +112,8 @@ describe('FitnessDashboard live session UI', () => {
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Dokončené série aktuálneho cviku')
-    const editButton = container.querySelector<HTMLButtonElement>('button[aria-label="Upraviť sériu 1"]')
+    expect(container.textContent).toContain('Dokončené série v tréningu')
+    const editButton = container.querySelector<HTMLButtonElement>('button[aria-label="Upraviť sériu 1 z Tlak na lavičke"]')
     expect(editButton).toBeTruthy()
 
     await act(async () => {
@@ -165,6 +166,68 @@ describe('FitnessDashboard live session UI', () => {
     expect(activeSession?.exercises[0]?.sets[0]).toMatchObject({ weightKg: 82.5, reps: 7, rir: 0, setType: 'failure' })
   })
 
+  test('keeps the set correction form open when saving the correction fails', async () => {
+    await renderTraining(root)
+    await startFirstWorkout(container)
+
+    const logButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Zapísať sériu ⚡ pauza'))
+    expect(logButton).toBeDefined()
+
+    await act(async () => {
+      logButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    const editButton = container.querySelector<HTMLButtonElement>('button[aria-label="Upraviť sériu 1 z Tlak na lavičke"]')
+    expect(editButton).toBeTruthy()
+
+    await act(async () => {
+      editButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    vi.spyOn(fitnessRepository, 'updateLoggedSet').mockRejectedValueOnce(new Error('Oprava sa neuložila'))
+
+    const saveEditButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Uložiť opravu série'))
+    expect(saveEditButton).toBeDefined()
+
+    await act(async () => {
+      saveEditButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Oprava sa neuložila')
+    expect(container.textContent).toContain('Oprava série')
+    expect(container.textContent).toContain('Uložiť opravu série')
+  })
+
+  test('lets a lifter correct completed sets from earlier exercises mid-workout', async () => {
+    await renderTraining(root)
+    await startFirstWorkout(container)
+
+    for (let index = 0; index < 3; index += 1) {
+      const logButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Zapísať sériu ⚡ pauza'))
+      expect(logButton).toBeDefined()
+      await act(async () => {
+        logButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+        await waitForAsyncUi(700)
+      })
+    }
+
+    expect(container.textContent).toContain('Tlaky s jednoručkami na šikmej lavičke')
+
+    const earlierExerciseEditButton = container.querySelector<HTMLButtonElement>('button[aria-label="Upraviť sériu 1 z Tlak na lavičke"]')
+    expect(earlierExerciseEditButton).toBeTruthy()
+
+    await act(async () => {
+      earlierExerciseEditButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Oprava série')
+    expect(container.textContent).toContain('Tlak na lavičke')
+  })
+
   test('supports mobile swipe gestures for completed sets', async () => {
     await renderTraining(root)
     await startFirstWorkout(container)
@@ -202,7 +265,7 @@ describe('FitnessDashboard live session UI', () => {
     })
 
     expect(container.textContent).toContain('Séria preskočená')
-    expect(container.textContent).toContain('Zatiaľ nie je dokončená žiadna séria aktuálneho cviku.')
+    expect(container.textContent).toContain('Zatiaľ nie je dokončená žiadna séria v tomto tréningu.')
   })
 
   test('shows superset guidance and switches to the paired exercise after logging a set', async () => {

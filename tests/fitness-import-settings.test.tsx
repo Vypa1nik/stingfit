@@ -92,6 +92,17 @@ describe('FitnessSettingsPage import flow', () => {
       await waitForAsyncUi()
     })
 
+    expect(container.textContent).toContain('Importovať náhľad Strong CSV?')
+    await expect(fitnessRepository.listCompletedSessions()).resolves.toHaveLength(0)
+
+    const confirmImportButton = Array.from(container.querySelectorAll('button')).filter((button) => button.textContent?.trim() === 'Importovať Strong CSV').at(-1)
+    expect(confirmImportButton).toBeDefined()
+
+    await act(async () => {
+      confirmImportButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+
     expect(container.textContent).toContain('Strong CSV import hotový: 1 tréning, 1 cvik a 1 séria pridané do histórie.')
     expect((await fitnessRepository.listCompletedSessions())[0]).toMatchObject({ name: 'Push A', status: 'completed' })
   })

@@ -439,9 +439,9 @@ export const en = {
 				"[en] Otvor, keď chceš prepočítať kotúče pre aktuálnu váhu série.",
 		},
 		setGestures: {
-			completedSetsTitle: "[en] Dokončené série aktuálneho cviku",
+			completedSetsTitle: "[en] Dokončené série v tréningu",
 			completedSetsDescription:
-				"[en] Ak sa preklikneš vo váhe, RIR alebo type série, oprav záznam bez rušenia tréningu.",
+				"[en] Ak sa preklikneš vo váhe, RIR alebo type série, oprav aj starší záznam bez rušenia tréningu.",
 			completedSetAria: (setNumber: number) =>
 				`[en] Séria ${setNumber}: potiahni doprava pre duplikovanie alebo doľava pre preskočenie`,
 			duplicateButton: "[en] Duplikovať",
@@ -452,7 +452,7 @@ export const en = {
 			editButton: "[en] Upraviť",
 			editAria: (setNumber: number) => `[en] Upraviť sériu ${setNumber}`,
 			emptyCompletedSets:
-				"[en] Zatiaľ nie je dokončená žiadna séria aktuálneho cviku.",
+				"[en] Zatiaľ nie je dokončená žiadna séria v tomto tréningu.",
 		},
 	},
 } satisfies FitnessCopyCatalog;

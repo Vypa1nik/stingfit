@@ -6,6 +6,10 @@ All notable changes to StingFit will be documented in this file.
 
 ### Changed
 
+- Strong CSV import now requires reviewing the generated preview and confirming
+  the append-only write before local workout history is changed.
+- Live workout corrections now stay open on failed saves and can reach completed
+  sets from earlier exercises without leaving the active workout.
 - Live workout ergonomics are harder to mis-tap: set submit, completed-set
   duplicate/skip, mobile menus, optional RIR, and active quick-route recovery now
   have focused guards and regressions.
