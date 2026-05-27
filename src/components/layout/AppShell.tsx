@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react'
 
 import { useLocation } from 'react-router-dom'
 
@@ -12,11 +12,15 @@ interface AppShellProps {
   children: ReactNode
 }
 
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
 export function AppShell({ children }: AppShellProps) {
   const location = useLocation()
   const isMobileSidebarOpen = useUiStore((state) => state.isMobileSidebarOpen)
   const setMobileSidebarOpen = useUiStore((state) => state.setMobileSidebarOpen)
   const mobileDialogRef = useRef<HTMLDivElement>(null)
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null)
   const hasMountedRouteRef = useRef(false)
 
   useEffect(() => {
@@ -36,10 +40,13 @@ export function AppShell({ children }: AppShellProps) {
     }
 
     const previousOverflow = document.body.style.overflow
+    previouslyFocusedRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
     document.body.style.overflow = 'hidden'
 
     return () => {
       document.body.style.overflow = previousOverflow
+      previouslyFocusedRef.current?.focus()
     }
   }, [isMobileSidebarOpen])
 
@@ -49,7 +56,9 @@ export function AppShell({ children }: AppShellProps) {
     }
 
     const frame = window.requestAnimationFrame(() => {
-      mobileDialogRef.current?.focus()
+      const dialog = mobileDialogRef.current
+      const firstFocusable = dialog?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
+      ;(firstFocusable ?? dialog)?.focus()
     })
 
     return () => window.cancelAnimationFrame(frame)
@@ -71,6 +80,46 @@ export function AppShell({ children }: AppShellProps) {
     return () => window.removeEventListener('keydown', onEscape)
   }, [isMobileSidebarOpen, setMobileSidebarOpen])
 
+  const handleMobileDialogKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      setMobileSidebarOpen(false)
+      return
+    }
+
+    if (event.key !== 'Tab') {
+      return
+    }
+
+    const dialog = mobileDialogRef.current
+    if (!dialog) {
+      return
+    }
+
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+    if (focusable.length === 0) {
+      event.preventDefault()
+      return
+    }
+
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    const activeElement = document.activeElement
+
+    if (event.shiftKey) {
+      if (activeElement === first || !dialog.contains(activeElement)) {
+        event.preventDefault()
+        last.focus()
+      }
+      return
+    }
+
+    if (activeElement === last || !dialog.contains(activeElement)) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+
   return (
     <div className="surface-shell min-h-screen md:flex">
       <NavigationSidebar />
@@ -84,7 +133,7 @@ export function AppShell({ children }: AppShellProps) {
       <MobileBottomNav />
 
       {isMobileSidebarOpen ? (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 md:hidden" onKeyDown={handleMobileDialogKeyDown}>
           <button
             type="button"
             aria-label="Zatvoriť navigačné menu"

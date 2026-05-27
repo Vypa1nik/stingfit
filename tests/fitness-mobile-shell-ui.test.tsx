@@ -136,11 +136,66 @@ describe("mobile StingFit shell navigation", () => {
 		});
 	});
 
+	test("traps focus inside the mobile sidebar and returns it to the menu button", async () => {
+		const rendered = await renderMobileShell();
+		const menuButton = findButton(rendered, sk.fitness.nav.topBar.openMenu);
+
+		menuButton?.focus();
+		await act(async () => {
+			menuButton?.dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true }),
+			);
+			await waitForAsyncUi();
+		});
+
+		const dialog = rendered.querySelector<HTMLElement>(
+			'[role="dialog"][aria-label="Navigačné menu"]',
+		);
+		expect(dialog).toBeTruthy();
+		expect(document.activeElement).toBe(
+			rendered.querySelector<HTMLButtonElement>(
+				`button[aria-label="${sk.fitness.nav.sidebar.closeMenu}"]`,
+			),
+		);
+
+		await act(async () => {
+			dialog?.dispatchEvent(
+				new KeyboardEvent("keydown", {
+					key: "Tab",
+					shiftKey: true,
+					bubbles: true,
+					cancelable: true,
+				}),
+			);
+			await waitForAsyncUi();
+		});
+		expect(document.activeElement).toBe(
+			dialog?.querySelector<HTMLAnchorElement>('a[href="/settings"]'),
+		);
+
+		await act(async () => {
+			dialog?.dispatchEvent(
+				new KeyboardEvent("keydown", {
+					key: "Escape",
+					bubbles: true,
+					cancelable: true,
+				}),
+			);
+			await waitForAsyncUi();
+		});
+
+		expect(rendered.querySelector('[role="dialog"]')).toBeNull();
+		expect(document.activeElement).toBe(menuButton);
+	});
+
 	test("opens and closes the More sheet with keyboard and overlay actions", async () => {
 		const rendered = await renderMobileShell();
 
+		const moreButton = findButton(rendered, sk.fitness.nav.mobile.more);
+
+		moreButton?.focus();
 		await act(async () => {
-			findButton(rendered, sk.fitness.nav.mobile.more)?.dispatchEvent(
+			moreButton?.dispatchEvent(
 				new MouseEvent("click", { bubbles: true, cancelable: true }),
 			);
 			await waitForAsyncUi();
@@ -160,6 +215,26 @@ describe("mobile StingFit shell navigation", () => {
 		expect(
 			rendered.querySelector<HTMLAnchorElement>('a[href="/tools/plates"]'),
 		).toBeTruthy();
+		expect(document.activeElement).toBe(
+			rendered.querySelector<HTMLButtonElement>(
+				`button[aria-label="${sk.fitness.nav.moreSheet.closeButton}"]`,
+			),
+		);
+
+		await act(async () => {
+			dialog?.dispatchEvent(
+				new KeyboardEvent("keydown", {
+					key: "Tab",
+					shiftKey: true,
+					bubbles: true,
+					cancelable: true,
+				}),
+			);
+			await waitForAsyncUi();
+		});
+		expect(document.activeElement).toBe(
+			dialog?.querySelector<HTMLAnchorElement>('a[href="/settings"]'),
+		);
 
 		await act(async () => {
 			window.dispatchEvent(
@@ -168,6 +243,7 @@ describe("mobile StingFit shell navigation", () => {
 			await waitForAsyncUi();
 		});
 		expect(rendered.querySelector('[role="dialog"]')).toBeNull();
+		expect(document.activeElement).toBe(moreButton);
 
 		await act(async () => {
 			findButton(rendered, sk.fitness.nav.mobile.more)?.dispatchEvent(

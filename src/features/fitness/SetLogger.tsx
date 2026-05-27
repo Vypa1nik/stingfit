@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Calculator, Minus, Plus, Zap } from "lucide-react";
 
@@ -78,8 +78,10 @@ export function SetLogger({
 	const [setType, setSetType] = useState<FitnessSessionSetType>(
 		set.setType ?? "working",
 	);
+	const isSubmittingRef = useRef(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [reps, setReps] = useState(String(set.reps));
-	const [rir, setRir] = useState(String(set.rir ?? 1));
+	const [rir, setRir] = useState(set.rir === null ? "" : String(set.rir));
 	const parsedWeight = Number(weight);
 	const parsedLeftWeight = Number(leftWeight);
 	const parsedRightWeight = Number(rightWeight);
@@ -87,7 +89,7 @@ export function SetLogger({
 	const parsedCurrentWeight =
 		weightEntryMode === "per_side" ? parsedPerSideTotalWeight : parsedWeight;
 	const parsedReps = Number(reps);
-	const parsedRir = Number(rir);
+	const parsedRir = rir.trim() === "" ? null : Number(rir);
 	const validationErrors = [
 		weightEntryMode === "total" &&
 		(!Number.isFinite(parsedWeight) ||
@@ -115,19 +117,23 @@ export function SetLogger({
 		!Number.isInteger(parsedReps) || parsedReps < 0 || parsedReps > 999
 			? "Opakovania musia byť medzi 0 a 999"
 			: null,
-		!Number.isInteger(parsedRir) || parsedRir < 0 || parsedRir > 10
+		parsedRir !== null &&
+		(!Number.isInteger(parsedRir) || parsedRir < 0 || parsedRir > 10)
 			? "RIR musí byť medzi 0 a 10"
 			: null,
 	].filter((message): message is string => Boolean(message));
-	const canSubmit = !disabled && validationErrors.length === 0;
+	const controlsDisabled = disabled || isSubmitting;
+	const canSubmit = !controlsDisabled && validationErrors.length === 0;
 	const plateTargetWeight = Number.isFinite(parsedCurrentWeight)
 		? parsedCurrentWeight
 		: 0;
 
 	const handleSubmit = async () => {
-		if (!canSubmit) {
+		if (!canSubmit || isSubmittingRef.current) {
 			return;
 		}
+		isSubmittingRef.current = true;
+		setIsSubmitting(true);
 
 		const leftWeightKg =
 			weightEntryMode === "per_side"
@@ -145,15 +151,20 @@ export function SetLogger({
 		if (armRestSignal) {
 			armRestAlertAudio();
 		}
-		await onLog(set.id, {
-			weightKg: loggedWeightKg,
-			reps: parsedReps,
-			rir: parsedRir,
-			setType,
-			weightEntryMode,
-			leftWeightKg,
-			rightWeightKg,
-		});
+		try {
+			await onLog(set.id, {
+				weightKg: loggedWeightKg,
+				reps: parsedReps,
+				rir: parsedRir,
+				setType,
+				weightEntryMode,
+				leftWeightKg,
+				rightWeightKg,
+			});
+		} finally {
+			isSubmittingRef.current = false;
+			setIsSubmitting(false);
+		}
 	};
 
 	return (
@@ -211,6 +222,7 @@ export function SetLogger({
 								inputMode="decimal"
 								value={leftWeight}
 								onInput={(event) => setLeftWeight(event.currentTarget.value)}
+								disabled={controlsDisabled}
 							/>
 						</label>
 						<label className="rounded-2xl border border-fitness-yellow/20 bg-fitness-surface p-3 text-center">
@@ -223,6 +235,7 @@ export function SetLogger({
 								inputMode="decimal"
 								value={rightWeight}
 								onInput={(event) => setRightWeight(event.currentTarget.value)}
+								disabled={controlsDisabled}
 							/>
 						</label>
 					</div>
@@ -234,8 +247,16 @@ export function SetLogger({
 						{displayUnit}
 					</p>
 					<div className="mt-3 grid grid-cols-2 gap-3">
-						<RepsInput value={reps} onChange={setReps} />
-						<RirInput value={rir} onChange={setRir} />
+						<RepsInput
+							value={reps}
+							onChange={setReps}
+							disabled={controlsDisabled}
+						/>
+						<RirInput
+							value={rir}
+							onChange={setRir}
+							disabled={controlsDisabled}
+						/>
 					</div>
 				</>
 			) : (
@@ -250,10 +271,15 @@ export function SetLogger({
 							inputMode="decimal"
 							value={weight}
 							onInput={(event) => setWeight(event.currentTarget.value)}
+							disabled={controlsDisabled}
 						/>
 					</label>
-					<RepsInput value={reps} onChange={setReps} />
-					<RirInput value={rir} onChange={setRir} />
+					<RepsInput
+						value={reps}
+						onChange={setReps}
+						disabled={controlsDisabled}
+					/>
+					<RirInput value={rir} onChange={setRir} disabled={controlsDisabled} />
 				</div>
 			)}
 
@@ -276,14 +302,14 @@ export function SetLogger({
 					onClick={handleSubmit}
 					disabled={!canSubmit}
 				>
-					{submitLabel}
+					{isSubmitting ? "Ukladám…" : submitLabel}
 				</Button>
 				{onCancel ? (
 					<Button
 						variant="secondary"
 						className="w-full"
 						onClick={onCancel}
-						disabled={disabled}
+						disabled={controlsDisabled}
 					>
 						Zrušiť opravu
 					</Button>
@@ -293,13 +319,13 @@ export function SetLogger({
 			<WeightEntryModeSelector
 				value={weightEntryMode}
 				onChange={setWeightEntryMode}
-				disabled={disabled}
+				disabled={controlsDisabled}
 			/>
 
 			<SetTypeSelector
 				value={setType}
 				onChange={setSetType}
-				disabled={disabled}
+				disabled={controlsDisabled}
 			/>
 
 			<details
@@ -347,7 +373,7 @@ export function SetLogger({
 								adjustDecimal(current, delta, 0, maxDisplayWeight),
 							);
 						}}
-						disabled={disabled}
+						disabled={controlsDisabled}
 					/>
 				) : (
 					<WeightQuickAdjustGroup
@@ -361,7 +387,7 @@ export function SetLogger({
 								adjustDecimal(current, delta, 0, maxDisplayWeight),
 							)
 						}
-						disabled={disabled}
+						disabled={controlsDisabled}
 					/>
 				)}
 				<QuickAdjustGroup
@@ -376,7 +402,7 @@ export function SetLogger({
 					onIncrement={() =>
 						setReps((current) => adjustInteger(current, 1, 0, 999))
 					}
-					disabled={disabled}
+					disabled={controlsDisabled}
 				/>
 				<QuickAdjustGroup
 					label="RIR"
@@ -390,10 +416,9 @@ export function SetLogger({
 					onIncrement={() =>
 						setRir((current) => adjustInteger(current, 1, 0, 10))
 					}
-					disabled={disabled}
+					disabled={controlsDisabled}
 				/>
 			</div>
-
 		</div>
 	);
 }
@@ -455,9 +480,11 @@ function WeightEntryModeSelector({
 function RepsInput({
 	value,
 	onChange,
+	disabled,
 }: {
 	value: string;
 	onChange: (value: string) => void;
+	disabled: boolean;
 }) {
 	return (
 		<label className="rounded-2xl border border-fitness-yellow/20 bg-fitness-surface p-3 text-center">
@@ -470,6 +497,7 @@ function RepsInput({
 				inputMode="numeric"
 				value={value}
 				onInput={(event) => onChange(event.currentTarget.value)}
+				disabled={disabled}
 			/>
 		</label>
 	);
@@ -478,11 +506,13 @@ function RepsInput({
 function RirInput({
 	value,
 	onChange,
+	disabled,
 }: {
 	value: string;
 	onChange: (value: string) => void;
+	disabled: boolean;
 }) {
-	const selectedRir = Number(value);
+	const selectedRir = value.trim() === "" ? null : Number(value);
 
 	return (
 		<div className="rounded-2xl border border-fitness-yellow/20 bg-fitness-surface p-3 text-center">
@@ -495,9 +525,14 @@ function RirInput({
 					className="mt-2 w-full bg-transparent text-center text-xl font-black text-fitness-yellow outline-none"
 					inputMode="numeric"
 					value={value}
+					placeholder="—"
 					onInput={(event) => onChange(event.currentTarget.value)}
+					disabled={disabled}
 				/>
 			</label>
+			<p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-fitness-warm/50">
+				Prázdne = nesledujem
+			</p>
 			<div
 				aria-label="RIR rýchla voľba"
 				className="mt-3 grid grid-cols-5 gap-1"
@@ -510,12 +545,13 @@ function RirInput({
 							type="button"
 							aria-label={`Nastaviť RIR ${rirValue}`}
 							className={cn(
-								"min-h-10 rounded-xl border px-2 text-xs font-black transition-colors",
+								"min-h-11 rounded-xl border px-2 text-xs font-black transition-colors disabled:opacity-50",
 								selected
 									? "border-fitness-yellow bg-fitness-yellow text-black"
 									: "border-fitness-yellow/20 bg-black/60 text-fitness-yellow hover:bg-fitness-yellow/20",
 							)}
 							onClick={() => onChange(String(rirValue))}
+							disabled={disabled}
 						>
 							{rirValue}
 						</button>

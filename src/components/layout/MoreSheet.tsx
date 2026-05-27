@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import {
 	Calculator,
@@ -67,8 +67,12 @@ export interface MoreSheetProps {
 	onClose: () => void;
 }
 
+const FOCUSABLE_SELECTOR =
+	'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function MoreSheet({ open, onClose }: MoreSheetProps) {
 	const dialogRef = useRef<HTMLDivElement>(null);
+	const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
 	useEffect(() => {
 		if (!open) {
@@ -76,9 +80,13 @@ export function MoreSheet({ open, onClose }: MoreSheetProps) {
 		}
 
 		const previousOverflow = document.body.style.overflow;
+		previouslyFocusedRef.current =
+			document.activeElement instanceof HTMLElement
+				? document.activeElement
+				: null;
 		document.body.style.overflow = "hidden";
 
-		const onKeydown = (event: KeyboardEvent) => {
+		const onKeydown = (event: globalThis.KeyboardEvent) => {
 			if (event.key === "Escape") {
 				event.preventDefault();
 				onClose();
@@ -87,22 +95,72 @@ export function MoreSheet({ open, onClose }: MoreSheetProps) {
 		window.addEventListener("keydown", onKeydown);
 
 		const frame = window.requestAnimationFrame(() => {
-			dialogRef.current?.focus();
+			const dialog = dialogRef.current;
+			const firstFocusable = dialog?.querySelector<HTMLElement>(
+				FOCUSABLE_SELECTOR,
+			);
+			(firstFocusable ?? dialog)?.focus();
 		});
 
 		return () => {
 			document.body.style.overflow = previousOverflow;
 			window.removeEventListener("keydown", onKeydown);
 			window.cancelAnimationFrame(frame);
+			previouslyFocusedRef.current?.focus();
 		};
 	}, [open, onClose]);
+
+	const handleDialogKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+		if (event.key === "Escape") {
+			event.preventDefault();
+			onClose();
+			return;
+		}
+
+		if (event.key !== "Tab") {
+			return;
+		}
+
+		const dialog = dialogRef.current;
+		if (!dialog) {
+			return;
+		}
+
+		const focusable = Array.from(
+			dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+		);
+		if (focusable.length === 0) {
+			event.preventDefault();
+			return;
+		}
+
+		const first = focusable[0];
+		const last = focusable[focusable.length - 1];
+		const activeElement = document.activeElement;
+
+		if (event.shiftKey) {
+			if (activeElement === first || !dialog.contains(activeElement)) {
+				event.preventDefault();
+				last.focus();
+			}
+			return;
+		}
+
+		if (activeElement === last || !dialog.contains(activeElement)) {
+			event.preventDefault();
+			first.focus();
+		}
+	};
 
 	if (!open) {
 		return null;
 	}
 
 	return (
-		<div className="fixed inset-0 z-50 flex flex-col justify-end md:hidden">
+		<div
+			className="fixed inset-0 z-50 flex flex-col justify-end md:hidden"
+			onKeyDown={handleDialogKeyDown}
+		>
 			<button
 				type="button"
 				aria-label={moreSheetCopy.closeOverlay}
@@ -121,7 +179,10 @@ export function MoreSheet({ open, onClose }: MoreSheetProps) {
 					"shadow-[0_-24px_60px_rgba(0,0,0,0.6)]",
 				)}
 			>
-				<div className="mx-auto mb-3 h-1 w-12 rounded-full bg-white/15" aria-hidden />
+				<div
+					className="mx-auto mb-3 h-1 w-12 rounded-full bg-white/15"
+					aria-hidden
+				/>
 				<div className="flex items-center justify-between gap-3">
 					<p className="text-sm font-semibold uppercase tracking-[0.22em] text-fitness-yellow/80">
 						{moreSheetCopy.title}
@@ -129,7 +190,7 @@ export function MoreSheet({ open, onClose }: MoreSheetProps) {
 					<button
 						type="button"
 						aria-label={moreSheetCopy.closeButton}
-						className="inline-flex size-9 items-center justify-center rounded-lg text-fitness-warm/70 hover:bg-white/5 hover:text-fitness-yellow"
+						className="inline-flex size-11 items-center justify-center rounded-lg text-fitness-warm/70 hover:bg-white/5 hover:text-fitness-yellow"
 						onClick={onClose}
 					>
 						<X className="size-4" />

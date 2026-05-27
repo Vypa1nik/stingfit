@@ -119,16 +119,23 @@ export function FitnessDashboard({
 	const displayError = error ?? queryError;
 
 	useEffect(() => {
-		if (
-			!trainingStateQuery.isSuccess ||
-			hasResolvedInitialTrainingStateRef.current
-		) {
+		if (!trainingStateQuery.isSuccess) {
 			return;
 		}
 
-		hasResolvedInitialTrainingStateRef.current = true;
-		setBackupNudgeDismissedCount(readBackupNudgeDismissedCount());
-		setIsRecoveryPromptVisible(Boolean(activeSession) && !autoStartQuick);
+		if (!hasResolvedInitialTrainingStateRef.current) {
+			hasResolvedInitialTrainingStateRef.current = true;
+			setBackupNudgeDismissedCount(readBackupNudgeDismissedCount());
+			setIsRecoveryPromptVisible(
+				Boolean(activeSession) &&
+					(!autoStartQuick || !hasAutoStartedQuickRef.current),
+			);
+			return;
+		}
+
+		if (autoStartQuick && activeSession && !hasAutoStartedQuickRef.current) {
+			setIsRecoveryPromptVisible(true);
+		}
 	}, [activeSession, autoStartQuick, trainingStateQuery.isSuccess]);
 
 	const runMutation = async (
@@ -179,6 +186,7 @@ export function FitnessDashboard({
 		await runMutation(
 			() => fitnessRepository.updateLoggedSet(setId, input),
 			"Séria upravená",
+			{ throwOnError: true },
 		);
 	};
 

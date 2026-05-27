@@ -183,6 +183,8 @@ describe('FitnessDashboard live session UI', () => {
     await act(async () => {
       completedSet?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 20 }))
       completedSet?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: 140 }))
+      completedSet?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 20 }))
+      completedSet?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: 140 }))
       await waitForAsyncUi(900)
     })
 

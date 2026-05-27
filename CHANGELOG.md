@@ -6,6 +6,9 @@ All notable changes to StingFit will be documented in this file.
 
 ### Changed
 
+- Live workout ergonomics are harder to mis-tap: set submit, completed-set
+  duplicate/skip, mobile menus, optional RIR, and active quick-route recovery now
+  have focused guards and regressions.
 - First-run and simple-start surfaces now fit mobile screens better: the primary
   starter plan and quick workout action appear above the bottom navigation on a
   360px phone viewport, with desktop spacing preserved.

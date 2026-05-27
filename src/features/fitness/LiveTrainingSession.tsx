@@ -320,7 +320,8 @@ export function LiveTrainingSession({
 										{currentSet ? (
 											<>
 												<span className="sr-only">
-													Séria {currentSet.setNumber} z {activeExercise.sets.length}
+													Séria {currentSet.setNumber} z{" "}
+													{activeExercise.sets.length}
 												</span>
 												<span aria-hidden="true">
 													{currentSet.setNumber}/{activeExercise.sets.length}
@@ -796,10 +797,32 @@ function CompletedSetsEditor({
 	onSubmitEdit,
 }: CompletedSetsEditorProps) {
 	const swipeStartRef = useRef<{ setId: string; x: number } | null>(null);
+	const setActionLockRef = useRef<string | null>(null);
+	const [lockedSetActionId, setLockedSetActionId] = useState<string | null>(
+		null,
+	);
 	const swipeThresholdPx = 72;
+	const setActionsDisabled = isMutating || lockedSetActionId !== null;
+
+	const runSetAction = async (
+		setId: string,
+		action: (targetSetId: string) => Promise<void>,
+	) => {
+		if (isMutating || setActionLockRef.current) {
+			return;
+		}
+		setActionLockRef.current = setId;
+		setLockedSetActionId(setId);
+		try {
+			await action(setId);
+		} finally {
+			setActionLockRef.current = null;
+			setLockedSetActionId(null);
+		}
+	};
 
 	const startSwipe = (setId: string, x: number) => {
-		if (isMutating) {
+		if (setActionsDisabled || setActionLockRef.current) {
 			return;
 		}
 		swipeStartRef.current = { setId, x };
@@ -807,7 +830,12 @@ function CompletedSetsEditor({
 
 	const finishSwipe = (setId: string, x: number) => {
 		const swipeStart = swipeStartRef.current;
-		if (!swipeStart || swipeStart.setId !== setId || isMutating) {
+		if (
+			!swipeStart ||
+			swipeStart.setId !== setId ||
+			setActionsDisabled ||
+			setActionLockRef.current
+		) {
 			swipeStartRef.current = null;
 			return;
 		}
@@ -819,11 +847,11 @@ function CompletedSetsEditor({
 		}
 
 		if (deltaX > 0) {
-			void onDuplicateSet(setId);
+			void runSetAction(setId, onDuplicateSet);
 			return;
 		}
 
-		void onSkipSet(setId);
+		void runSetAction(setId, onSkipSet);
 	};
 
 	return (
@@ -881,8 +909,8 @@ function CompletedSetsEditor({
 									<Button
 										variant="secondary"
 										size="sm"
-										onClick={() => void onDuplicateSet(set.id)}
-										disabled={isMutating}
+										onClick={() => void runSetAction(set.id, onDuplicateSet)}
+										disabled={setActionsDisabled}
 										aria-label={sk.fitness.setGestures.duplicateAria(
 											set.setNumber,
 										)}
@@ -892,8 +920,8 @@ function CompletedSetsEditor({
 									<Button
 										variant="secondary"
 										size="sm"
-										onClick={() => void onSkipSet(set.id)}
-										disabled={isMutating}
+										onClick={() => void runSetAction(set.id, onSkipSet)}
+										disabled={setActionsDisabled}
 										aria-label={sk.fitness.setGestures.skipAria(set.setNumber)}
 									>
 										{sk.fitness.setGestures.skipButton}
@@ -902,7 +930,7 @@ function CompletedSetsEditor({
 										variant="secondary"
 										size="sm"
 										onClick={() => onStartEdit(set.id)}
-										disabled={isMutating}
+										disabled={setActionsDisabled}
 										aria-label={sk.fitness.setGestures.editAria(set.setNumber)}
 									>
 										{sk.fitness.setGestures.editButton}

@@ -182,6 +182,98 @@ describe("mobile gym logger ergonomics", () => {
 		);
 	});
 
+	test("ignores repeated set submit taps while the first save is pending", async () => {
+		let resolveLog: (() => void) | null = null;
+		const onLog = vi.fn(
+			() =>
+				new Promise<void>((resolve) => {
+					resolveLog = resolve;
+				}),
+		);
+
+		await act(async () => {
+			root.render(
+				<SetLogger
+					displayUnit="kg"
+					onLog={onLog}
+					set={{
+						id: "set-1",
+						sessionExerciseId: "session-exercise-1",
+						setNumber: 1,
+						weightKg: 80,
+						reps: 8,
+						rir: 1,
+						status: "planned",
+						completedAt: null,
+						createdAt: "2026-04-28T10:00:00.000Z",
+						updatedAt: "2026-04-28T10:00:00.000Z",
+					}}
+				/>,
+			);
+		});
+
+		const logButton = Array.from(container.querySelectorAll("button")).find(
+			(button) => button.textContent?.includes("Zapísať sériu ⚡ pauza"),
+		);
+		expect(logButton).toBeDefined();
+
+		await act(async () => {
+			logButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+			logButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+			await Promise.resolve();
+		});
+
+		expect(onLog).toHaveBeenCalledTimes(1);
+		expect(container.textContent).toContain("Ukladám…");
+
+		await act(async () => {
+			resolveLog?.();
+			await Promise.resolve();
+		});
+	});
+
+	test("lets a lifter leave RIR empty when they are not tracking it", async () => {
+		const onLog = vi.fn(async () => undefined);
+
+		await act(async () => {
+			root.render(
+				<SetLogger
+					displayUnit="kg"
+					onLog={onLog}
+					set={{
+						id: "set-1",
+						sessionExerciseId: "session-exercise-1",
+						setNumber: 1,
+						weightKg: 80,
+						reps: 8,
+						rir: null,
+						status: "planned",
+						completedAt: null,
+						createdAt: "2026-04-28T10:00:00.000Z",
+						updatedAt: "2026-04-28T10:00:00.000Z",
+					}}
+				/>,
+			);
+		});
+
+		expect(container.textContent).toContain("Prázdne = nesledujem");
+		expect(
+			container.querySelector<HTMLInputElement>('input[aria-label="RIR"]')?.value,
+		).toBe("");
+
+		const logButton = Array.from(container.querySelectorAll("button")).find(
+			(button) => button.textContent?.includes("Zapísať sériu ⚡ pauza"),
+		);
+		await act(async () => {
+			logButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+		});
+
+		expect(onLog).toHaveBeenCalledWith(
+			"set-1",
+			expect.objectContaining({ rir: null }),
+		);
+	});
+
 	test("renders RIR chips from 0 to 4 on one row", async () => {
 		const onLog = vi.fn(async () => undefined);
 
@@ -211,11 +303,11 @@ describe("mobile gym logger ergonomics", () => {
 		);
 		expect(chipRow?.className).toContain("grid-cols-5");
 		for (const rirValue of [0, 1, 2, 3, 4]) {
-			expect(
-				container.querySelector<HTMLButtonElement>(
-					`button[aria-label="Nastaviť RIR ${rirValue}"]`,
-				),
-			).toBeTruthy();
+			const chip = container.querySelector<HTMLButtonElement>(
+				`button[aria-label="Nastaviť RIR ${rirValue}"]`,
+			);
+			expect(chip).toBeTruthy();
+			expect(chip?.className).toContain("min-h-11");
 		}
 
 		await act(async () => {

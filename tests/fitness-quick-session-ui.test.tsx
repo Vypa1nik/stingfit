@@ -10,6 +10,19 @@ async function waitForAsyncUi() {
   await new Promise((resolve) => window.setTimeout(resolve, 500))
 }
 
+async function createActivePlannedWorkout() {
+  const starter = (await fitnessRepository.listStarterPlans()).find((plan) => plan.name === 'Tlak / Ťah / Nohy')
+  if (!starter) {
+    throw new Error('PPL starter missing')
+  }
+  await fitnessRepository.createPersonalPlanFromStarter(starter.id, { name: 'My PPL Block', goal: 'Build muscle' })
+  const workout = (await fitnessRepository.listStartableWorkouts()).find((item) => item.workoutName === 'Tlakový deň A')
+  if (!workout) {
+    throw new Error('Push workout missing')
+  }
+  return fitnessRepository.startSessionFromPlanWorkout(workout.workoutId)
+}
+
 describe('quick fitness session flow', () => {
   let container: HTMLDivElement
   let root: Root
@@ -58,6 +71,53 @@ describe('quick fitness session flow', () => {
 
     expect(container.textContent).toContain('Tlak na lavičke')
     expect(container.textContent).toContain('Zapísať sériu ⚡ pauza')
+  })
+
+  test('does not silently replace an existing planned workout on the quick route', async () => {
+    await createActivePlannedWorkout()
+
+    await act(async () => {
+      root.render(<FitnessDashboard autoStartQuick />)
+    })
+    await act(async () => {
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Tréning obnovený')
+    expect(container.textContent).toContain('Pokračovať: Tlakový deň A')
+    expect(container.textContent).not.toContain('Rýchly štart bez plánu')
+    const activeSession = await fitnessRepository.getActiveSession()
+    expect(activeSession).toMatchObject({ name: 'Tlakový deň A' })
+    expect(activeSession?.planId).not.toBeNull()
+  })
+
+  test('shows the recovery prompt when moving from Train to Quick with an active workout', async () => {
+    await createActivePlannedWorkout()
+
+    await act(async () => {
+      root.render(<FitnessDashboard />)
+    })
+    await act(async () => {
+      await waitForAsyncUi()
+    })
+
+    const continueButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Pokračovať: Tlakový deň A'))
+    expect(continueButton).toBeDefined()
+
+    await act(async () => {
+      continueButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi()
+    })
+    expect(container.textContent).toContain('Teraz robíš')
+
+    await act(async () => {
+      root.render(<FitnessDashboard autoStartQuick />)
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Tréning obnovený')
+    expect(container.textContent).toContain('Pokračovať: Tlakový deň A')
+    expect(container.textContent).not.toContain('Rýchly štart bez plánu')
   })
 
   test('starts a route-backed quick session and adds the first exercise', async () => {

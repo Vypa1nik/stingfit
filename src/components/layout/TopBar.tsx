@@ -23,7 +23,7 @@ export function TopBar() {
 				<button
 					type="button"
 					aria-label={topBarCopy.openMenu}
-					className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-fitness-yellow/25 bg-fitness-yellow/10 text-fitness-yellow transition-colors hover:bg-fitness-yellow hover:text-black md:hidden"
+					className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl border border-fitness-yellow/25 bg-fitness-yellow/10 text-fitness-yellow transition-colors hover:bg-fitness-yellow hover:text-black md:hidden"
 					onClick={() => setMobileSidebarOpen(true)}
 				>
 					<Menu className="size-5" />
@@ -41,7 +41,7 @@ export function TopBar() {
 			<button
 				type="button"
 				aria-label={topBarCopy.openMenu}
-				className="hidden size-10 items-center justify-center rounded-2xl border border-fitness-yellow/25 bg-fitness-yellow/10 text-fitness-yellow transition-colors hover:bg-fitness-yellow hover:text-black md:hidden sm:inline-flex"
+				className="hidden size-11 items-center justify-center rounded-2xl border border-fitness-yellow/25 bg-fitness-yellow/10 text-fitness-yellow transition-colors hover:bg-fitness-yellow hover:text-black md:hidden sm:inline-flex"
 				onClick={() => setMobileSidebarOpen(true)}
 			>
 				<Menu className="size-5" />

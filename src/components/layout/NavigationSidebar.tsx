@@ -141,7 +141,7 @@ export function NavigationSidebar({ mobile = false }: NavigationSidebarProps) {
           <button
             type="button"
             aria-label={navCopy.sidebar.closeMenu}
-            className="inline-flex size-9 items-center justify-center rounded-lg text-text-secondary hover:bg-black/5 dark:text-text-secondary-dark dark:hover:bg-white/5"
+            className="inline-flex size-11 items-center justify-center rounded-lg text-text-secondary hover:bg-black/5 dark:text-text-secondary-dark dark:hover:bg-white/5"
             onClick={closeMobileSidebar}
           >
             <X className="size-4" />
