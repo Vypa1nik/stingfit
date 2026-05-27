@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
+import { STARTER_FITNESS_EXERCISES, STARTER_FITNESS_PLANS } from '@/features/fitness/fitnessSeed'
 import { progressRepository } from '@/features/progress/progressRepository'
 import { clearAllData, resetDatabaseState } from '@/lib/database'
 
@@ -72,8 +73,8 @@ describe('fitness import repository', () => {
     expect(preview).toMatchObject({
       version: 2,
       displayUnit: 'lb',
-      exerciseCount: 8,
-      starterPlanCount: 3,
+      exerciseCount: STARTER_FITNESS_EXERCISES.length,
+      starterPlanCount: STARTER_FITNESS_PLANS.length,
       personalPlanCount: 1,
       sessionCount: 1,
       completedSessionCount: 1,

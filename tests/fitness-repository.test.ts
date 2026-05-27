@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
 import { clearAllData, resetDatabaseState } from '@/lib/database'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
+import { STARTER_FITNESS_PLANS } from '@/features/fitness/fitnessSeed'
 
 describe('fitnessRepository', () => {
   beforeEach(async () => {
@@ -22,7 +23,7 @@ describe('fitnessRepository', () => {
 
     expect(exercises.some((exercise) => exercise.name === 'Tlak na lavičke')).toBe(true)
     expect(exercises.some((exercise) => exercise.name === 'Drep')).toBe(true)
-    expect(starterPlans.map((plan) => plan.name)).toEqual(['Tlak / Ťah / Nohy', 'Vrch / Spodok', 'Celé telo 3×'])
+    expect(starterPlans.map((plan) => plan.name)).toEqual(STARTER_FITNESS_PLANS.map((plan) => plan.name))
   })
 
   test('creates custom exercises with trimmed names', async () => {
@@ -54,7 +55,44 @@ describe('fitnessRepository', () => {
     const starterPlans = await fitnessRepository.listStarterPlans()
 
     expect(personalPlans.map((plan) => plan.name)).toEqual(['My Hypertrophy Block'])
-    expect(starterPlans.map((plan) => plan.name)).toEqual(['Tlak / Ťah / Nohy', 'Vrch / Spodok', 'Celé telo 3×'])
+    expect(starterPlans.map((plan) => plan.name)).toEqual(STARTER_FITNESS_PLANS.map((plan) => plan.name))
+  })
+
+  test('creates the eight-week return plan starter structure from the PDF template', async () => {
+    await fitnessRepository.seedStarterData()
+    const starter = (await fitnessRepository.listStarterPlans()).find((plan) => plan.id === 'starter-navratovy-plan-kristian-8-tyzdnov')
+    if (!starter) {
+      throw new Error('Return starter missing')
+    }
+
+    const created = await fitnessRepository.createPersonalPlanFromStarter(starter.id, {
+      name: 'Návratový blok Kristián',
+      goal: starter.goal,
+    })
+    const structure = await fitnessRepository.getPlanStructure(created.id)
+
+    expect(structure.weeks.map((week) => week.weekNumber)).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
+    expect(structure.weeks[0]?.notes).toContain('RPE 6–7')
+    expect(structure.weeks[7]?.notes).toContain('deload')
+    expect(structure.weeks[0]?.days.map((day) => day.label)).toEqual([
+      'Upper A',
+      'Lower A',
+      'Zóna 2 / chôdza',
+      'Upper B',
+      'Lower B',
+      'Zóna 2 / chôdza',
+      'Voľno',
+    ])
+    expect(structure.weeks[0]?.days[0]?.workouts[0]?.exercises[0]).toMatchObject({
+      exerciseName: 'Incline benčpres s veľkou činkou',
+      targetSets: 3,
+      minReps: 5,
+      maxReps: 8,
+      targetRir: 3,
+    })
+    expect(structure.weeks[2]?.days[0]?.workouts[0]?.exercises[0]).toMatchObject({ targetSets: 4, targetRir: 2 })
+    expect(structure.weeks[7]?.days[0]?.workouts[0]?.exercises[0]).toMatchObject({ targetSets: 2, targetRir: 4 })
+    expect(structure.weeks[7]?.days[4]?.workouts[0]?.exercises[0]?.exerciseName).toBe('Trap bar mŕtvy ťah z vyšších rúčok')
   })
 
   test('rejects invalid names before writing', async () => {

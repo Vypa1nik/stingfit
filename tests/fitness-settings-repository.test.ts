@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
+import { STARTER_FITNESS_PLANS } from '@/features/fitness/fitnessSeed'
 import { clearAllData, execute, resetDatabaseState } from '@/lib/database'
 
 async function createPplPlan() {
@@ -39,7 +40,7 @@ describe('fitness settings repository', () => {
 
     const resetResult = await fitnessRepository.resetStarterData()
 
-    expect(resetResult.starterPlanCount).toBe(3)
+    expect(resetResult.starterPlanCount).toBe(STARTER_FITNESS_PLANS.length)
     expect((await fitnessRepository.listStarterPlans()).map((plan) => plan.name)).toContain('Tlak / Ťah / Nohy')
     expect((await fitnessRepository.listExercises()).map((exercise) => exercise.id)).toContain(customExercise.id)
     expect((await fitnessRepository.listPersonalPlans()).map((plan) => plan.name)).toContain('My PPL Block')

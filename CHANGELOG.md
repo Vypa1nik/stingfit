@@ -27,6 +27,9 @@ All notable changes to StingFit will be documented in this file.
   an error if the completion flag cannot be saved.
 - Starter data seeding now batches its local writes in one transaction for
   smoother repeated Training and Plans reads.
+- Starter templates now include the local 8-week PDF return plan for Kristián,
+  with multi-week cloning support, weekly RPE guidance, deload notes, and the
+  full Upper/Lower split from the source plan.
 - Train, Progress, Plans, the mobile top bar, and the mobile bottom nav now have
   a visibly rebuilt V3 product pass: stronger first-run guidance, a clearer
   "what do I do now" training panel, larger Progress tab cards, and less cramped

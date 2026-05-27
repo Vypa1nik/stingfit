@@ -97,6 +97,6 @@ describe('FitnessSettingsPage', () => {
     })
 
     expect(confirmSpy).not.toHaveBeenCalled()
-    expect(container.textContent).toContain('Štartovacie dáta obnovené: 3 štartovacie plány')
+    expect(container.textContent).toContain('Štartovacie dáta obnovené: 4 štartovacie plány')
   })
 })

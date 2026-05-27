@@ -6,8 +6,8 @@ import { FitnessPlansPage } from '@/features/fitness/FitnessPlansPage'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
 import { clearAllData, resetDatabaseState } from '@/lib/database'
 
-async function waitForAsyncUi() {
-  await new Promise((resolve) => window.setTimeout(resolve, 500))
+async function waitForAsyncUi(delayMs = 500) {
+  await new Promise((resolve) => window.setTimeout(resolve, delayMs))
 }
 
 function findButton(container: HTMLDivElement, label: string) {
@@ -132,7 +132,7 @@ describe('FitnessPlansPage repository integration', () => {
       await waitForAsyncUi()
     })
 
-    expect(container.textContent).toContain('Štartovacie šablóny pripravené: 3')
+    expect(container.textContent).toContain('Štartovacie šablóny pripravené: 4')
     expect(container.textContent).toContain('Osobné plány: 0')
 
     const fullBodyButton = container.querySelector<HTMLButtonElement>('button[aria-label="Vytvoriť osobný plán zo šablóny Celé telo 3×"]')
@@ -162,5 +162,33 @@ describe('FitnessPlansPage repository integration', () => {
     expect(container.textContent).toContain('Osobné plány: 2')
 
     await expect(fitnessRepository.listPersonalPlans()).resolves.toHaveLength(2)
+  })
+
+  test('shows and clones the eight-week return starter from the plans page', async () => {
+    await act(async () => {
+      root.render(<FitnessPlansPage />)
+    })
+
+    await act(async () => {
+      await waitForAsyncUi()
+    })
+
+    expect(container.textContent).toContain('Návratový plán')
+    expect(container.textContent).toContain('8 týždňov na bezpečný návrat')
+    const returnPlanButton = container.querySelector<HTMLButtonElement>('button[aria-label="Vytvoriť osobný plán zo šablóny Návratový plán"]')
+    expect(returnPlanButton).toBeDefined()
+
+    await act(async () => {
+      returnPlanButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await waitForAsyncUi(1400)
+    })
+
+    expect(container.textContent).toContain('Osobný plán vytvorený zo šablóny Návratový plán.')
+    expect(container.textContent).toContain('Môj plán Návratový plán')
+    const personalPlan = (await fitnessRepository.listPersonalPlans()).find((plan) => plan.name === 'Môj plán Návratový plán')
+    expect(personalPlan).toBeDefined()
+    const structure = await fitnessRepository.getPlanStructure(personalPlan!.id)
+    expect(structure.weeks).toHaveLength(8)
+    expect(structure.weeks[0]?.days[0]?.workouts[0]?.name).toBe('Deň 1 — Upper A')
   })
 })

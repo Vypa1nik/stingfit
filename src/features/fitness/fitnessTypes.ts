@@ -535,8 +535,15 @@ export interface StarterPlanStructureDay {
 	workouts: StarterPlanStructureWorkout[];
 }
 
+export interface StarterPlanStructureWeek {
+	weekNumber: number;
+	notes: string;
+	days: StarterPlanStructureDay[];
+}
+
 export interface StarterPlanStructure {
 	planId: string;
 	weekNotes: string;
 	days: StarterPlanStructureDay[];
+	weeks?: StarterPlanStructureWeek[];
 }

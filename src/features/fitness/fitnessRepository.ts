@@ -38,6 +38,7 @@ import type {
   ImportFitnessDataOptions,
   LogFitnessSetInput,
   StarterPlanStructureDay,
+  StarterPlanStructureWeek,
   UpdateFitnessExerciseInput,
   UpdateFitnessSettingsInput,
   UpdatePersonalPlanInput,
@@ -212,6 +213,7 @@ const starterPlanOrderSql = `CASE id
   WHEN 'starter-push-pull-legs' THEN 0
   WHEN 'starter-upper-lower' THEN 1
   WHEN 'starter-full-body-3x' THEN 2
+  WHEN 'starter-navratovy-plan-kristian-8-tyzdnov' THEN 3
   ELSE 99
 END`
 
@@ -744,17 +746,25 @@ async function insertPlanExercise(workoutId: string, input: AddPlanExerciseInput
 
 async function copyStarterStructure(planId: string, starterPlanId: string) {
   const structure = STARTER_PLAN_STRUCTURES.find((entry) => entry.planId === starterPlanId)
-  const week = await insertWeek(planId, 1, structure?.weekNotes ?? '')
+  const weeks: StarterPlanStructureWeek[] = structure?.weeks ?? [
+    {
+      weekNumber: 1,
+      notes: structure?.weekNotes ?? '',
+      days: structure?.days ?? [],
+    },
+  ]
+  let firstWeek: FitnessPlanWeekRecord | null = null
 
-  if (!structure) {
-    return week
+  for (const weekTemplate of weeks) {
+    const week = await insertWeek(planId, weekTemplate.weekNumber, weekTemplate.notes)
+    firstWeek ??= week
+
+    for (const dayTemplate of weekTemplate.days) {
+      await copyTemplateDay(week.id, dayTemplate)
+    }
   }
 
-  for (const dayTemplate of structure.days) {
-    await copyTemplateDay(week.id, dayTemplate)
-  }
-
-  return week
+  return firstWeek
 }
 
 async function copyTemplateDay(weekId: string, dayTemplate: StarterPlanStructureDay) {

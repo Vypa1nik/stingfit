@@ -137,10 +137,14 @@ describe("Slovak StingFit localization", () => {
 			"Tlak / Ťah / Nohy",
 			"Vrch / Spodok",
 			"Celé telo 3×",
+			"Návratový plán",
 		]);
 		expect(
 			STARTER_FITNESS_EXERCISES.map((exercise) => exercise.name),
 		).toContain("Tlak na lavičke");
+		expect(
+			STARTER_FITNESS_EXERCISES.map((exercise) => exercise.name),
+		).toContain("Trap bar mŕtvy ťah z vyšších rúčok");
 		expect(STARTER_PLAN_STRUCTURES[0]?.days.map((day) => day.label)).toEqual([
 			"Tlak A",
 			"Ťah A",
