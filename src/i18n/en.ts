@@ -431,6 +431,7 @@ export const en = {
 				`[en] Štartovací plán ${title} nie je dostupný.`,
 			preparePlanError:
 				"[en] Nepodarilo sa pripraviť jednoduchý tréningový plán.",
+			completeError: "[en] Nepodarilo sa uložiť dokončenie úvodu.",
 		},
 		setLogger: {
 			plateCalculatorTitle: "[en] Kalkulačka kotúčov",

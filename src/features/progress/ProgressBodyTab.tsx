@@ -5,6 +5,12 @@ import { Plus, Save, Trash2, Weight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input, TextArea } from "@/components/ui/Input";
+import { fitnessRepository } from "@/features/fitness/fitnessRepository";
+import {
+	convertWeightFromKg,
+	convertWeightToKg,
+	type FitnessDisplayUnit,
+} from "@/features/fitness/fitnessUnits";
 import { progressRepository } from "@/features/progress/progressRepository";
 import type {
 	BodyMeasurementInput,
@@ -52,9 +58,9 @@ function formatNumber(value: number | null) {
 const NUMERIC_FIELDS: Array<{
 	key: keyof BodyMeasurementInput;
 	label: string;
-	unit: string;
+	unit: "bodyweight" | "cm";
 }> = [
-	{ key: "bodyweightKg", label: "Hmotnosť", unit: "kg" },
+	{ key: "bodyweightKg", label: "Hmotnosť", unit: "bodyweight" },
 	{ key: "waistCm", label: "Pás", unit: "cm" },
 	{ key: "chestCm", label: "Hrudník", unit: "cm" },
 	{ key: "bicepsLeftCm", label: "Biceps ľavý", unit: "cm" },
@@ -65,9 +71,39 @@ const NUMERIC_FIELDS: Array<{
 	{ key: "calfRightCm", label: "Lýtko pravé", unit: "cm" },
 ];
 
+function getFieldUnit(
+	field: (typeof NUMERIC_FIELDS)[number],
+	displayUnit: FitnessDisplayUnit,
+) {
+	return field.unit === "bodyweight" ? displayUnit : "cm";
+}
+
+function getDisplayMeasurementValue(
+	field: (typeof NUMERIC_FIELDS)[number],
+	value: number | null,
+	displayUnit: FitnessDisplayUnit,
+) {
+	if (value === null) return null;
+	return field.unit === "bodyweight"
+		? convertWeightFromKg(value, displayUnit)
+		: value;
+}
+
+function toStoredMeasurementValue(
+	field: (typeof NUMERIC_FIELDS)[number],
+	value: number | null,
+	displayUnit: FitnessDisplayUnit,
+) {
+	if (value === null) return null;
+	return field.unit === "bodyweight"
+		? convertWeightToKg(value, displayUnit)
+		: value;
+}
+
 export function ProgressBodyTab() {
 	const pushToast = useUiStore((state) => state.pushToast);
 	const [records, setRecords] = useState<BodyMeasurementRecord[]>([]);
+	const [displayUnit, setDisplayUnit] = useState<FitnessDisplayUnit>("kg");
 	const [isLoading, setIsLoading] = useState(true);
 	const [draft, setDraft] = useState<BodyMeasurementInput>(emptyDraft());
 	const [draftId, setDraftId] = useState<string | null>(null);
@@ -76,11 +112,14 @@ export function ProgressBodyTab() {
 	useEffect(() => {
 		let cancelled = false;
 		setIsLoading(true);
-		progressRepository
-			.listBodyMeasurements()
-			.then((rows) => {
+		Promise.all([
+			progressRepository.listBodyMeasurements(),
+			fitnessRepository.getSettings(),
+		])
+			.then(([rows, settings]) => {
 				if (!cancelled) {
 					setRecords(rows);
+					setDisplayUnit(settings.displayUnit);
 					setIsLoading(false);
 				}
 			})
@@ -105,20 +144,20 @@ export function ProgressBodyTab() {
 			.filter((r) => r.bodyweightKg !== null)
 			.map((r) => ({
 				x: new Date(`${r.recordedOn}T00:00:00`).getTime(),
-				y: r.bodyweightKg as number,
+				y: convertWeightFromKg(r.bodyweightKg as number, displayUnit),
 			}))
 			.sort((a, b) => a.x - b.x);
 		if (points.length === 0) return [];
 		return [
 			{
 				id: "bodyweight",
-				label: "Hmotnosť",
+				label: `Hmotnosť (${displayUnit})`,
 				color: "rgb(250, 204, 21)",
 				emphasize: true,
 				points,
 			},
 		];
-	}, [records]);
+	}, [displayUnit, records]);
 
 	const waistChestSeries = useMemo<LineChartSeries[]>(() => {
 		const sorted = [...records].sort(
@@ -159,10 +198,17 @@ export function ProgressBodyTab() {
 	}, [records]);
 
 	function handleNumericChange(
-		key: keyof BodyMeasurementInput,
+		field: (typeof NUMERIC_FIELDS)[number],
 		value: string,
 	) {
-		setDraft((current) => ({ ...current, [key]: toNumberOrNull(value) }));
+		setDraft((current) => ({
+			...current,
+			[field.key]: toStoredMeasurementValue(
+				field,
+				toNumberOrNull(value),
+				displayUnit,
+			),
+		}));
 	}
 
 	function resetDraft() {
@@ -265,24 +311,30 @@ export function ProgressBodyTab() {
 						/>
 					</div>
 					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-						{NUMERIC_FIELDS.map((field) => (
-							<div key={field.key}>
-								<label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-fitness-warm/75">
-									{field.label} ({field.unit})
-								</label>
-								<Input
-									type="number"
-									inputMode="decimal"
-									step="0.1"
-									value={
-										draft[field.key] === null ? "" : String(draft[field.key])
-									}
-									onChange={(event) =>
-										handleNumericChange(field.key, event.target.value)
-									}
-								/>
-							</div>
-						))}
+						{NUMERIC_FIELDS.map((field) => {
+							const displayValue = getDisplayMeasurementValue(
+								field,
+								draft[field.key] as number | null,
+								displayUnit,
+							);
+
+							return (
+								<div key={field.key}>
+									<label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-fitness-warm/75">
+										{field.label} ({getFieldUnit(field, displayUnit)})
+									</label>
+									<Input
+										type="number"
+										inputMode="decimal"
+										step="0.1"
+										value={displayValue === null ? "" : String(displayValue)}
+										onChange={(event) =>
+											handleNumericChange(field, event.target.value)
+										}
+									/>
+								</div>
+							);
+						})}
 					</div>
 					<div>
 						<label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-fitness-warm/75">
@@ -314,22 +366,30 @@ export function ProgressBodyTab() {
 			{latest ? (
 				<Card title="Najnovšie miery" description={`Záznam z ${latest.recordedOn}`}>
 					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-						{NUMERIC_FIELDS.map((field) => (
-							<div
-								key={field.key}
-								className="rounded-2xl border border-fitness-yellow/20 bg-black/40 px-3 py-3 text-sm"
-							>
-								<p className="text-[10px] uppercase tracking-wider text-fitness-warm/65">
-									{field.label}
-								</p>
-								<p className="mt-1 text-base font-bold text-fitness-yellow">
-									{formatNumber(latest[field.key] as number | null)}{" "}
-									<span className="text-xs font-medium text-fitness-warm/65">
-										{field.unit}
-									</span>
-								</p>
-							</div>
-						))}
+						{NUMERIC_FIELDS.map((field) => {
+							const displayValue = getDisplayMeasurementValue(
+								field,
+								latest[field.key] as number | null,
+								displayUnit,
+							);
+
+							return (
+								<div
+									key={field.key}
+									className="rounded-2xl border border-fitness-yellow/20 bg-black/40 px-3 py-3 text-sm"
+								>
+									<p className="text-[10px] uppercase tracking-wider text-fitness-warm/65">
+										{field.label}
+									</p>
+									<p className="mt-1 text-base font-bold text-fitness-yellow">
+										{formatNumber(displayValue)}{" "}
+										<span className="text-xs font-medium text-fitness-warm/65">
+											{getFieldUnit(field, displayUnit)}
+										</span>
+									</p>
+								</div>
+							);
+						})}
 					</div>
 				</Card>
 			) : null}
@@ -341,7 +401,7 @@ export function ProgressBodyTab() {
 				>
 					<MiniLineChart
 						series={bodyweightSeries}
-						yLabelFormatter={(value) => `${value.toFixed(1)} kg`}
+						yLabelFormatter={(value) => `${value.toFixed(1)} ${displayUnit}`}
 					/>
 				</Card>
 			) : null}
@@ -380,7 +440,7 @@ export function ProgressBodyTab() {
 									<p className="text-sm font-semibold text-white">
 										{record.recordedOn}
 										{record.bodyweightKg !== null
-											? ` — ${record.bodyweightKg} kg`
+											? ` — ${formatNumber(convertWeightFromKg(record.bodyweightKg, displayUnit))} ${displayUnit}`
 											: ""}
 									</p>
 									{record.note ? (

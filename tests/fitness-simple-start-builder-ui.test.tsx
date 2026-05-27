@@ -1,10 +1,10 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { FitnessDashboard } from "@/features/fitness/FitnessDashboard";
-import { clearAllData, resetDatabaseState } from "@/lib/database";
+import { clearAllData, resetDatabaseState, settingsApi } from "@/lib/database";
 
 async function waitForAsyncUi(delayMs = 500) {
 	await new Promise((resolve) => window.setTimeout(resolve, delayMs));
@@ -42,6 +42,7 @@ describe("Simple Start Builder", () => {
 	});
 
 	afterEach(async () => {
+		vi.restoreAllMocks();
 		act(() => {
 			root.unmount();
 		});
@@ -108,10 +109,41 @@ describe("Simple Start Builder", () => {
 			findButton(container, "Spustiť rýchly zápis")?.dispatchEvent(
 				new MouseEvent("click", { bubbles: true }),
 			);
+			await waitForAsyncUi();
 		});
 
 		expect(window.localStorage.getItem("stingfit.onboarding.complete")).toBe(
 			"true",
 		);
+	});
+
+	test("keeps onboarding visible when completion persistence fails", async () => {
+		vi.spyOn(settingsApi, "set").mockRejectedValueOnce(
+			new Error("Database write failed"),
+		);
+		const { OnboardingFlow } = await import(
+			"@/features/onboarding/OnboardingFlow"
+		);
+
+		await act(async () => {
+			root.render(
+				<MemoryRouter initialEntries={["/"]}>
+					<OnboardingFlow />
+				</MemoryRouter>,
+			);
+		});
+
+		await act(async () => {
+			findButton(container, "Spustiť rýchly zápis")?.dispatchEvent(
+				new MouseEvent("click", { bubbles: true }),
+			);
+			await waitForAsyncUi();
+		});
+
+		expect(window.localStorage.getItem("stingfit.onboarding.complete")).toBeNull();
+		expect(container.textContent).toContain(
+			"Nepodarilo sa uložiť dokončenie úvodu.",
+		);
+		expect(container.textContent).toContain("Vyber jednoduchý začiatok");
 	});
 });

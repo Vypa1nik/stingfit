@@ -6,6 +6,8 @@ import { FitnessDashboard } from '@/features/fitness/FitnessDashboard'
 import { FitnessHistoryPage } from '@/features/fitness/FitnessHistoryPage'
 import { FitnessStatsPage } from '@/features/fitness/FitnessStatsPage'
 import { fitnessRepository } from '@/features/fitness/fitnessRepository'
+import { ProgressBodyTab } from '@/features/progress/ProgressBodyTab'
+import { progressRepository } from '@/features/progress/progressRepository'
 import { clearAllData, resetDatabaseState } from '@/lib/database'
 
 async function waitForAsyncUi() {
@@ -115,6 +117,36 @@ describe('fitness display unit integration', () => {
 
     const activeSession = await fitnessRepository.getActiveSession()
     expect(activeSession?.exercises[0]?.sets[0]).toMatchObject({ status: 'completed', weightKg: 100 })
+  })
+
+  test('progress body measurements display lb while storing kg', async () => {
+    await fitnessRepository.updateSettings({ displayUnit: 'lb' })
+    await progressRepository.upsertBodyMeasurement({
+      recordedOn: '2026-05-20',
+      bodyweightKg: 83.1,
+      waistCm: 85,
+      chestCm: null,
+      bicepsLeftCm: null,
+      bicepsRightCm: null,
+      thighLeftCm: null,
+      thighRightCm: null,
+      calfLeftCm: null,
+      calfRightCm: null,
+      note: 'Morning check-in',
+      photoUri: null,
+    })
+
+    const body = render(<ProgressBodyTab />)
+    roots.push(body.root)
+    containers.push(body.container)
+
+    await act(async () => {
+      await waitForAsyncUi()
+    })
+
+    expect(body.container.textContent).toContain('Hmotnosť (lb)')
+    expect(body.container.textContent).toContain('183.2 lb')
+    expect(body.container.textContent).toContain('2026-05-20 — 183.2 lb')
   })
 
   test('history and stats render volume and PR labels in lb when lb is selected', async () => {

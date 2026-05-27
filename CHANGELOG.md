@@ -21,6 +21,12 @@ All notable changes to StingFit will be documented in this file.
   note fails to save, with a clear non-blocking warning.
 - Compact buttons now keep a larger mobile tap target for gym-time correction
   actions while staying dense on wider screens.
+- Progress body measurements now follow the selected kg/lb display unit while
+  continuing to store bodyweight in kg internally.
+- Onboarding completion now waits for local persistence and stays visible with
+  an error if the completion flag cannot be saved.
+- Starter data seeding now batches its local writes in one transaction for
+  smoother repeated Training and Plans reads.
 - Train, Progress, Plans, the mobile top bar, and the mobile bottom nav now have
   a visibly rebuilt V3 product pass: stronger first-run guidance, a clearer
   "what do I do now" training panel, larger Progress tab cards, and less cramped

@@ -419,6 +419,7 @@ export const sk = {
 			starterUnavailable: (title: string) =>
 				`Štartovací plán ${title} nie je dostupný.`,
 			preparePlanError: "Nepodarilo sa pripraviť jednoduchý tréningový plán.",
+			completeError: "Nepodarilo sa uložiť dokončenie úvodu.",
 		},
 		setLogger: {
 			plateCalculatorTitle: "Kalkulačka kotúčov",

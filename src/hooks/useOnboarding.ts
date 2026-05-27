@@ -10,8 +10,8 @@ interface OnboardingState {
   isComplete: boolean
   currentStep: number
   setCurrentStep: (step: number) => void
-  complete: () => void
-  reset: () => void
+  complete: () => Promise<void>
+  reset: () => Promise<void>
 }
 
 const getInitialValue = () => {
@@ -26,18 +26,18 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   isComplete: getInitialValue(),
   currentStep: 0,
   setCurrentStep: (currentStep) => set({ currentStep }),
-  complete: () => {
+  complete: async () => {
+    await settingsApi.set('onboarding_complete', 'true')
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(STORAGE_KEY, 'true')
     }
-    void settingsApi.set('onboarding_complete', 'true')
     set({ isComplete: true, currentStep: 0 })
   },
-  reset: () => {
+  reset: async () => {
+    await settingsApi.set('onboarding_complete', 'false')
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(STORAGE_KEY)
     }
-    void settingsApi.set('onboarding_complete', 'false')
     set({ isComplete: false, currentStep: 0 })
   },
 }))

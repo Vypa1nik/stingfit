@@ -511,8 +511,11 @@ function normalizeNullableRating(value: number | null | undefined, min: number, 
   return rounded
 }
 
-async function insertStarterExercise(exercise: FitnessExerciseRecord) {
-  await execute(
+async function insertStarterExercise(
+  exercise: FitnessExerciseRecord,
+  runSql: SqlRunner = execute,
+) {
+  await runSql(
     `INSERT INTO fitness_exercises(
       id, name, category, muscle_group, default_rest_seconds, is_custom, created_at, updated_at, deleted_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -538,8 +541,11 @@ async function insertStarterExercise(exercise: FitnessExerciseRecord) {
   )
 }
 
-async function insertStarterPlan(plan: FitnessPlanRecord) {
-  await execute(
+async function insertStarterPlan(
+  plan: FitnessPlanRecord,
+  runSql: SqlRunner = execute,
+) {
+  await runSql(
     `INSERT INTO fitness_plans(
       id, name, goal, kind, source_template_id, status, created_at, updated_at, deleted_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -1436,13 +1442,19 @@ export const fitnessRepository = {
   },
 
   seedStarterData: async () => {
-    for (const exercise of STARTER_FITNESS_EXERCISES) {
-      await insertStarterExercise(exercise)
-    }
+    await withTransaction(async (db) => {
+      const runSql: SqlRunner = async (sql, params = []) => {
+        db.run(sql, params)
+      }
 
-    for (const plan of STARTER_FITNESS_PLANS) {
-      await insertStarterPlan(plan)
-    }
+      for (const exercise of STARTER_FITNESS_EXERCISES) {
+        await insertStarterExercise(exercise, runSql)
+      }
+
+      for (const plan of STARTER_FITNESS_PLANS) {
+        await insertStarterPlan(plan, runSql)
+      }
+    })
   },
 
   resetStarterData: async () => {

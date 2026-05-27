@@ -19,9 +19,13 @@ export function OnboardingFlow() {
 	const [isPreparing, setIsPreparing] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	const finishAndNavigate = (path: string) => {
-		complete();
-		navigate(path);
+	const finishAndNavigate = async (path: string) => {
+		try {
+			await complete();
+			navigate(path);
+		} catch {
+			setError(sk.fitness.onboarding.completeError);
+		}
 	};
 
 	const prepareSimplePlan = async (choice: FitnessSimpleStartChoice) => {
@@ -41,7 +45,7 @@ export function OnboardingFlow() {
 				goal: choice.goal,
 			});
 
-			finishAndNavigate("/train");
+			await finishAndNavigate("/train");
 		} catch (cause) {
 			setError(
 				cause instanceof Error
@@ -72,7 +76,7 @@ export function OnboardingFlow() {
 						<SimpleStartBuilder
 							isMutating={isPreparing}
 							onSelectPlan={(choice) => void prepareSimplePlan(choice)}
-							onQuickSession={() => finishAndNavigate("/train/quick")}
+							onQuickSession={() => void finishAndNavigate("/train/quick")}
 							variant="embedded"
 						/>
 
