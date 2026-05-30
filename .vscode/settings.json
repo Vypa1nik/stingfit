@@ -2,6 +2,8 @@
   "terminal.integrated.env.windows": {
     "HOME": "C:\\Users\\kiko",
     "USERPROFILE": "C:\\Users\\kiko",
+    "APPDATA": "C:\\Users\\kiko\\AppData\\Roaming",
+    "LOCALAPPDATA": "C:\\Users\\kiko\\AppData\\Local",
     "GIT_TERMINAL_PROMPT": "0",
     "GCM_INTERACTIVE": "never",
     "GH_NO_UPDATE_NOTIFIER": "1",
