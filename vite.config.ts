@@ -12,7 +12,10 @@ function normalizeBasePath(basePath: string | undefined) {
 	return basePath.endsWith("/") ? basePath : `${basePath}/`;
 }
 
+const workspaceRoot = fileURLToPath(new URL(".", import.meta.url));
+
 export default defineConfig({
+	root: workspaceRoot,
 	base: normalizeBasePath(process.env.VITE_BASE_PATH),
 	plugins: [react(), tailwindcss()],
 	server: {
